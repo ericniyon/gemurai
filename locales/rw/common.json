@@ -1,0 +1,62 @@
+{
+  "navigation": {
+    "home": "Ahabanza",
+    "about": "Ibyerekeye",
+    "services": "Serivisi",
+    "contact": "Tuvugishe",
+    "login": "Injira",
+    "register": "Iyandikishe",
+    "dashboard": "Urubuga",
+    "profile": "Umwirondoro",
+    "settings": "Igenamiterere",
+    "logout": "Sohoka"
+  },
+  "auth": {
+    "login": "Injira",
+    "register": "Iyandikishe",
+    "email": "Imeyili",
+    "password": "Ijambobanga",
+    "confirmPassword": "Emeza Ijambobanga",
+    "forgotPassword": "Wibagiwe Ijambobanga?",
+    "rememberMe": "Munyibuke",
+    "noAccount": "Nta konti ufite?",
+    "hasAccount": "Ufite konti?"
+  },
+  "common": {
+    "welcome": "Murakaza neza",
+    "loading": "Birimo Gupakirwa...",
+    "error": "Habayeho ikosa",
+    "success": "Byagenze neza",
+    "save": "Bika",
+    "cancel": "Hagarika",
+    "delete": "Siba",
+    "edit": "Hindura",
+    "search": "Shakisha",
+    "filter": "Sefura",
+    "sort": "Tondeka",
+    "view": "Reba",
+    "more": "Ibindi"
+  },
+  "products": {
+    "title": "Ibicuruzwa",
+    "addProduct": "Ongeraho Igicuruzwa",
+    "editProduct": "Hindura Igicuruzwa",
+    "deleteProduct": "Siba Igicuruzwa",
+    "name": "Izina ry'Igicuruzwa",
+    "description": "Ibisobanuro",
+    "price": "Igiciro",
+    "category": "Icyiciro",
+    "subcategory": "Icyiciro gito",
+    "image": "Ifoto",
+    "status": "Imiterere"
+  },
+  "forms": {
+    "submit": "Ohereza",
+    "reset": "Subiramo",
+    "required": "Birakenewe",
+    "invalidEmail": "Imeyili itariyo",
+    "passwordMismatch": "Ijambobanga ntirihuye",
+    "minLength": "Byibuze inyuguti {{min}}",
+    "maxLength": "Nibura inyuguti {{max}}"
+  }
+} 

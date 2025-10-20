@@ -1,0 +1,1115 @@
+/* ===== APPLICATIONS DASHBOARD STYLES ===== */
+
+/* Import Google Fonts for enhanced typography */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap');
+
+/* ===== ENHANCED ROOT VARIABLES ===== */
+:root {
+  /* Modern Color Palette */
+  --background: #fafbfc;
+  --foreground: #1a202c;
+  --card: #ffffff;
+  --card-foreground: #1a202c;
+  --popover: #ffffff;
+  --popover-foreground: #1a202c;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #475569;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --accent: #e0f2fe;
+  --accent-foreground: #0369a1;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #f1f5f9;
+  --ring: #3b82f6;
+  
+  /* Enhanced Chart Colors */
+  --chart-1: #3b82f6;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+  
+  /* Sidebar Colors */
+  --sidebar: #f8fafc;
+  --sidebar-foreground: #1a202c;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e0f2fe;
+  --sidebar-accent-foreground: #0369a1;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #3b82f6;
+  
+  /* Typography */
+  --font-sans: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
+  
+  /* Spacing & Layout */
+  --radius: 0.75rem;
+  --spacing: 0.25rem;
+  
+  /* Enhanced Shadows */
+  --shadow-2xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-xs: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  
+  /* Status Colors */
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  --error: #ef4444;
+  --error-foreground: #ffffff;
+  --info: #3b82f6;
+  --info-foreground: #ffffff;
+  
+  /* Gradient Colors */
+  --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.dark {
+  /* Dark Mode Color Palette */
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #334155;
+  --secondary-foreground: #cbd5e1;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e40af;
+  --accent-foreground: #dbeafe;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #334155;
+  --input: #334155;
+  --ring: #3b82f6;
+  
+  /* Dark Mode Chart Colors */
+  --chart-1: #3b82f6;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+  
+  /* Dark Mode Sidebar */
+  --sidebar: #0f172a;
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e40af;
+  --sidebar-accent-foreground: #dbeafe;
+  --sidebar-border: #334155;
+  --sidebar-ring: #3b82f6;
+  
+  /* Dark Mode Status Colors */
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
+  --error: #ef4444;
+  --error-foreground: #ffffff;
+  --info: #3b82f6;
+  --info-foreground: #ffffff;
+  
+  /* Dark Mode Shadows */
+  --shadow-2xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-xs: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== GLOBAL STYLES ===== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--background);
+  min-height: 100vh;
+  color: var(--foreground);
+  line-height: 1.6;
+}
+
+/* ===== TYPOGRAPHY ===== */
+.applications-dashboard h1 {
+  font-family: var(--font-serif);
+  font-weight: 800;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+.applications-dashboard h2 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.applications-dashboard h3 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.applications-dashboard p {
+  font-weight: 400;
+  color: var(--muted-foreground);
+  line-height: 1.7;
+  font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+/* ===== CARD STYLES ===== */
+.applications-dashboard .card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.applications-dashboard .card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.applications-dashboard .card.elevated {
+  box-shadow: var(--shadow-lg);
+}
+
+.applications-dashboard .card-header {
+  background: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem;
+}
+
+.applications-dashboard .card-content {
+  padding: 1.5rem;
+}
+
+/* ===== ANALYTICS CARDS ===== */
+.analytics-card {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.analytics-card:hover {
+  transform: translateY(-4px);
+  box-shadow: none;
+  border-color: var(--accent);
+}
+
+.analytics-card.elevated {
+  box-shadow: none;
+}
+
+.analytics-card.blue {
+  background: var(--background);
+  border: 1px solid var(--border);
+}
+
+.analytics-card.green {
+  background: var(--background);
+  border: 1px solid var(--border);
+}
+
+.analytics-card.orange {
+  background: var(--background);
+  border: 1px solid var(--border);
+}
+
+.analytics-card.purple {
+  background: var(--background);
+  border: 1px solid var(--border);
+}
+
+.analytics-card .icon-container {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.analytics-card .icon-container.blue {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.analytics-card .icon-container.green {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.analytics-card .icon-container.orange {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.analytics-card .icon-container.purple {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.analytics-card .stat-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.analytics-card .stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.analytics-card .stat-description {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+/* Specific styling for Total Applications card to keep it smaller */
+.applications-dashboard .analytics-card.blue {
+  background: var(--background) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.applications-dashboard .analytics-card.blue .icon-container {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+.applications-dashboard .analytics-card.blue .stat-label {
+  font-size: 0.75rem !important;
+}
+
+.applications-dashboard .analytics-card.blue .stat-number {
+  font-size: 1.5rem !important;
+}
+
+.applications-dashboard .analytics-card.blue .stat-description {
+  font-size: 0.75rem !important;
+}
+
+/* ===== ICON STYLES ===== */
+.applications-dashboard .icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--radius);
+  background: var(--background);
+  box-shadow: var(--shadow-xs);
+  transition: all 0.2s ease-in-out;
+}
+
+.applications-dashboard .analytics-card:hover .icon-container {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-sm);
+}
+
+.applications-dashboard .icon-container.blue {
+  color: var(--accent-foreground);
+}
+
+.applications-dashboard .icon-container.purple {
+  color: var(--sidebar-primary);
+}
+
+.applications-dashboard .icon-container.green {
+  color: var(--accent-foreground);
+}
+
+.applications-dashboard .icon-container.orange {
+  color: var(--muted-foreground);
+}
+
+.applications-dashboard .icon-container.pink {
+  color: var(--muted-foreground);
+}
+
+/* ===== STATISTICS STYLES ===== */
+.applications-dashboard .stat-number {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+  color: var(--foreground);
+}
+
+.applications-dashboard .stat-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+  color: var(--muted-foreground);
+}
+
+.applications-dashboard .stat-description {
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted-foreground);
+}
+
+/* ===== TAB STYLES ===== */
+.applications-dashboard .tabs-container {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.applications-dashboard .tabs-list {
+  background: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem;
+  margin: 0;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.applications-dashboard .tab-trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.applications-dashboard .tab-trigger:hover {
+  color: var(--foreground);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.applications-dashboard .tab-trigger.active {
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* ===== BADGE STYLES ===== */
+.applications-dashboard .badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  border-radius: var(--radius);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid transparent;
+}
+
+.applications-dashboard .badge.blue {
+  background: var(--chart-1);
+  color: var(--accent-foreground);
+  border-color: var(--accent);
+}
+
+.applications-dashboard .badge.purple {
+  background: var(--secondary);
+  color: var(--sidebar-primary);
+  border-color: var(--sidebar-primary);
+}
+
+.applications-dashboard .badge.green {
+  background: var(--chart-2);
+  color: var(--accent-foreground);
+  border-color: var(--accent);
+}
+
+.applications-dashboard .badge.orange {
+  background: var(--chart-3);
+  color: var(--muted-foreground);
+  border-color: var(--border);
+}
+
+.applications-dashboard .badge.pink {
+  background: var(--chart-4);
+  color: var(--muted-foreground);
+  border-color: var(--border);
+}
+
+/* ===== BUTTON STYLES ===== */
+.applications-dashboard .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.applications-dashboard .btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: var(--shadow-sm);
+}
+
+.applications-dashboard .btn-primary:hover {
+  background: var(--foreground);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.applications-dashboard .btn-secondary {
+  background: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
+}
+
+.applications-dashboard .btn-secondary:hover {
+  background: var(--muted);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ===== TABLE STYLES ===== */
+.applications-dashboard .table-container {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.applications-dashboard .table {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent;
+}
+
+.applications-dashboard .table-header {
+  background: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.applications-dashboard .table-head {
+  padding: 1rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-align: left;
+  color: var(--foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: transparent;
+  border: none;
+}
+
+.applications-dashboard .table-row {
+  border-bottom: 1px solid var(--border);
+  transition: all 0.2s ease-in-out;
+  background: transparent;
+}
+
+.applications-dashboard .table-row:hover {
+  background: var(--muted);
+}
+
+.applications-dashboard .table-row.selected {
+  background: var(--accent);
+  border-left: 3px solid var(--primary);
+}
+
+.applications-dashboard .table-cell {
+  padding: 1rem 1.5rem;
+  font-weight: 500;
+  color: var(--foreground);
+  background: transparent;
+  border: none;
+}
+
+/* ===== LOADING ANIMATIONS ===== */
+.applications-dashboard .loading-spinner {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.applications-dashboard .loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+  .applications-dashboard h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+  }
+  
+  .applications-dashboard .stat-number {
+    font-size: clamp(1.25rem, 2.5vw, 2rem);
+  }
+  
+  .applications-dashboard .card-content {
+    padding: 1rem;
+  }
+  
+  .applications-dashboard .card-header {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .applications-dashboard h1 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+  }
+  
+  .applications-dashboard .analytics-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .applications-dashboard .tab-trigger {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .applications-dashboard .table-cell {
+    padding: 0.75rem;
+  }
+  
+  .applications-dashboard .tabs-list {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .applications-dashboard h1 {
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  }
+  
+  .applications-dashboard .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .applications-dashboard .card-header {
+    padding: 0.75rem;
+  }
+  
+  .applications-dashboard .card-content {
+    padding: 0.75rem;
+  }
+  
+  .applications-dashboard .analytics-card {
+    padding: 0.75rem;
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.applications-dashboard .text-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--sidebar-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.applications-dashboard .glass-effect {
+  background: var(--background);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+}
+
+.applications-dashboard .shadow-glow {
+  box-shadow: var(--shadow-lg);
+}
+
+.applications-dashboard .hover-lift {
+  transition: transform 0.2s ease-in-out;
+}
+
+.applications-dashboard .hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.applications-dashboard .hover-scale {
+  transition: transform 0.2s ease-in-out;
+}
+
+.applications-dashboard .hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* ===== CUSTOM SCROLLBAR ===== */
+.applications-dashboard ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.applications-dashboard ::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: var(--radius);
+}
+
+.applications-dashboard ::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius);
+  transition: background 0.2s ease-in-out;
+}
+
+.applications-dashboard ::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* ===== FOCUS STATES ===== */
+.applications-dashboard .btn:focus,
+.applications-dashboard .tab-trigger:focus,
+.applications-dashboard .table-cell:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ===== STATUS INDICATORS ===== */
+.applications-dashboard .status-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  animation: pulse 2s infinite;
+}
+
+.applications-dashboard .status-indicator.online {
+  background: var(--accent-foreground);
+}
+
+.applications-dashboard .status-indicator.offline {
+  background: var(--muted-foreground);
+}
+
+.applications-dashboard .status-indicator.warning {
+  background: var(--destructive);
+}
+
+.applications-dashboard .status-indicator.error {
+  background: var(--destructive);
+}
+
+/* ===== ENHANCED ANIMATION UTILITIES ===== */
+.applications-dashboard .animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.applications-dashboard .animate-slide-in-left {
+  animation: slideInLeft 0.4s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.applications-dashboard .animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.applications-dashboard .animate-zoom-in {
+  animation: zoomIn 0.4s ease-out;
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.applications-dashboard .animate-bounce-in {
+  animation: bounceIn 0.6s ease-out;
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.applications-dashboard .animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.applications-dashboard .animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.applications-dashboard .animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.applications-dashboard .animate-pulse-slow {
+  animation: pulseSlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseSlow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.applications-dashboard .animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ===== ENHANCED INTERACTION STATES ===== */
+.applications-dashboard .interactive {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.applications-dashboard .interactive:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--shadow-lg);
+}
+
+.applications-dashboard .interactive:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ===== MODERN GRADIENT UTILITIES ===== */
+.applications-dashboard .gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--sidebar-primary) 100%);
+}
+
+.applications-dashboard .gradient-secondary {
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+}
+
+.applications-dashboard .gradient-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.applications-dashboard .gradient-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.applications-dashboard .gradient-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* ===== GLASS MORPHISM EFFECTS ===== */
+.applications-dashboard .glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.applications-dashboard .glass-card-dark {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* ===== NEUMORPHISM EFFECTS ===== */
+.applications-dashboard .neumorphic {
+  background: var(--background);
+  box-shadow: 
+    20px 20px 60px var(--border),
+    -20px -20px 60px var(--card);
+  border: 1px solid var(--border);
+}
+
+.applications-dashboard .neumorphic-inset {
+  background: var(--background);
+  box-shadow: 
+    inset 20px 20px 60px var(--border),
+    inset -20px -20px 60px var(--card);
+  border: 1px solid var(--border);
+}
+
+/* ===== ENHANCED HOVER EFFECTS ===== */
+.applications-dashboard .hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.applications-dashboard .hover-lift:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.applications-dashboard .hover-glow:hover {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+.applications-dashboard .hover-scale {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.applications-dashboard .hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* ===== LOADING STATES ===== */
+.applications-dashboard .skeleton {
+  background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ===== MODERN SCROLLBAR ===== */
+.applications-dashboard ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.applications-dashboard ::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 10px;
+}
+
+.applications-dashboard ::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, var(--primary), var(--sidebar-primary));
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+.applications-dashboard ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, var(--sidebar-primary), var(--primary));
+}
+
+/* ===== FOCUS STATES ===== */
+.applications-dashboard .focus-ring:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  border-color: var(--primary);
+}
+
+/* ===== RESPONSIVE ENHANCEMENTS ===== */
+@media (max-width: 1024px) {
+  .applications-dashboard .hover-lift:hover {
+    transform: translateY(-2px) scale(1.01);
+  }
+  
+  .applications-dashboard .hover-scale:hover {
+    transform: scale(1.02);
+  }
+}
+
+@media (max-width: 768px) {
+  .applications-dashboard .neumorphic {
+    box-shadow: 
+      10px 10px 30px var(--border),
+      -10px -10px 30px var(--card);
+  }
+  
+  .applications-dashboard .neumorphic-inset {
+    box-shadow: 
+      inset 10px 10px 30px var(--border),
+      inset -10px -10px 30px var(--card);
+  }
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+@media (prefers-reduced-motion: reduce) {
+  .applications-dashboard * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+@media (prefers-contrast: high) {
+  .applications-dashboard .card {
+    border: 2px solid var(--foreground);
+  }
+  
+  .applications-dashboard .btn {
+    border: 2px solid var(--foreground);
+  }
+} 

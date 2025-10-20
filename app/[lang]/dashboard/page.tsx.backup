@@ -1,0 +1,856 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
+
+// Components
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Separator } from "@/components/ui/separator"
+import { Calendar } from "@/components/ui/calendar"
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+
+// Custom Components
+import { CapitalDetails } from "./components/capital-details"
+import { KPIChart } from "./components/kpi-chart"
+import { DCCPerformanceCharts } from "./components/dcc-performance-charts"
+import { SalesRecorder } from "./components/sales-recorder"
+
+// Hooks
+import { useAuth } from "@/hooks/use-auth"
+import { useToast } from "@/hooks/use-toast"
+
+// Utils
+import { cn } from "@/lib/utils"
+import { dashboardTranslations } from "@/app/[lang]/translations/dashboard"
+
+// Icons
+import {
+  TrendingUp,
+  Package,
+  DollarSign,
+  ShoppingCart,
+  Target,
+  ArrowUpRight,
+  ArrowDownRight,
+  Activity,
+  Bell,
+  Users,
+  Briefcase,
+  Clock,
+  LineChart,
+  CheckCircle,
+  Star,
+  BarChart3,
+  PieChart,
+  TrendingDown,
+  Eye,
+  Settings,
+  Download,
+  RefreshCw,
+  Plus,
+  Calendar as CalendarIcon,
+  MapPin,
+  Phone,
+  Mail,
+  Shield,
+  Award,
+  Zap,
+  Target as TargetIcon,
+  Lightbulb,
+  Rocket,
+  Crown,
+  Gem,
+  Sparkles
+} from "lucide-react"
+
+// Types
+type BusinessMetrics = {
+  stock: {
+    total: number
+    digital: number
+    physical: number
+    outOfStock: number
+  }
+  earnings: {
+    total: number
+    lastMonth: number
+    growth: number
+  }
+  capital: {
+    total: number
+    available: number
+    invested: number
+  }
+  sales: {
+    total: number
+    average: number
+    target: number
+  }
+}
+
+type EmployerMetrics = {
+  employees: {
+    total: number
+    active: number
+    onLeave: number
+    newHires: number
+    growth: number
+  }
+  jobs: {
+    total: number
+    active: number
+    completed: number
+    inProgress: number
+  }
+  productivity: {
+    average: number
+    target: number
+    growth: number
+  }
+  retention: {
+    rate: number
+    improvement: number
+    avgTenure: number
+  }
+}
+
+export default function DashboardPage() {
+  const { user } = useAuth()
+  const params = useParams()
+  const lang = (params?.lang as string) || "en"
+  const t = dashboardTranslations[lang]
+  const { toast } = useToast()
+  const [isCapitalDetailsOpen, setIsCapitalDetailsOpen] = useState(false)
+  
+  // Business metrics state
+  const [metrics, setMetrics] = useState<BusinessMetrics>({
+    stock: {
+      total: 10000,
+      digital: 6000,
+      physical: 4000,
+      outOfStock: 150
+    },
+    earnings: {
+      total: 25000,
+      lastMonth: 20000,
+      growth: 25
+    },
+    capital: {
+      total: 50000,
+      available: 30000,
+      invested: 20000
+    },
+    sales: {
+      total: 15000,
+      average: 500,
+      target: 20000
+    }
+  })
+
+  // Employer metrics state
+  const [employerMetrics, setEmployerMetrics] = useState<EmployerMetrics>({
+    employees: {
+      total: 150,
+      active: 135,
+      onLeave: 10,
+      newHires: 5,
+      growth: 15
+    },
+    jobs: {
+      total: 200,
+      active: 45,
+      completed: 145,
+      inProgress: 10
+    },
+    productivity: {
+      average: 85,
+      target: 90,
+      growth: 5
+    },
+    retention: {
+      rate: 92,
+      improvement: 3,
+      avgTenure: 2.5
+    }
+  })
+
+  // Stock analytics state
+  const [stockAnalytics, setStockAnalytics] = useState<any>(null)
+  const [loadingStock, setLoadingStock] = useState(false)
+  const [stockError, setStockError] = useState("")
+
+  // DCC-specific metrics state
+  const [dccMetrics, setDccMetrics] = useState({
+    sales: {
+      total: 0,
+      lastMonth: 0,
+      growth: 0
+    },
+    stock: {
+      total: 0,
+      lowStock: 0,
+      outOfStock: 0
+    },
+    performance: {
+      rating: 0,
+      completedOrders: 0,
+      pendingOrders: 0
+    },
+    earnings: {
+      total: 0,
+      thisMonth: 0,
+      growth: 0
+    }
+  })
+
+  // Loading state for DCC metrics
+  const [loadingDccMetrics, setLoadingDccMetrics] = useState(false)
+  const [dccMetricsError, setDccMetricsError] = useState("")
+
+  // Fetch DCC metrics
+  const fetchDccMetrics = async () => {
+    if (user?.role !== "DCC") return
+    setLoadingDccMetrics(true)
+    setDccMetricsError("")
+    try {
+      const token = localStorage.getItem("DJYH_token")
+      if (!token) {
+        setDccMetricsError("No authentication token found")
+        return
+      }
+
+      console.log("Fetching DCC metrics for user:", user.id)
+      const res = await fetch("/api/dashboard/dcc-metrics", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        }
+      })
+      
+      console.log("DCC metrics response status:", res.status)
+      
+      if (!res.ok) {
+        const errorText = await res.text()
+        console.error("DCC metrics error response:", errorText)
+        throw new Error(`Failed to fetch DCC metrics: ${res.status} ${res.statusText}`)
+      }
+
+      const data = await res.json()
+      console.log("DCC metrics response data:", data)
+      
+      if (data.success) {
+        setDccMetrics(data.data)
+      } else {
+        throw new Error(data.message || "Failed to fetch DCC metrics")
+      }
+    } catch (error) {
+      console.error("Error fetching DCC metrics:", error)
+      setDccMetricsError(error instanceof Error ? error.message : "Failed to fetch DCC metrics")
+    } finally {
+      setLoadingDccMetrics(false)
+    }
+  }
+
+  useEffect(() => {
+    async function fetchStockAnalytics() {
+      if (user?.role !== "EMPLOYER") return
+      setLoadingStock(true)
+      setStockError("")
+      try {
+        console.log("Fetching stock analytics for user:", user.id)
+        const res = await fetch("/api/stock/analytics", { 
+          credentials: "include",
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        
+        console.log("Response status:", res.status)
+        console.log("Response headers:", Object.fromEntries(res.headers.entries()))
+        
+        if (!res.ok) {
+          const errorText = await res.text()
+          console.error("API Error:", res.status, errorText)
+          setStockError(`API Error: ${res.status} - ${errorText}`)
+          return
+        }
+        
+        const data = await res.json()
+        console.log("Stock analytics response:", data)
+        
+        if (data.success) {
+          setStockAnalytics(data.analytics)
+        } else {
+          setStockError(data.error || "Failed to load stock analytics.")
+        }
+      } catch (e) {
+        console.error("Error fetching stock analytics:", e)
+        setStockError(`Network Error: ${e instanceof Error ? e.message : 'Unknown error'}`)
+      } finally {
+        setLoadingStock(false)
+      }
+    }
+    fetchStockAnalytics()
+    fetchDccMetrics()
+  }, [user])
+
+  // Chart data types
+  type ChartData = {
+    inventory: {
+      months: string[]
+      orders: number[]
+      sales: number[]
+      stockRatio: number[]
+      commission: number[]
+    }
+    employer: {
+      months: string[]
+      employeeGrowth: number[]
+      productivity: number[]
+      retention: number[]
+      jobCompletion: number[]
+    }
+    dcc: {
+      months: string[]
+      sales: number[]
+      stockRatio: number[]
+      performance: number[]
+      earnings: number[]
+    }
+  }
+
+  // Chart data for KPI visualization
+  const [chartData] = useState<ChartData>({
+    inventory: {
+      months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      orders: [120, 150, 180, 220, 150, 180],
+      sales: [2000000, 2500000, 3000000, 3500000, 2500000, 3000000],
+      stockRatio: [2.1, 2.3, 2.5, 2.8, 2.4, 2.5],
+      commission: [200000, 250000, 300000, 350000, 250000, 300000]
+    },
+    employer: {
+      months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      employeeGrowth: [130, 135, 140, 142, 145, 150],
+      productivity: [80, 82, 85, 83, 86, 85],
+      retention: [88, 89, 90, 91, 92, 92],
+      jobCompletion: [85, 87, 89, 90, 92, 93]
+    },
+    dcc: {
+      months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      sales: [150000, 180000, 200000, 220000, 250000, 280000],
+      stockRatio: [1.8, 2.0, 2.2, 2.1, 2.3, 2.4],
+      performance: [4.2, 4.3, 4.4, 4.5, 4.6, 4.5],
+      earnings: [20000, 22000, 24000, 26000, 28000, 30000]
+    }
+  })
+
+  // Add notification state
+  const [notifications] = useState([
+    {
+      id: 1,
+      title: "New Applications",
+      message: "5 new job applications received",
+      type: "success" as const
+    },
+    {
+      id: 2,
+      title: "Performance Review",
+      message: "Quarterly reviews due in 2 weeks",
+      type: "warning" as const
+    }
+  ])
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('rw-RW', {
+      style: 'currency',
+      currency: 'RWF',
+      minimumFractionDigits: 0
+    }).format(amount)
+  }
+
+  // Format percentage with + or - sign
+  const formatPercentage = (value: number) => {
+    return value >= 0 ? `+${value}%` : `${value}%`
+  }
+
+  if (!user) return null
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="container mx-auto py-8 px-4 space-y-8">
+        {/* Analytics for EMPLOYER role */}
+        {user.role === "EMPLOYER" && (
+          <>
+            {/* Enhanced Stock Management Analytics Cards */}
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+              {loadingStock ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-4">
+                    <RefreshCw className="h-8 w-8 text-white animate-spin" />
+                  </div>
+                  <p className="text-lg font-medium text-gray-600">Loading your analytics...</p>
+                </div>
+              ) : stockError ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-full mb-4">
+                    <Activity className="h-8 w-8 text-white" />
+                  </div>
+                  <p className="text-lg font-medium text-red-600">{stockError}</p>
+                </div>
+              ) : stockAnalytics && (
+                <>
+                  <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 rounded-2xl">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+                    <CardContent className="relative p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                              <Package className="h-6 w-6 text-gray-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-1">Total Products</h3>
+                              <p className="text-2xl font-bold text-gray-900 leading-none">{stockAnalytics.totalProducts}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center text-green-600 text-sm font-medium">
+                                <ArrowUpRight className="h-4 w-4 mr-1" />
+                                <span>+12%</span>
+                              </div>
+                              <span className="text-gray-400 text-xs">from last month</span>
+                            </div>
+                            <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-medium px-3 py-1 rounded-full">Stock</Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 rounded-2xl">
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-green-500 to-emerald-600"></div>
+                    <CardContent className="relative p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                              <DollarSign className="h-6 w-6 text-gray-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-1">Total Stock Value</h3>
+                              <p className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(stockAnalytics.totalStockValue)}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center text-green-600 text-sm font-medium">
+                                <ArrowUpRight className="h-4 w-4 mr-1" />
+                                <span>+8%</span>
+                              </div>
+                              <span className="text-gray-400 text-xs">from last month</span>
+                            </div>
+                            <Badge className="bg-green-50 text-green-700 border-green-200 text-xs font-medium px-3 py-1 rounded-full">Value</Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 rounded-2xl">
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-orange-500 to-red-600"></div>
+                    <CardContent className="relative p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                              <Activity className="h-6 w-6 text-gray-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-1">Low Stock Items</h3>
+                              <p className="text-2xl font-bold text-gray-900 leading-none">{stockAnalytics.lowStockItems.length}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center text-orange-600 text-sm font-medium">
+                                <ArrowDownRight className="h-4 w-4 mr-1" />
+                                <span>Requires attention</span>
+                              </div>
+                            </div>
+                            <Badge className="bg-orange-50 text-orange-700 border-orange-200 text-xs font-medium px-3 py-1 rounded-full">Alert</Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 rounded-2xl">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-purple-500 to-violet-600"></div>
+                    <CardContent className="relative p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                              <Package className="h-6 w-6 text-gray-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-1">Out of Stock Items</h3>
+                              <p className="text-2xl font-bold text-gray-900 leading-none">{stockAnalytics.outOfStockItems.length}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center text-red-600 text-sm font-medium">
+                                <ArrowDownRight className="h-4 w-4 mr-1" />
+                                <span>Needs restocking</span>
+                              </div>
+                            </div>
+                            <Badge className="bg-purple-50 text-purple-700 border-purple-200 text-xs font-medium px-3 py-1 rounded-full">Out of Stock</Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </div>
+
+            {/* Enhanced Performance Charts */}
+            <div className="grid gap-8 md:grid-cols-2">
+              <Card className="analytics-card elevated gradient border-0">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold font-serif text-gray-900">Employee Growth Trend</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm text-gray-600">Growth</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <KPIChart 
+                    data={chartData.employer} 
+                    title="Employee Growth Trend" 
+                    metric="employeeGrowth"
+                    format="number"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card className="analytics-card elevated gradient border-0">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold font-serif text-gray-900">Productivity Metrics</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="text-sm text-gray-600">Performance</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <KPIChart 
+                    data={chartData.employer} 
+                    title="Productivity" 
+                    metric="productivity"
+                    format="percentage"
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Additional Enhanced Charts */}
+            <div className="grid gap-8 md:grid-cols-2">
+              <Card className="analytics-card elevated gradient border-0">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold font-serif text-gray-900">Retention Rate</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                      <span className="text-sm text-gray-600">Retention</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <KPIChart 
+                    data={chartData.employer} 
+                    title="Retention Rate" 
+                    metric="retention"
+                    format="percentage"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card className="analytics-card elevated gradient border-0">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold font-serif text-gray-900">Job Completion Rate</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      <span className="text-sm text-gray-600">Completion</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <KPIChart 
+                    data={chartData.employer} 
+                    title="Job Completion Rate" 
+                    metric="jobCompletion"
+                    format="percentage"
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+
+        {/* Analytics for DCC role */}
+        {user.role === "DCC" && (
+          <>
+            {/* Enhanced DCC Overview Cards */}
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+              {loadingDccMetrics ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full mb-4">
+                    <RefreshCw className="h-8 w-8 text-white animate-spin" />
+                  </div>
+                  <p className="text-lg font-medium text-gray-600">Loading your DCC metrics...</p>
+                </div>
+              ) : dccMetricsError ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-full mb-4">
+                    <Activity className="h-8 w-8 text-white" />
+                  </div>
+                  <p className="text-lg font-medium text-red-600">{dccMetricsError}</p>
+                </div>
+              ) : (
+                <>
+                  <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 rounded-2xl">
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-green-500 to-emerald-600"></div>
+                <CardContent className="relative p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                          <DollarSign className="h-6 w-6 text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-1">Total Sales</h3>
+                          <p className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(dccMetrics.sales.total)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center text-green-600 text-sm font-medium">
+                            <ArrowUpRight className="h-4 w-4 mr-1" />
+                            <span>{formatPercentage(dccMetrics.sales.growth)}</span>
+                          </div>
+                        </div>
+                        <Badge className="bg-green-50 text-green-700 border-green-200 text-xs font-medium px-3 py-1 rounded-full">Sales</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 rounded-2xl">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+                <CardContent className="relative p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                          <Package className="h-6 w-6 text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-1">Total Items</h3>
+                          <p className="text-2xl font-bold text-gray-900 leading-none">{dccMetrics.stock.total}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-gray-400 text-xs">{dccMetrics.stock.lowStock} low stock</div>
+                        <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-medium px-3 py-1 rounded-full">Stock</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 rounded-2xl">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-orange-500 to-yellow-600"></div>
+                <CardContent className="relative p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                          <Star className="h-6 w-6 text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-1">Performance Rating</h3>
+                          <p className="text-2xl font-bold text-gray-900 leading-none">{dccMetrics.performance.rating}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-gray-400 text-xs">{dccMetrics.performance.completedOrders} orders completed</div>
+                        <Badge className="bg-orange-50 text-orange-700 border-orange-200 text-xs font-medium px-3 py-1 rounded-full">Rating</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="group relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 rounded-2xl">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-violet-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-purple-500 to-violet-600"></div>
+                <CardContent className="relative p-6">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+                          <TrendingUp className="h-6 w-6 text-gray-600" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wider mb-1">Total Earnings</h3>
+                          <p className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(dccMetrics.earnings.total)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center text-green-600 text-sm font-medium">
+                            <ArrowUpRight className="h-4 w-4 mr-1" />
+                            <span>{formatPercentage(dccMetrics.earnings.growth)}</span>
+                          </div>
+                        </div>
+                        <Badge className="bg-purple-50 text-purple-700 border-purple-200 text-xs font-medium px-3 py-1 rounded-full">Earnings</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+                </>
+            </div>
+
+            {/* Enhanced DCC Performance Charts */}
+            <div className="grid gap-8 md:grid-cols-2">
+              <Card className="analytics-card elevated gradient border-0">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold font-serif text-gray-900">Sales Performance</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="text-sm text-gray-600">Sales</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <KPIChart 
+                    data={chartData.dcc} 
+                    title="Sales Performance" 
+                    metric="sales"
+                    format="currency"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card className="analytics-card elevated gradient border-0">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold font-serif text-gray-900">Performance Rating</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      <span className="text-sm text-gray-600">Rating</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <KPIChart 
+                    data={chartData.dcc} 
+                    title="Performance Rating" 
+                    metric="performance"
+                    format="number"
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Additional Enhanced DCC Charts */}
+            <div className="grid gap-8 md:grid-cols-2">
+              <Card className="analytics-card elevated gradient border-0">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold font-serif text-gray-900">Stock Management</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm text-gray-600">Stock</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <KPIChart 
+                    data={chartData.dcc} 
+                    title="Stock Ratio" 
+                    metric="stockRatio"
+                    format="number"
+                  />
+                </CardContent>
+              </Card>
+
+              <Card className="analytics-card elevated gradient border-0">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold font-serif text-gray-900">Monthly Earnings</h3>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                      <span className="text-sm text-gray-600">Earnings</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <KPIChart 
+                    data={chartData.dcc} 
+                    title="Monthly Earnings" 
+                    metric="earnings"
+                    format="currency"
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sales Recording Section for DCC */}
+            <SalesRecorder />
+            )}
+          </>
+        )}
+
+        {/* Default content for other roles */}
+        {user.role !== "EMPLOYER" && user.role !== "DCC" && (
+          <Card className="analytics-card elevated gradient border-0">
+            <CardContent className="text-center py-16">
+              <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Users className="h-12 w-12 text-white" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-4 text-gray-900">Welcome to DJYH Platform</h3>
+              <p className="text-gray-600 text-lg mb-6">Your personalized dashboard is being configured for your role.</p>
+              <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white border-0">
+                <Settings className="h-5 w-5 mr-2" />
+                Configure Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  )
+}

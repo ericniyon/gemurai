@@ -1,0 +1,3848 @@
+// Rwanda Administrative Divisions Data Structure
+export interface Village {
+  id: string
+  name: string
+  cellId: string
+}
+
+export interface Cell {
+  id: string
+  name: string
+  sectorId: string
+  villages: Village[]
+}
+
+export interface Sector {
+  id: string
+  name: string
+  districtId: string
+  cells: Cell[]
+}
+
+export interface District {
+  id: string
+  name: string
+  provinceId: string
+  sectors: Sector[]
+}
+
+export interface Province {
+  id: string
+  name: string
+  districts: District[]
+}
+
+// Rwanda Administrative Divisions Data
+export const rwandaAdministrativeDivisions: Province[] = [
+  {
+    id: "kigali",
+    name: "Kigali City",
+    districts: [
+      {
+        id: "gasabo",
+        name: "Gasabo",
+        provinceId: "kigali",
+        sectors: [
+          {
+            id: "bumbogo",
+            name: "Bumbogo",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "bumbogo_cell",
+                name: "Bumbogo",
+                sectorId: "bumbogo",
+                villages: [
+                  { id: "bumbogo_v1", name: "Bumbogo I", cellId: "bumbogo_cell" },
+                  { id: "bumbogo_v2", name: "Bumbogo II", cellId: "bumbogo_cell" },
+                  { id: "bumbogo_v3", name: "Bumbogo III", cellId: "bumbogo_cell" },
+                ],
+              },
+              {
+                id: "nyabisindu",
+                name: "Nyabisindu",
+                sectorId: "bumbogo",
+                villages: [
+                  { id: "nyabisindu_v1", name: "Nyabisindu I", cellId: "nyabisindu" },
+                  { id: "nyabisindu_v2", name: "Nyabisindu II", cellId: "nyabisindu" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gatsata",
+            name: "Gatsata",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "gatsata_cell",
+                name: "Gatsata",
+                sectorId: "gatsata",
+                villages: [
+                  { id: "gatsata_v1", name: "Gatsata I", cellId: "gatsata_cell" },
+                  { id: "gatsata_v2", name: "Gatsata II", cellId: "gatsata_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "jali",
+            name: "Jali",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "jali_cell",
+                name: "Jali",
+                sectorId: "jali",
+                villages: [
+                  { id: "jali_v1", name: "Jali I", cellId: "jali_cell" },
+                  { id: "jali_v2", name: "Jali II", cellId: "jali_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gikomero",
+            name: "Gikomero",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "gikomero_cell",
+                name: "Gikomero",
+                sectorId: "gikomero",
+                villages: [
+                  { id: "gikomero_v1", name: "Gikomero I", cellId: "gikomero_cell" },
+                  { id: "gikomero_v2", name: "Gikomero II", cellId: "gikomero_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gisozi",
+            name: "Gisozi",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "gisozi_cell",
+                name: "Gisozi",
+                sectorId: "gisozi",
+                villages: [
+                  { id: "gisozi_v1", name: "Gisozi I", cellId: "gisozi_cell" },
+                  { id: "gisozi_v2", name: "Gisozi II", cellId: "gisozi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "jabana",
+            name: "Jabana",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "jabana_cell",
+                name: "Jabana",
+                sectorId: "jabana",
+                villages: [
+                  { id: "jabana_v1", name: "Jabana I", cellId: "jabana_cell" },
+                  { id: "jabana_v2", name: "Jabana II", cellId: "jabana_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kacyiru",
+            name: "Kacyiru",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "kacyiru_cell",
+                name: "Kacyiru",
+                sectorId: "kacyiru",
+                villages: [
+                  { id: "kacyiru_v1", name: "Kacyiru I", cellId: "kacyiru_cell" },
+                  { id: "kacyiru_v2", name: "Kacyiru II", cellId: "kacyiru_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kimihurura",
+            name: "Kimihurura",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "kimihurura_cell",
+                name: "Kimihurura",
+                sectorId: "kimihurura",
+                villages: [
+                  { id: "kimihurura_v1", name: "Kimihurura I", cellId: "kimihurura_cell" },
+                  { id: "kimihurura_v2", name: "Kimihurura II", cellId: "kimihurura_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kimisagara",
+            name: "Kimisagara",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "kimisagara_cell",
+                name: "Kimisagara",
+                sectorId: "kimisagara",
+                villages: [
+                  { id: "kimisagara_v1", name: "Kimisagara I", cellId: "kimisagara_cell" },
+                  { id: "kimisagara_v2", name: "Kimisagara II", cellId: "kimisagara_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kinyinya",
+            name: "Kinyinya",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "kinyinya_cell",
+                name: "Kinyinya",
+                sectorId: "kinyinya",
+                villages: [
+                  { id: "kinyinya_v1", name: "Kinyinya I", cellId: "kinyinya_cell" },
+                  { id: "kinyinya_v2", name: "Kinyinya II", cellId: "kinyinya_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ndera",
+            name: "Ndera",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "ndera_cell",
+                name: "Ndera",
+                sectorId: "ndera",
+                villages: [
+                  { id: "ndera_v1", name: "Ndera I", cellId: "ndera_cell" },
+                  { id: "ndera_v2", name: "Ndera II", cellId: "ndera_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nduba",
+            name: "Nduba",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "nduba_cell",
+                name: "Nduba",
+                sectorId: "nduba",
+                villages: [
+                  { id: "nduba_v1", name: "Nduba I", cellId: "nduba_cell" },
+                  { id: "nduba_v2", name: "Nduba II", cellId: "nduba_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "remera",
+            name: "Remera",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "remera_cell",
+                name: "Remera",
+                sectorId: "remera",
+                villages: [
+                  { id: "remera_v1", name: "Remera I", cellId: "remera_cell" },
+                  { id: "remera_v2", name: "Remera II", cellId: "remera_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rusororo",
+            name: "Rusororo",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "rusororo_cell",
+                name: "Rusororo",
+                sectorId: "rusororo",
+                villages: [
+                  { id: "rusororo_v1", name: "Rusororo I", cellId: "rusororo_cell" },
+                  { id: "rusororo_v2", name: "Rusororo II", cellId: "rusororo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rutunga",
+            name: "Rutunga",
+            districtId: "gasabo",
+            cells: [
+              {
+                id: "rutunga_cell",
+                name: "Rutunga",
+                sectorId: "rutunga",
+                villages: [
+                  { id: "rutunga_v1", name: "Rutunga I", cellId: "rutunga_cell" },
+                  { id: "rutunga_v2", name: "Rutunga II", cellId: "rutunga_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "kicukiro",
+        name: "Kicukiro",
+        provinceId: "kigali",
+        sectors: [
+          {
+            id: "gahanga",
+            name: "Gahanga",
+            districtId: "kicukiro",
+            cells: [
+              {
+                id: "gahanga_cell",
+                name: "Gahanga",
+                sectorId: "gahanga",
+                villages: [
+                  { id: "gahanga_v1", name: "Gahanga I", cellId: "gahanga_cell" },
+                  { id: "gahanga_v2", name: "Gahanga II", cellId: "gahanga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gatenga",
+            name: "Gatenga",
+            districtId: "kicukiro",
+            cells: [
+              {
+                id: "gatenga_cell",
+                name: "Gatenga",
+                sectorId: "gatenga",
+                villages: [
+                  { id: "gatenga_v1", name: "Gatenga I", cellId: "gatenga_cell" },
+                  { id: "gatenga_v2", name: "Gatenga II", cellId: "gatenga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gikondo",
+            name: "Gikondo",
+            districtId: "kicukiro",
+            cells: [
+              {
+                id: "gikondo_cell",
+                name: "Gikondo",
+                sectorId: "gikondo",
+                villages: [
+                  { id: "gikondo_v1", name: "Gikondo I", cellId: "gikondo_cell" },
+                  { id: "gikondo_v2", name: "Gikondo II", cellId: "gikondo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kagarama",
+            name: "Kagarama",
+            districtId: "kicukiro",
+            cells: [
+              {
+                id: "kagarama_cell",
+                name: "Kagarama",
+                sectorId: "kagarama",
+                villages: [
+                  { id: "kagarama_v1", name: "Kagarama I", cellId: "kagarama_cell" },
+                  { id: "kagarama_v2", name: "Kagarama II", cellId: "kagarama_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kanombe",
+            name: "Kanombe",
+            districtId: "kicukiro",
+            cells: [
+              {
+                id: "kanombe_cell",
+                name: "Kanombe",
+                sectorId: "kanombe",
+                villages: [
+                  { id: "kanombe_v1", name: "Kanombe I", cellId: "kanombe_cell" },
+                  { id: "kanombe_v2", name: "Kanombe II", cellId: "kanombe_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kicukiro_sector",
+            name: "Kicukiro",
+            districtId: "kicukiro",
+            cells: [
+              {
+                id: "kicukiro_sector_cell",
+                name: "Kicukiro",
+                sectorId: "kicukiro_sector",
+                villages: [
+                  { id: "kicukiro_v1", name: "Kicukiro I", cellId: "kicukiro_sector_cell" },
+                  { id: "kicukiro_v2", name: "Kicukiro II", cellId: "kicukiro_sector_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "niboye",
+            name: "Niboye",
+            districtId: "kicukiro",
+            cells: [
+              {
+                id: "niboye_cell",
+                name: "Niboye",
+                sectorId: "niboye",
+                villages: [
+                  { id: "niboye_v1", name: "Niboye I", cellId: "niboye_cell" },
+                  { id: "niboye_v2", name: "Niboye II", cellId: "niboye_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "nyarugenge",
+        name: "Nyarugenge",
+        provinceId: "kigali",
+        sectors: [
+          {
+            id: "gitega",
+            name: "Gitega",
+            districtId: "nyarugenge",
+            cells: [
+              {
+                id: "gitega_cell",
+                name: "Gitega",
+                sectorId: "gitega",
+                villages: [
+                  { id: "gitega_v1", name: "Gitega I", cellId: "gitega_cell" },
+                  { id: "gitega_v2", name: "Gitega II", cellId: "gitega_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kanyinya",
+            name: "Kanyinya",
+            districtId: "nyarugenge",
+            cells: [
+              {
+                id: "kanyinya_cell",
+                name: "Kanyinya",
+                sectorId: "kanyinya",
+                villages: [
+                  { id: "kanyinya_v1", name: "Kanyinya I", cellId: "kanyinya_cell" },
+                  { id: "kanyinya_v2", name: "Kanyinya II", cellId: "kanyinya_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kigali",
+            name: "Kigali",
+            districtId: "nyarugenge",
+            cells: [
+              {
+                id: "kigali_cell",
+                name: "Kigali",
+                sectorId: "kigali",
+                villages: [
+                  { id: "kigali_v1", name: "Kigali I", cellId: "kigali_cell" },
+                  { id: "kigali_v2", name: "Kigali II", cellId: "kigali_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kimisagara_nyarugenge",
+            name: "Kimisagara",
+            districtId: "nyarugenge",
+            cells: [
+              {
+                id: "kimisagara_nyarugenge_cell",
+                name: "Kimisagara",
+                sectorId: "kimisagara_nyarugenge",
+                villages: [
+                  { id: "kimisagara_nyarugenge_v1", name: "Kimisagara I", cellId: "kimisagara_nyarugenge_cell" },
+                  { id: "kimisagara_nyarugenge_v2", name: "Kimisagara II", cellId: "kimisagara_nyarugenge_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mageragere",
+            name: "Mageragere",
+            districtId: "nyarugenge",
+            cells: [
+              {
+                id: "mageragere_cell",
+                name: "Mageragere",
+                sectorId: "mageragere",
+                villages: [
+                  { id: "mageragere_v1", name: "Mageragere I", cellId: "mageragere_cell" },
+                  { id: "mageragere_v2", name: "Mageragere II", cellId: "mageragere_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "muhima",
+            name: "Muhima",
+            districtId: "nyarugenge",
+            cells: [
+              {
+                id: "muhima_cell",
+                name: "Muhima",
+                sectorId: "muhima",
+                villages: [
+                  { id: "muhima_v1", name: "Muhima I", cellId: "muhima_cell" },
+                  { id: "muhima_v2", name: "Muhima II", cellId: "muhima_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyakabanda",
+            name: "Nyakabanda",
+            districtId: "nyarugenge",
+            cells: [
+              {
+                id: "nyakabanda_cell",
+                name: "Nyakabanda",
+                sectorId: "nyakabanda",
+                villages: [
+                  { id: "nyakabanda_v1", name: "Nyakabanda I", cellId: "nyakabanda_cell" },
+                  { id: "nyakabanda_v2", name: "Nyakabanda II", cellId: "nyakabanda_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyamirambo",
+            name: "Nyamirambo",
+            districtId: "nyarugenge",
+            cells: [
+              {
+                id: "nyamirambo_cell",
+                name: "Nyamirambo",
+                sectorId: "nyamirambo",
+                villages: [
+                  { id: "nyamirambo_v1", name: "Nyamirambo I", cellId: "nyamirambo_cell" },
+                  { id: "nyamirambo_v2", name: "Nyamirambo II", cellId: "nyamirambo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rwezamenyo",
+            name: "Rwezamenyo",
+            districtId: "nyarugenge",
+            cells: [
+              {
+                id: "rwezamenyo_cell",
+                name: "Rwezamenyo",
+                sectorId: "rwezamenyo",
+                villages: [
+                  { id: "rwezamenyo_v1", name: "Rwezamenyo I", cellId: "rwezamenyo_cell" },
+                  { id: "rwezamenyo_v2", name: "Rwezamenyo II", cellId: "rwezamenyo_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "eastern",
+    name: "Eastern Province",
+    districts: [
+      {
+        id: "bugesera",
+        name: "Bugesera",
+        provinceId: "eastern",
+        sectors: [
+          {
+            id: "gashora",
+            name: "Gashora",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "gashora_cell",
+                name: "Gashora",
+                sectorId: "gashora",
+                villages: [
+                  { id: "gashora_v1", name: "Gashora I", cellId: "gashora_cell" },
+                  { id: "gashora_v2", name: "Gashora II", cellId: "gashora_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "juru",
+            name: "Juru",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "juru_cell",
+                name: "Juru",
+                sectorId: "juru",
+                villages: [
+                  { id: "juru_v1", name: "Juru I", cellId: "juru_cell" },
+                  { id: "juru_v2", name: "Juru II", cellId: "juru_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kamabuye",
+            name: "Kamabuye",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "kamabuye_cell",
+                name: "Kamabuye",
+                sectorId: "kamabuye",
+                villages: [
+                  { id: "kamabuye_v1", name: "Kamabuye I", cellId: "kamabuye_cell" },
+                  { id: "kamabuye_v2", name: "Kamabuye II", cellId: "kamabuye_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mayange",
+            name: "Mayange",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "mayange_cell",
+                name: "Mayange",
+                sectorId: "mayange",
+                villages: [
+                  { id: "mayange_v1", name: "Mayange I", cellId: "mayange_cell" },
+                  { id: "mayange_v2", name: "Mayange II", cellId: "mayange_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "musenyi",
+            name: "Musenyi",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "musenyi_cell",
+                name: "Musenyi",
+                sectorId: "musenyi",
+                villages: [
+                  { id: "musenyi_v1", name: "Musenyi I", cellId: "musenyi_cell" },
+                  { id: "musenyi_v2", name: "Musenyi II", cellId: "musenyi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ngeruka",
+            name: "Ngeruka",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "ngeruka_cell",
+                name: "Ngeruka",
+                sectorId: "ngeruka",
+                villages: [
+                  { id: "ngeruka_v1", name: "Ngeruka I", cellId: "ngeruka_cell" },
+                  { id: "ngeruka_v2", name: "Ngeruka II", cellId: "ngeruka_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ntarama",
+            name: "Ntarama",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "ntarama_cell",
+                name: "Ntarama",
+                sectorId: "ntarama",
+                villages: [
+                  { id: "ntarama_v1", name: "Ntarama I", cellId: "ntarama_cell" },
+                  { id: "ntarama_v2", name: "Ntarama II", cellId: "ntarama_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyamata",
+            name: "Nyamata",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "nyamata_cell",
+                name: "Nyamata",
+                sectorId: "nyamata",
+                villages: [
+                  { id: "nyamata_v1", name: "Nyamata I", cellId: "nyamata_cell" },
+                  { id: "nyamata_v2", name: "Nyamata II", cellId: "nyamata_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyarugenge_bugesera",
+            name: "Nyarugenge",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "nyarugenge_bugesera_cell",
+                name: "Nyarugenge",
+                sectorId: "nyarugenge_bugesera",
+                villages: [
+                  { id: "nyarugenge_bugesera_v1", name: "Nyarugenge I", cellId: "nyarugenge_bugesera_cell" },
+                  { id: "nyarugenge_bugesera_v2", name: "Nyarugenge II", cellId: "nyarugenge_bugesera_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rilima",
+            name: "Rilima",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "rilima_cell",
+                name: "Rilima",
+                sectorId: "rilima",
+                villages: [
+                  { id: "rilima_v1", name: "Rilima I", cellId: "rilima_cell" },
+                  { id: "rilima_v2", name: "Rilima II", cellId: "rilima_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ruhuha",
+            name: "Ruhuha",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "ruhuha_cell",
+                name: "Ruhuha",
+                sectorId: "ruhuha",
+                villages: [
+                  { id: "ruhuha_v1", name: "Ruhuha I", cellId: "ruhuha_cell" },
+                  { id: "ruhuha_v2", name: "Ruhuha II", cellId: "ruhuha_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rweru",
+            name: "Rweru",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "rweru_cell",
+                name: "Rweru",
+                sectorId: "rweru",
+                villages: [
+                  { id: "rweru_v1", name: "Rweru I", cellId: "rweru_cell" },
+                  { id: "rweru_v2", name: "Rweru II", cellId: "rweru_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "shyara",
+            name: "Shyara",
+            districtId: "bugesera",
+            cells: [
+              {
+                id: "shyara_cell",
+                name: "Shyara",
+                sectorId: "shyara",
+                villages: [
+                  { id: "shyara_v1", name: "Shyara I", cellId: "shyara_cell" },
+                  { id: "shyara_v2", name: "Shyara II", cellId: "shyara_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "gatsibo",
+        name: "Gatsibo",
+        provinceId: "eastern",
+        sectors: [
+          {
+            id: "gasange",
+            name: "Gasange",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "gasange_cell",
+                name: "Gasange",
+                sectorId: "gasange",
+                villages: [
+                  { id: "gasange_v1", name: "Gasange I", cellId: "gasange_cell" },
+                  { id: "gasange_v2", name: "Gasange II", cellId: "gasange_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gatsibo_sector",
+            name: "Gatsibo",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "gatsibo_sector_cell",
+                name: "Gatsibo",
+                sectorId: "gatsibo_sector",
+                villages: [
+                  { id: "gatsibo_sector_v1", name: "Gatsibo I", cellId: "gatsibo_sector_cell" },
+                  { id: "gatsibo_sector_v2", name: "Gatsibo II", cellId: "gatsibo_sector_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gitoki",
+            name: "Gitoki",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "gitoki_cell",
+                name: "Gitoki",
+                sectorId: "gitoki",
+                villages: [
+                  { id: "gitoki_v1", name: "Gitoki I", cellId: "gitoki_cell" },
+                  { id: "gitoki_v2", name: "Gitoki II", cellId: "gitoki_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kabarore",
+            name: "Kabarore",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "kabarore_cell",
+                name: "Kabarore",
+                sectorId: "kabarore",
+                villages: [
+                  { id: "kabarore_v1", name: "Kabarore I", cellId: "kabarore_cell" },
+                  { id: "kabarore_v2", name: "Kabarore II", cellId: "kabarore_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kageyo",
+            name: "Kageyo",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "kageyo_cell",
+                name: "Kageyo",
+                sectorId: "kageyo",
+                villages: [
+                  { id: "kageyo_v1", name: "Kageyo I", cellId: "kageyo_cell" },
+                  { id: "kageyo_v2", name: "Kageyo II", cellId: "kageyo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kiramuruzi",
+            name: "Kiramuruzi",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "kiramuruzi_cell",
+                name: "Kiramuruzi",
+                sectorId: "kiramuruzi",
+                villages: [
+                  { id: "kiramuruzi_v1", name: "Kiramuruzi I", cellId: "kiramuruzi_cell" },
+                  { id: "kiramuruzi_v2", name: "Kiramuruzi II", cellId: "kiramuruzi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kiziguro",
+            name: "Kiziguro",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "kiziguro_cell",
+                name: "Kiziguro",
+                sectorId: "kiziguro",
+                villages: [
+                  { id: "kiziguro_v1", name: "Kiziguro I", cellId: "kiziguro_cell" },
+                  { id: "kiziguro_v2", name: "Kiziguro II", cellId: "kiziguro_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "muhura",
+            name: "Muhura",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "muhura_cell",
+                name: "Muhura",
+                sectorId: "muhura",
+                villages: [
+                  { id: "muhura_v1", name: "Muhura I", cellId: "muhura_cell" },
+                  { id: "muhura_v2", name: "Muhura II", cellId: "muhura_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "murambi_gatsibo",
+            name: "Murambi",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "murambi_gatsibo_cell",
+                name: "Murambi",
+                sectorId: "murambi_gatsibo",
+                villages: [
+                  { id: "murambi_gatsibo_v1", name: "Murambi I", cellId: "murambi_gatsibo_cell" },
+                  { id: "murambi_gatsibo_v2", name: "Murambi II", cellId: "murambi_gatsibo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ngarama",
+            name: "Ngarama",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "ngarama_cell",
+                name: "Ngarama",
+                sectorId: "ngarama",
+                villages: [
+                  { id: "ngarama_v1", name: "Ngarama I", cellId: "ngarama_cell" },
+                  { id: "ngarama_v2", name: "Ngarama II", cellId: "ngarama_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyagihanga",
+            name: "Nyagihanga",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "nyagihanga_cell",
+                name: "Nyagihanga",
+                sectorId: "nyagihanga",
+                villages: [
+                  { id: "nyagihanga_v1", name: "Nyagihanga I", cellId: "nyagihanga_cell" },
+                  { id: "nyagihanga_v2", name: "Nyagihanga II", cellId: "nyagihanga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "remera_gatsibo",
+            name: "Remera",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "remera_gatsibo_cell",
+                name: "Remera",
+                sectorId: "remera_gatsibo",
+                villages: [
+                  { id: "remera_gatsibo_v1", name: "Remera I", cellId: "remera_gatsibo_cell" },
+                  { id: "remera_gatsibo_v2", name: "Remera II", cellId: "remera_gatsibo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rugarama",
+            name: "Rugarama",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "rugarama_cell",
+                name: "Rugarama",
+                sectorId: "rugarama",
+                villages: [
+                  { id: "rugarama_v1", name: "Rugarama I", cellId: "rugarama_cell" },
+                  { id: "rugarama_v2", name: "Rugarama II", cellId: "rugarama_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rwimbogo",
+            name: "Rwimbogo",
+            districtId: "gatsibo",
+            cells: [
+              {
+                id: "rwimbogo_cell",
+                name: "Rwimbogo",
+                sectorId: "rwimbogo",
+                villages: [
+                  { id: "rwimbogo_v1", name: "Rwimbogo I", cellId: "rwimbogo_cell" },
+                  { id: "rwimbogo_v2", name: "Rwimbogo II", cellId: "rwimbogo_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "kayonza",
+        name: "Kayonza",
+        provinceId: "eastern",
+        sectors: [
+          {
+            id: "gahini",
+            name: "Gahini",
+            districtId: "kayonza",
+            cells: [
+              {
+                id: "gahini_cell",
+                name: "Gahini",
+                sectorId: "gahini",
+                villages: [
+                  { id: "gahini_v1", name: "Gahini I", cellId: "gahini_cell" },
+                  { id: "gahini_v2", name: "Gahini II", cellId: "gahini_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kabare",
+            name: "Kabare",
+            districtId: "kayonza",
+            cells: [
+              {
+                id: "kabare_cell",
+                name: "Kabare",
+                sectorId: "kabare",
+                villages: [
+                  { id: "kabare_v1", name: "Kabare I", cellId: "kabare_cell" },
+                  { id: "kabare_v2", name: "Kabare II", cellId: "kabare_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kayonza_sector",
+            name: "Kayonza",
+            districtId: "kayonza",
+            cells: [
+              {
+                id: "kayonza_sector_cell",
+                name: "Kayonza",
+                sectorId: "kayonza_sector",
+                villages: [
+                  { id: "kayonza_sector_v1", name: "Kayonza I", cellId: "kayonza_sector_cell" },
+                  { id: "kayonza_sector_v2", name: "Kayonza II", cellId: "kayonza_sector_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mukarange",
+            name: "Mukarange",
+            districtId: "kayonza",
+            cells: [
+              {
+                id: "mukarange_cell",
+                name: "Mukarange",
+                sectorId: "mukarange",
+                villages: [
+                  { id: "mukarange_v1", name: "Mukarange I", cellId: "mukarange_cell" },
+                  { id: "mukarange_v2", name: "Mukarange II", cellId: "mukarange_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "murundi",
+            name: "Murundi",
+            districtId: "kayonza",
+            cells: [
+              {
+                id: "murundi_cell",
+                name: "Murundi",
+                sectorId: "murundi",
+                villages: [
+                  { id: "murundi_v1", name: "Murundi I", cellId: "murundi_cell" },
+                  { id: "murundi_v2", name: "Murundi II", cellId: "murundi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ndego",
+            name: "Ndego",
+            districtId: "kayonza",
+            cells: [
+              {
+                id: "ndego_cell",
+                name: "Ndego",
+                sectorId: "ndego",
+                villages: [
+                  { id: "ndego_v1", name: "Ndego I", cellId: "ndego_cell" },
+                  { id: "ndego_v2", name: "Ndego II", cellId: "ndego_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyamirama",
+            name: "Nyamirama",
+            districtId: "kayonza",
+            cells: [
+              {
+                id: "nyamirama_cell",
+                name: "Nyamirama",
+                sectorId: "nyamirama",
+                villages: [
+                  { id: "nyamirama_v1", name: "Nyamirama I", cellId: "nyamirama_cell" },
+                  { id: "nyamirama_v2", name: "Nyamirama II", cellId: "nyamirama_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rukara",
+            name: "Rukara",
+            districtId: "kayonza",
+            cells: [
+              {
+                id: "rukara_cell",
+                name: "Rukara",
+                sectorId: "rukara",
+                villages: [
+                  { id: "rukara_v1", name: "Rukara I", cellId: "rukara_cell" },
+                  { id: "rukara_v2", name: "Rukara II", cellId: "rukara_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ruramira",
+            name: "Ruramira",
+            districtId: "kayonza",
+            cells: [
+              {
+                id: "ruramira_cell",
+                name: "Ruramira",
+                sectorId: "ruramira",
+                villages: [
+                  { id: "ruramira_v1", name: "Ruramira I", cellId: "ruramira_cell" },
+                  { id: "ruramira_v2", name: "Ruramira II", cellId: "ruramira_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rwinkwavu",
+            name: "Rwinkwavu",
+            districtId: "kayonza",
+            cells: [
+              {
+                id: "rwinkwavu_cell",
+                name: "Rwinkwavu",
+                sectorId: "rwinkwavu",
+                villages: [
+                  { id: "rwinkwavu_v1", name: "Rwinkwavu I", cellId: "rwinkwavu_cell" },
+                  { id: "rwinkwavu_v2", name: "Rwinkwavu II", cellId: "rwinkwavu_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "kirehe",
+        name: "Kirehe",
+        provinceId: "eastern",
+        sectors: [
+          {
+            id: "gatore",
+            name: "Gatore",
+            districtId: "kirehe",
+            cells: [
+              {
+                id: "gatore_cell",
+                name: "Gatore",
+                sectorId: "gatore",
+                villages: [
+                  { id: "gatore_v1", name: "Gatore I", cellId: "gatore_cell" },
+                  { id: "gatore_v2", name: "Gatore II", cellId: "gatore_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kigarama",
+            name: "Kigarama",
+            districtId: "kirehe",
+            cells: [
+              {
+                id: "kigarama_cell",
+                name: "Kigarama",
+                sectorId: "kigarama",
+                villages: [
+                  { id: "kigarama_v1", name: "Kigarama I", cellId: "kigarama_cell" },
+                  { id: "kigarama_v2", name: "Kigarama II", cellId: "kigarama_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kirehe_sector",
+            name: "Kirehe",
+            districtId: "kirehe",
+            cells: [
+              {
+                id: "kirehe_sector_cell",
+                name: "Kirehe",
+                sectorId: "kirehe_sector",
+                villages: [
+                  { id: "kirehe_sector_v1", name: "Kirehe I", cellId: "kirehe_sector_cell" },
+                  { id: "kirehe_sector_v2", name: "Kirehe II", cellId: "kirehe_sector_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mahama",
+            name: "Mahama",
+            districtId: "kirehe",
+            cells: [
+              {
+                id: "mahama_cell",
+                name: "Mahama",
+                sectorId: "mahama",
+                villages: [
+                  { id: "mahama_v1", name: "Mahama I", cellId: "mahama_cell" },
+                  { id: "mahama_v2", name: "Mahama II", cellId: "mahama_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mpanga",
+            name: "Mpanga",
+            districtId: "kirehe",
+            cells: [
+              {
+                id: "mpanga_cell",
+                name: "Mpanga",
+                sectorId: "mpanga",
+                villages: [
+                  { id: "mpanga_v1", name: "Mpanga I", cellId: "mpanga_cell" },
+                  { id: "mpanga_v2", name: "Mpanga II", cellId: "mpanga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mushikiri",
+            name: "Mushikiri",
+            districtId: "kirehe",
+            cells: [
+              {
+                id: "mushikiri_cell",
+                name: "Mushikiri",
+                sectorId: "mushikiri",
+                villages: [
+                  { id: "mushikiri_v1", name: "Mushikiri I", cellId: "mushikiri_cell" },
+                  { id: "mushikiri_v2", name: "Mushikiri II", cellId: "mushikiri_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nasho",
+            name: "Nasho",
+            districtId: "kirehe",
+            cells: [
+              {
+                id: "nasho_cell",
+                name: "Nasho",
+                sectorId: "nasho",
+                villages: [
+                  { id: "nasho_v1", name: "Nasho I", cellId: "nasho_cell" },
+                  { id: "nasho_v2", name: "Nasho II", cellId: "nasho_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyamugali",
+            name: "Nyamugali",
+            districtId: "kirehe",
+            cells: [
+              {
+                id: "nyamugali_cell",
+                name: "Nyamugali",
+                sectorId: "nyamugali",
+                villages: [
+                  { id: "nyamugali_v1", name: "Nyamugali I", cellId: "nyamugali_cell" },
+                  { id: "nyamugali_v2", name: "Nyamugali II", cellId: "nyamugali_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyarubuye",
+            name: "Nyarubuye",
+            districtId: "kirehe",
+            cells: [
+              {
+                id: "nyarubuye_cell",
+                name: "Nyarubuye",
+                sectorId: "nyarubuye",
+                villages: [
+                  { id: "nyarubuye_v1", name: "Nyarubuye I", cellId: "nyarubuye_cell" },
+                  { id: "nyarubuye_v2", name: "Nyarubuye II", cellId: "nyarubuye_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "ngoma",
+        name: "Ngoma",
+        provinceId: "eastern",
+        sectors: [
+          {
+            id: "gashanda",
+            name: "Gashanda",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "gashanda_cell",
+                name: "Gashanda",
+                sectorId: "gashanda",
+                villages: [
+                  { id: "gashanda_v1", name: "Gashanda I", cellId: "gashanda_cell" },
+                  { id: "gashanda_v2", name: "Gashanda II", cellId: "gashanda_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "jarama",
+            name: "Jarama",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "jarama_cell",
+                name: "Jarama",
+                sectorId: "jarama",
+                villages: [
+                  { id: "jarama_v1", name: "Jarama I", cellId: "jarama_cell" },
+                  { id: "jarama_v2", name: "Jarama II", cellId: "jarama_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "karembo",
+            name: "Karembo",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "karembo_cell",
+                name: "Karembo",
+                sectorId: "karembo",
+                villages: [
+                  { id: "karembo_v1", name: "Karembo I", cellId: "karembo_cell" },
+                  { id: "karembo_v2", name: "Karembo II", cellId: "karembo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kibungo",
+            name: "Kibungo",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "kibungo_cell",
+                name: "Kibungo",
+                sectorId: "kibungo",
+                villages: [
+                  { id: "kibungo_v1", name: "Kibungo I", cellId: "kibungo_cell" },
+                  { id: "kibungo_v2", name: "Kibungo II", cellId: "kibungo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mugesera",
+            name: "Mugesera",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "mugesera_cell",
+                name: "Mugesera",
+                sectorId: "mugesera",
+                villages: [
+                  { id: "mugesera_v1", name: "Mugesera I", cellId: "mugesera_cell" },
+                  { id: "mugesera_v2", name: "Mugesera II", cellId: "mugesera_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "murama",
+            name: "Murama",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "murama_cell",
+                name: "Murama",
+                sectorId: "murama",
+                villages: [
+                  { id: "murama_v1", name: "Murama I", cellId: "murama_cell" },
+                  { id: "murama_v2", name: "Murama II", cellId: "murama_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mutenderi",
+            name: "Mutenderi",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "mutenderi_cell",
+                name: "Mutenderi",
+                sectorId: "mutenderi",
+                villages: [
+                  { id: "mutenderi_v1", name: "Mutenderi I", cellId: "mutenderi_cell" },
+                  { id: "mutenderi_v2", name: "Mutenderi II", cellId: "mutenderi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "remera_ngoma",
+            name: "Remera",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "remera_ngoma_cell",
+                name: "Remera",
+                sectorId: "remera_ngoma",
+                villages: [
+                  { id: "remera_ngoma_v1", name: "Remera I", cellId: "remera_ngoma_cell" },
+                  { id: "remera_ngoma_v2", name: "Remera II", cellId: "remera_ngoma_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rukira",
+            name: "Rukira",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "rukira_cell",
+                name: "Rukira",
+                sectorId: "rukira",
+                villages: [
+                  { id: "rukira_v1", name: "Rukira I", cellId: "rukira_cell" },
+                  { id: "rukira_v2", name: "Rukira II", cellId: "rukira_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rurenge",
+            name: "Rurenge",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "rurenge_cell",
+                name: "Rurenge",
+                sectorId: "rurenge",
+                villages: [
+                  { id: "rurenge_v1", name: "Rurenge I", cellId: "rurenge_cell" },
+                  { id: "rurenge_v2", name: "Rurenge II", cellId: "rurenge_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "sake",
+            name: "Sake",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "sake_cell",
+                name: "Sake",
+                sectorId: "sake",
+                villages: [
+                  { id: "sake_v1", name: "Sake I", cellId: "sake_cell" },
+                  { id: "sake_v2", name: "Sake II", cellId: "sake_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "zaza",
+            name: "Zaza",
+            districtId: "ngoma",
+            cells: [
+              {
+                id: "zaza_cell",
+                name: "Zaza",
+                sectorId: "zaza",
+                villages: [
+                  { id: "zaza_v1", name: "Zaza I", cellId: "zaza_cell" },
+                  { id: "zaza_v2", name: "Zaza II", cellId: "zaza_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "nyagatare",
+        name: "Nyagatare",
+        provinceId: "eastern",
+        sectors: [
+          {
+            id: "gatunda",
+            name: "Gatunda",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "gatunda_cell",
+                name: "Gatunda",
+                sectorId: "gatunda",
+                villages: [
+                  { id: "gatunda_v1", name: "Gatunda I", cellId: "gatunda_cell" },
+                  { id: "gatunda_v2", name: "Gatunda II", cellId: "gatunda_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "karama",
+            name: "Karama",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "karama_cell",
+                name: "Karama",
+                sectorId: "karama",
+                villages: [
+                  { id: "karama_v1", name: "Karama I", cellId: "karama_cell" },
+                  { id: "karama_v2", name: "Karama II", cellId: "karama_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "karangazi",
+            name: "Karangazi",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "karangazi_cell",
+                name: "Karangazi",
+                sectorId: "karangazi",
+                villages: [
+                  { id: "karangazi_v1", name: "Karangazi I", cellId: "karangazi_cell" },
+                  { id: "karangazi_v2", name: "Karangazi II", cellId: "karangazi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "katabagemu",
+            name: "Katabagemu",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "katabagemu_cell",
+                name: "Katabagemu",
+                sectorId: "katabagemu",
+                villages: [
+                  { id: "katabagemu_v1", name: "Katabagemu I", cellId: "katabagemu_cell" },
+                  { id: "katabagemu_v2", name: "Katabagemu II", cellId: "katabagemu_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kiyombe",
+            name: "Kiyombe",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "kiyombe_cell",
+                name: "Kiyombe",
+                sectorId: "kiyombe",
+                villages: [
+                  { id: "kiyombe_v1", name: "Kiyombe I", cellId: "kiyombe_cell" },
+                  { id: "kiyombe_v2", name: "Kiyombe II", cellId: "kiyombe_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "matimba",
+            name: "Matimba",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "matimba_cell",
+                name: "Matimba",
+                sectorId: "matimba",
+                villages: [
+                  { id: "matimba_v1", name: "Matimba I", cellId: "matimba_cell" },
+                  { id: "matimba_v2", name: "Matimba II", cellId: "matimba_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mimuli",
+            name: "Mimuli",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "mimuli_cell",
+                name: "Mimuli",
+                sectorId: "mimuli",
+                villages: [
+                  { id: "mimuli_v1", name: "Mimuli I", cellId: "mimuli_cell" },
+                  { id: "mimuli_v2", name: "Mimuli II", cellId: "mimuli_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mukama",
+            name: "Mukama",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "mukama_cell",
+                name: "Mukama",
+                sectorId: "mukama",
+                villages: [
+                  { id: "mukama_v1", name: "Mukama I", cellId: "mukama_cell" },
+                  { id: "mukama_v2", name: "Mukama II", cellId: "mukama_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "musheli",
+            name: "Musheli",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "musheli_cell",
+                name: "Musheli",
+                sectorId: "musheli",
+                villages: [
+                  { id: "musheli_v1", name: "Musheli I", cellId: "musheli_cell" },
+                  { id: "musheli_v2", name: "Musheli II", cellId: "musheli_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyagatare_sector",
+            name: "Nyagatare",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "nyagatare_sector_cell",
+                name: "Nyagatare",
+                sectorId: "nyagatare_sector",
+                villages: [
+                  { id: "nyagatare_sector_v1", name: "Nyagatare I", cellId: "nyagatare_sector_cell" },
+                  { id: "nyagatare_sector_v2", name: "Nyagatare II", cellId: "nyagatare_sector_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rukomo",
+            name: "Rukomo",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "rukomo_cell",
+                name: "Rukomo",
+                sectorId: "rukomo",
+                villages: [
+                  { id: "rukomo_v1", name: "Rukomo I", cellId: "rukomo_cell" },
+                  { id: "rukomo_v2", name: "Rukomo II", cellId: "rukomo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rwempasha",
+            name: "Rwempasha",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "rwempasha_cell",
+                name: "Rwempasha",
+                sectorId: "rwempasha",
+                villages: [
+                  { id: "rwempasha_v1", name: "Rwempasha I", cellId: "rwempasha_cell" },
+                  { id: "rwempasha_v2", name: "Rwempasha II", cellId: "rwempasha_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rwimiyaga",
+            name: "Rwimiyaga",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "rwimiyaga_cell",
+                name: "Rwimiyaga",
+                sectorId: "rwimiyaga",
+                villages: [
+                  { id: "rwimiyaga_v1", name: "Rwimiyaga I", cellId: "rwimiyaga_cell" },
+                  { id: "rwimiyaga_v2", name: "Rwimiyaga II", cellId: "rwimiyaga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "tabagwe",
+            name: "Tabagwe",
+            districtId: "nyagatare",
+            cells: [
+              {
+                id: "tabagwe_cell",
+                name: "Tabagwe",
+                sectorId: "tabagwe",
+                villages: [
+                  { id: "tabagwe_v1", name: "Tabagwe I", cellId: "tabagwe_cell" },
+                  { id: "tabagwe_v2", name: "Tabagwe II", cellId: "tabagwe_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "rwamagana",
+        name: "Rwamagana",
+        provinceId: "eastern",
+        sectors: [
+          {
+            id: "fumbwe",
+            name: "Fumbwe",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "fumbwe_cell",
+                name: "Fumbwe",
+                sectorId: "fumbwe",
+                villages: [
+                  { id: "fumbwe_v1", name: "Fumbwe I", cellId: "fumbwe_cell" },
+                  { id: "fumbwe_v2", name: "Fumbwe II", cellId: "fumbwe_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gahengeri",
+            name: "Gahengeri",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "gahengeri_cell",
+                name: "Gahengeri",
+                sectorId: "gahengeri",
+                villages: [
+                  { id: "gahengeri_v1", name: "Gahengeri I", cellId: "gahengeri_cell" },
+                  { id: "gahengeri_v2", name: "Gahengeri II", cellId: "gahengeri_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gishari",
+            name: "Gishari",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "gishari_cell",
+                name: "Gishari",
+                sectorId: "gishari",
+                villages: [
+                  { id: "gishari_v1", name: "Gishari I", cellId: "gishari_cell" },
+                  { id: "gishari_v2", name: "Gishari II", cellId: "gishari_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "karenge",
+            name: "Karenge",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "karenge_cell",
+                name: "Karenge",
+                sectorId: "karenge",
+                villages: [
+                  { id: "karenge_v1", name: "Karenge I", cellId: "karenge_cell" },
+                  { id: "karenge_v2", name: "Karenge II", cellId: "karenge_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kigabiro",
+            name: "Kigabiro",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "kigabiro_cell",
+                name: "Kigabiro",
+                sectorId: "kigabiro",
+                villages: [
+                  { id: "kigabiro_v1", name: "Kigabiro I", cellId: "kigabiro_cell" },
+                  { id: "kigabiro_v2", name: "Kigabiro II", cellId: "kigabiro_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "muhazi",
+            name: "Muhazi",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "muhazi_cell",
+                name: "Muhazi",
+                sectorId: "muhazi",
+                villages: [
+                  { id: "muhazi_v1", name: "Muhazi I", cellId: "muhazi_cell" },
+                  { id: "muhazi_v2", name: "Muhazi II", cellId: "muhazi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "munyaga",
+            name: "Munyaga",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "munyaga_cell",
+                name: "Munyaga",
+                sectorId: "munyaga",
+                villages: [
+                  { id: "munyaga_v1", name: "Munyaga I", cellId: "munyaga_cell" },
+                  { id: "munyaga_v2", name: "Munyaga II", cellId: "munyaga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "munyiginya",
+            name: "Munyiginya",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "munyiginya_cell",
+                name: "Munyiginya",
+                sectorId: "munyiginya",
+                villages: [
+                  { id: "munyiginya_v1", name: "Munyiginya I", cellId: "munyiginya_cell" },
+                  { id: "munyiginya_v2", name: "Munyiginya II", cellId: "munyiginya_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "musha",
+            name: "Musha",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "musha_cell",
+                name: "Musha",
+                sectorId: "musha",
+                villages: [
+                  { id: "musha_v1", name: "Musha I", cellId: "musha_cell" },
+                  { id: "musha_v2", name: "Musha II", cellId: "musha_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nzige",
+            name: "Nzige",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "nzige_cell",
+                name: "Nzige",
+                sectorId: "nzige",
+                villages: [
+                  { id: "nzige_v1", name: "Nzige I", cellId: "nzige_cell" },
+                  { id: "nzige_v2", name: "Nzige II", cellId: "nzige_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rubona",
+            name: "Rubona",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "rubona_cell",
+                name: "Rubona",
+                sectorId: "rubona",
+                villages: [
+                  { id: "rubona_v1", name: "Rubona I", cellId: "rubona_cell" },
+                  { id: "rubona_v2", name: "Rubona II", cellId: "rubona_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rwamagana_sector",
+            name: "Rwamagana",
+            districtId: "rwamagana",
+            cells: [
+              {
+                id: "rwamagana_sector_cell",
+                name: "Rwamagana",
+                sectorId: "rwamagana_sector",
+                villages: [
+                  { id: "rwamagana_sector_v1", name: "Rwamagana I", cellId: "rwamagana_sector_cell" },
+                  { id: "rwamagana_sector_v2", name: "Rwamagana II", cellId: "rwamagana_sector_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "northern",
+    name: "Northern Province",
+    districts: [
+      {
+        id: "burera",
+        name: "Burera",
+        provinceId: "northern",
+        sectors: [
+          {
+            id: "bungwe",
+            name: "Bungwe",
+            districtId: "burera",
+            cells: [
+              {
+                id: "bungwe_cell",
+                name: "Bungwe",
+                sectorId: "bungwe",
+                villages: [
+                  { id: "bungwe_v1", name: "Bungwe I", cellId: "bungwe_cell" },
+                  { id: "bungwe_v2", name: "Bungwe II", cellId: "bungwe_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "butaro",
+            name: "Butaro",
+            districtId: "burera",
+            cells: [
+              {
+                id: "butaro_cell",
+                name: "Butaro",
+                sectorId: "butaro",
+                villages: [
+                  { id: "butaro_v1", name: "Butaro I", cellId: "butaro_cell" },
+                  { id: "butaro_v2", name: "Butaro II", cellId: "butaro_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "cyanika",
+            name: "Cyanika",
+            districtId: "burera",
+            cells: [
+              {
+                id: "cyanika_cell",
+                name: "Cyanika",
+                sectorId: "cyanika",
+                villages: [
+                  { id: "cyanika_v1", name: "Cyanika I", cellId: "cyanika_cell" },
+                  { id: "cyanika_v2", name: "Cyanika II", cellId: "cyanika_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "cyeru",
+            name: "Cyeru",
+            districtId: "burera",
+            cells: [
+              {
+                id: "cyeru_cell",
+                name: "Cyeru",
+                sectorId: "cyeru",
+                villages: [
+                  { id: "cyeru_v1", name: "Cyeru I", cellId: "cyeru_cell" },
+                  { id: "cyeru_v2", name: "Cyeru II", cellId: "cyeru_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gahunga",
+            name: "Gahunga",
+            districtId: "burera",
+            cells: [
+              {
+                id: "gahunga_cell",
+                name: "Gahunga",
+                sectorId: "gahunga",
+                villages: [
+                  { id: "gahunga_v1", name: "Gahunga I", cellId: "gahunga_cell" },
+                  { id: "gahunga_v2", name: "Gahunga II", cellId: "gahunga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gatebe",
+            name: "Gatebe",
+            districtId: "burera",
+            cells: [
+              {
+                id: "gatebe_cell",
+                name: "Gatebe",
+                sectorId: "gatebe",
+                villages: [
+                  { id: "gatebe_v1", name: "Gatebe I", cellId: "gatebe_cell" },
+                  { id: "gatebe_v2", name: "Gatebe II", cellId: "gatebe_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gitovu",
+            name: "Gitovu",
+            districtId: "burera",
+            cells: [
+              {
+                id: "gitovu_cell",
+                name: "Gitovu",
+                sectorId: "gitovu",
+                villages: [
+                  { id: "gitovu_v1", name: "Gitovu I", cellId: "gitovu_cell" },
+                  { id: "gitovu_v2", name: "Gitovu II", cellId: "gitovu_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kagogo",
+            name: "Kagogo",
+            districtId: "burera",
+            cells: [
+              {
+                id: "kagogo_cell",
+                name: "Kagogo",
+                sectorId: "kagogo",
+                villages: [
+                  { id: "kagogo_v1", name: "Kagogo I", cellId: "kagogo_cell" },
+                  { id: "kagogo_v2", name: "Kagogo II", cellId: "kagogo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kinoni",
+            name: "Kinoni",
+            districtId: "burera",
+            cells: [
+              {
+                id: "kinoni_cell",
+                name: "Kinoni",
+                sectorId: "kinoni",
+                villages: [
+                  { id: "kinoni_v1", name: "Kinoni I", cellId: "kinoni_cell" },
+                  { id: "kinoni_v2", name: "Kinoni II", cellId: "kinoni_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kinyababa",
+            name: "Kinyababa",
+            districtId: "burera",
+            cells: [
+              {
+                id: "kinyababa_cell",
+                name: "Kinyababa",
+                sectorId: "kinyababa",
+                villages: [
+                  { id: "kinyababa_v1", name: "Kinyababa I", cellId: "kinyababa_cell" },
+                  { id: "kinyababa_v2", name: "Kinyababa II", cellId: "kinyababa_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nemba",
+            name: "Nemba",
+            districtId: "burera",
+            cells: [
+              {
+                id: "nemba_cell",
+                name: "Nemba",
+                sectorId: "nemba",
+                villages: [
+                  { id: "nemba_v1", name: "Nemba I", cellId: "nemba_cell" },
+                  { id: "nemba_v2", name: "Nemba II", cellId: "nemba_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rugarama_burera",
+            name: "Rugarama",
+            districtId: "burera",
+            cells: [
+              {
+                id: "rugarama_burera_cell",
+                name: "Rugarama",
+                sectorId: "rugarama_burera",
+                villages: [
+                  { id: "rugarama_burera_v1", name: "Rugarama I", cellId: "rugarama_burera_cell" },
+                  { id: "rugarama_burera_v2", name: "Rugarama II", cellId: "rugarama_burera_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rugendabari",
+            name: "Rugendabari",
+            districtId: "burera",
+            cells: [
+              {
+                id: "rugendabari_cell",
+                name: "Rugendabari",
+                sectorId: "rugendabari",
+                villages: [
+                  { id: "rugendabari_v1", name: "Rugendabari I", cellId: "rugendabari_cell" },
+                  { id: "rugendabari_v2", name: "Rugendabari II", cellId: "rugendabari_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ruhunde",
+            name: "Ruhunde",
+            districtId: "burera",
+            cells: [
+              {
+                id: "ruhunde_cell",
+                name: "Ruhunde",
+                sectorId: "ruhunde",
+                villages: [
+                  { id: "ruhunde_v1", name: "Ruhunde I", cellId: "ruhunde_cell" },
+                  { id: "ruhunde_v2", name: "Ruhunde II", cellId: "ruhunde_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rusarabuye",
+            name: "Rusarabuye",
+            districtId: "burera",
+            cells: [
+              {
+                id: "rusarabuye_cell",
+                name: "Rusarabuye",
+                sectorId: "rusarabuye",
+                villages: [
+                  { id: "rusarabuye_v1", name: "Rusarabuye I", cellId: "rusarabuye_cell" },
+                  { id: "rusarabuye_v2", name: "Rusarabuye II", cellId: "rusarabuye_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rwaza",
+            name: "Rwaza",
+            districtId: "burera",
+            cells: [
+              {
+                id: "rwaza_cell",
+                name: "Rwaza",
+                sectorId: "rwaza",
+                villages: [
+                  { id: "rwaza_v1", name: "Rwaza I", cellId: "rwaza_cell" },
+                  { id: "rwaza_v2", name: "Rwaza II", cellId: "rwaza_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "gakenke",
+        name: "Gakenke",
+        provinceId: "northern",
+        sectors: [
+          {
+            id: "busengo",
+            name: "Busengo",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "busengo_cell",
+                name: "Busengo",
+                sectorId: "busengo",
+                villages: [
+                  { id: "busengo_v1", name: "Busengo I", cellId: "busengo_cell" },
+                  { id: "busengo_v2", name: "Busengo II", cellId: "busengo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "coko",
+            name: "Coko",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "coko_cell",
+                name: "Coko",
+                sectorId: "coko",
+                villages: [
+                  { id: "coko_v1", name: "Coko I", cellId: "coko_cell" },
+                  { id: "coko_v2", name: "Coko II", cellId: "coko_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "cyabingo",
+            name: "Cyabingo",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "cyabingo_cell",
+                name: "Cyabingo",
+                sectorId: "cyabingo",
+                villages: [
+                  { id: "cyabingo_v1", name: "Cyabingo I", cellId: "cyabingo_cell" },
+                  { id: "cyabingo_v2", name: "Cyabingo II", cellId: "cyabingo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gakenke_sector",
+            name: "Gakenke",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "gakenke_sector_cell",
+                name: "Gakenke",
+                sectorId: "gakenke_sector",
+                villages: [
+                  { id: "gakenke_sector_v1", name: "Gakenke I", cellId: "gakenke_sector_cell" },
+                  { id: "gakenke_sector_v2", name: "Gakenke II", cellId: "gakenke_sector_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gashenyi",
+            name: "Gashenyi",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "gashenyi_cell",
+                name: "Gashenyi",
+                sectorId: "gashenyi",
+                villages: [
+                  { id: "gashenyi_v1", name: "Gashenyi I", cellId: "gashenyi_cell" },
+                  { id: "gashenyi_v2", name: "Gashenyi II", cellId: "gashenyi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "janja",
+            name: "Janja",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "janja_cell",
+                name: "Janja",
+                sectorId: "janja",
+                villages: [
+                  { id: "janja_v1", name: "Janja I", cellId: "janja_cell" },
+                  { id: "janja_v2", name: "Janja II", cellId: "janja_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kamubuga",
+            name: "Kamubuga",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "kamubuga_cell",
+                name: "Kamubuga",
+                sectorId: "kamubuga",
+                villages: [
+                  { id: "kamubuga_v1", name: "Kamubuga I", cellId: "kamubuga_cell" },
+                  { id: "kamubuga_v2", name: "Kamubuga II", cellId: "kamubuga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "karambo",
+            name: "Karambo",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "karambo_cell",
+                name: "Karambo",
+                sectorId: "karambo",
+                villages: [
+                  { id: "karambo_v1", name: "Karambo I", cellId: "karambo_cell" },
+                  { id: "karambo_v2", name: "Karambo II", cellId: "karambo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kivuruga",
+            name: "Kivuruga",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "kivuruga_cell",
+                name: "Kivuruga",
+                sectorId: "kivuruga",
+                villages: [
+                  { id: "kivuruga_v1", name: "Kivuruga I", cellId: "kivuruga_cell" },
+                  { id: "kivuruga_v2", name: "Kivuruga II", cellId: "kivuruga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mataba",
+            name: "Mataba",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "mataba_cell",
+                name: "Mataba",
+                sectorId: "mataba",
+                villages: [
+                  { id: "mataba_v1", name: "Mataba I", cellId: "mataba_cell" },
+                  { id: "mataba_v2", name: "Mataba II", cellId: "mataba_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "minazi",
+            name: "Minazi",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "minazi_cell",
+                name: "Minazi",
+                sectorId: "minazi",
+                villages: [
+                  { id: "minazi_v1", name: "Minazi I", cellId: "minazi_cell" },
+                  { id: "minazi_v2", name: "Minazi II", cellId: "minazi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "muhondo",
+            name: "Muhondo",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "muhondo_cell",
+                name: "Muhondo",
+                sectorId: "muhondo",
+                villages: [
+                  { id: "muhondo_v1", name: "Muhondo I", cellId: "muhondo_cell" },
+                  { id: "muhondo_v2", name: "Muhondo II", cellId: "muhondo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "muyongwe",
+            name: "Muyongwe",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "muyongwe_cell",
+                name: "Muyongwe",
+                sectorId: "muyongwe",
+                villages: [
+                  { id: "muyongwe_v1", name: "Muyongwe I", cellId: "muyongwe_cell" },
+                  { id: "muyongwe_v2", name: "Muyongwe II", cellId: "muyongwe_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "muzo",
+            name: "Muzo",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "muzo_cell",
+                name: "Muzo",
+                sectorId: "muzo",
+                villages: [
+                  { id: "muzo_v1", name: "Muzo I", cellId: "muzo_cell" },
+                  { id: "muzo_v2", name: "Muzo II", cellId: "muzo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nemba_gakenke",
+            name: "Nemba",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "nemba_gakenke_cell",
+                name: "Nemba",
+                sectorId: "nemba_gakenke",
+                villages: [
+                  { id: "nemba_gakenke_v1", name: "Nemba I", cellId: "nemba_gakenke_cell" },
+                  { id: "nemba_gakenke_v2", name: "Nemba II", cellId: "nemba_gakenke_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ruli",
+            name: "Ruli",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "ruli_cell",
+                name: "Ruli",
+                sectorId: "ruli",
+                villages: [
+                  { id: "ruli_v1", name: "Ruli I", cellId: "ruli_cell" },
+                  { id: "ruli_v2", name: "Ruli II", cellId: "ruli_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rusasa",
+            name: "Rusasa",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "rusasa_cell",
+                name: "Rusasa",
+                sectorId: "rusasa",
+                villages: [
+                  { id: "rusasa_v1", name: "Rusasa I", cellId: "rusasa_cell" },
+                  { id: "rusasa_v2", name: "Rusasa II", cellId: "rusasa_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rushashi",
+            name: "Rushashi",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "rushashi_cell",
+                name: "Rushashi",
+                sectorId: "rushashi",
+                villages: [
+                  { id: "rushashi_v1", name: "Rushashi I", cellId: "rushashi_cell" },
+                  { id: "rushashi_v2", name: "Rushashi II", cellId: "rushashi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "shangi",
+            name: "Shangi",
+            districtId: "gakenke",
+            cells: [
+              {
+                id: "shangi_cell",
+                name: "Shangi",
+                sectorId: "shangi",
+                villages: [
+                  { id: "shangi_v1", name: "Shangi I", cellId: "shangi_cell" },
+                  { id: "shangi_v2", name: "Shangi II", cellId: "shangi_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "gicumbi",
+        name: "Gicumbi",
+        provinceId: "northern",
+        sectors: [
+          {
+            id: "bukure",
+            name: "Bukure",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "bukure_cell",
+                name: "Bukure",
+                sectorId: "bukure",
+                villages: [
+                  { id: "bukure_v1", name: "Bukure I", cellId: "bukure_cell" },
+                  { id: "bukure_v2", name: "Bukure II", cellId: "bukure_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "bwisige",
+            name: "Bwisige",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "bwisige_cell",
+                name: "Bwisige",
+                sectorId: "bwisige",
+                villages: [
+                  { id: "bwisige_v1", name: "Bwisige I", cellId: "bwisige_cell" },
+                  { id: "bwisige_v2", name: "Bwisige II", cellId: "bwisige_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "byumba",
+            name: "Byumba",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "byumba_cell",
+                name: "Byumba",
+                sectorId: "byumba",
+                villages: [
+                  { id: "byumba_v1", name: "Byumba I", cellId: "byumba_cell" },
+                  { id: "byumba_v2", name: "Byumba II", cellId: "byumba_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "cyumba",
+            name: "Cyumba",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "cyumba_cell",
+                name: "Cyumba",
+                sectorId: "cyumba",
+                villages: [
+                  { id: "cyumba_v1", name: "Cyumba I", cellId: "cyumba_cell" },
+                  { id: "cyumba_v2", name: "Cyumba II", cellId: "cyumba_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gicumbi_sector",
+            name: "Gicumbi",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "gicumbi_sector_cell",
+                name: "Gicumbi",
+                sectorId: "gicumbi_sector",
+                villages: [
+                  { id: "gicumbi_sector_v1", name: "Gicumbi I", cellId: "gicumbi_sector_cell" },
+                  { id: "gicumbi_sector_v2", name: "Gicumbi II", cellId: "gicumbi_sector_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kaniga",
+            name: "Kaniga",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "kaniga_cell",
+                name: "Kaniga",
+                sectorId: "kaniga",
+                villages: [
+                  { id: "kaniga_v1", name: "Kaniga I", cellId: "kaniga_cell" },
+                  { id: "kaniga_v2", name: "Kaniga II", cellId: "kaniga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "manyagiro",
+            name: "Manyagiro",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "manyagiro_cell",
+                name: "Manyagiro",
+                sectorId: "manyagiro",
+                villages: [
+                  { id: "manyagiro_v1", name: "Manyagiro I", cellId: "manyagiro_cell" },
+                  { id: "manyagiro_v2", name: "Manyagiro II", cellId: "manyagiro_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "miyove",
+            name: "Miyove",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "miyove_cell",
+                name: "Miyove",
+                sectorId: "miyove",
+                villages: [
+                  { id: "miyove_v1", name: "Miyove I", cellId: "miyove_cell" },
+                  { id: "miyove_v2", name: "Miyove II", cellId: "miyove_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mukama_gicumbi",
+            name: "Mukama",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "mukama_gicumbi_cell",
+                name: "Mukama",
+                sectorId: "mukama_gicumbi",
+                villages: [
+                  { id: "mukama_gicumbi_v1", name: "Mukama I", cellId: "mukama_gicumbi_cell" },
+                  { id: "mukama_gicumbi_v2", name: "Mukama II", cellId: "mukama_gicumbi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mutete",
+            name: "Mutete",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "mutete_cell",
+                name: "Mutete",
+                sectorId: "mutete",
+                villages: [
+                  { id: "mutete_v1", name: "Mutete I", cellId: "mutete_cell" },
+                  { id: "mutete_v2", name: "Mutete II", cellId: "mutete_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyamiyaga",
+            name: "Nyamiyaga",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "nyamiyaga_cell",
+                name: "Nyamiyaga",
+                sectorId: "nyamiyaga",
+                villages: [
+                  { id: "nyamiyaga_v1", name: "Nyamiyaga I", cellId: "nyamiyaga_cell" },
+                  { id: "nyamiyaga_v2", name: "Nyamiyaga II", cellId: "nyamiyaga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyankenke",
+            name: "Nyankenke",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "nyankenke_cell",
+                name: "Nyankenke",
+                sectorId: "nyankenke",
+                villages: [
+                  { id: "nyankenke_v1", name: "Nyankenke I", cellId: "nyankenke_cell" },
+                  { id: "nyankenke_v2", name: "Nyankenke II", cellId: "nyankenke_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rubaya",
+            name: "Rubaya",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "rubaya_cell",
+                name: "Rubaya",
+                sectorId: "rubaya",
+                villages: [
+                  { id: "rubaya_v1", name: "Rubaya I", cellId: "rubaya_cell" },
+                  { id: "rubaya_v2", name: "Rubaya II", cellId: "rubaya_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rukomo_gicumbi",
+            name: "Rukomo",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "rukomo_gicumbi_cell",
+                name: "Rukomo",
+                sectorId: "rukomo_gicumbi",
+                villages: [
+                  { id: "rukomo_gicumbi_v1", name: "Rukomo I", cellId: "rukomo_gicumbi_cell" },
+                  { id: "rukomo_gicumbi_v2", name: "Rukomo II", cellId: "rukomo_gicumbi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rushaki",
+            name: "Rushaki",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "rushaki_cell",
+                name: "Rushaki",
+                sectorId: "rushaki",
+                villages: [
+                  { id: "rushaki_v1", name: "Rushaki I", cellId: "rushaki_cell" },
+                  { id: "rushaki_v2", name: "Rushaki II", cellId: "rushaki_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rutare",
+            name: "Rutare",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "rutare_cell",
+                name: "Rutare",
+                sectorId: "rutare",
+                villages: [
+                  { id: "rutare_v1", name: "Rutare I", cellId: "rutare_cell" },
+                  { id: "rutare_v2", name: "Rutare II", cellId: "rutare_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ruvune",
+            name: "Ruvune",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "ruvune_cell",
+                name: "Ruvune",
+                sectorId: "ruvune",
+                villages: [
+                  { id: "ruvune_v1", name: "Ruvune I", cellId: "ruvune_cell" },
+                  { id: "ruvune_v2", name: "Ruvune II", cellId: "ruvune_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rwamiko",
+            name: "Rwamiko",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "rwamiko_cell",
+                name: "Rwamiko",
+                sectorId: "rwamiko",
+                villages: [
+                  { id: "rwamiko_v1", name: "Rwamiko I", cellId: "rwamiko_cell" },
+                  { id: "rwamiko_v2", name: "Rwamiko II", cellId: "rwamiko_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "shangasha",
+            name: "Shangasha",
+            districtId: "gicumbi",
+            cells: [
+              {
+                id: "shangasha_cell",
+                name: "Shangasha",
+                sectorId: "shangasha",
+                villages: [
+                  { id: "shangasha_v1", name: "Shangasha I", cellId: "shangasha_cell" },
+                  { id: "shangasha_v2", name: "Shangasha II", cellId: "shangasha_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "musanze",
+        name: "Musanze",
+        provinceId: "northern",
+        sectors: [
+          {
+            id: "busogo",
+            name: "Busogo",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "busogo_cell",
+                name: "Busogo",
+                sectorId: "busogo",
+                villages: [
+                  { id: "busogo_v1", name: "Busogo I", cellId: "busogo_cell" },
+                  { id: "busogo_v2", name: "Busogo II", cellId: "busogo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "cyuve",
+            name: "Cyuve",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "cyuve_cell",
+                name: "Cyuve",
+                sectorId: "cyuve",
+                villages: [
+                  { id: "cyuve_v1", name: "Cyuve I", cellId: "cyuve_cell" },
+                  { id: "cyuve_v2", name: "Cyuve II", cellId: "cyuve_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gacaca",
+            name: "Gacaca",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "gacaca_cell",
+                name: "Gacaca",
+                sectorId: "gacaca",
+                villages: [
+                  { id: "gacaca_v1", name: "Gacaca I", cellId: "gacaca_cell" },
+                  { id: "gacaca_v2", name: "Gacaca II", cellId: "gacaca_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gashaki",
+            name: "Gashaki",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "gashaki_cell",
+                name: "Gashaki",
+                sectorId: "gashaki",
+                villages: [
+                  { id: "gashaki_v1", name: "Gashaki I", cellId: "gashaki_cell" },
+                  { id: "gashaki_v2", name: "Gashaki II", cellId: "gashaki_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gataraga",
+            name: "Gataraga",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "gataraga_cell",
+                name: "Gataraga",
+                sectorId: "gataraga",
+                villages: [
+                  { id: "gataraga_v1", name: "Gataraga I", cellId: "gataraga_cell" },
+                  { id: "gataraga_v2", name: "Gataraga II", cellId: "gataraga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kimonyi",
+            name: "Kimonyi",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "kimonyi_cell",
+                name: "Kimonyi",
+                sectorId: "kimonyi",
+                villages: [
+                  { id: "kimonyi_v1", name: "Kimonyi I", cellId: "kimonyi_cell" },
+                  { id: "kimonyi_v2", name: "Kimonyi II", cellId: "kimonyi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kinigi",
+            name: "Kinigi",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "kinigi_cell",
+                name: "Kinigi",
+                sectorId: "kinigi",
+                villages: [
+                  { id: "kinigi_v1", name: "Kinigi I", cellId: "kinigi_cell" },
+                  { id: "kinigi_v2", name: "Kinigi II", cellId: "kinigi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "muhoza",
+            name: "Muhoza",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "muhoza_cell",
+                name: "Muhoza",
+                sectorId: "muhoza",
+                villages: [
+                  { id: "muhoza_v1", name: "Muhoza I", cellId: "muhoza_cell" },
+                  { id: "muhoza_v2", name: "Muhoza II", cellId: "muhoza_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "muko",
+            name: "Muko",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "muko_cell",
+                name: "Muko",
+                sectorId: "muko",
+                villages: [
+                  { id: "muko_v1", name: "Muko I", cellId: "muko_cell" },
+                  { id: "muko_v2", name: "Muko II", cellId: "muko_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "musanze_sector",
+            name: "Musanze",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "musanze_sector_cell",
+                name: "Musanze",
+                sectorId: "musanze_sector",
+                villages: [
+                  { id: "musanze_sector_v1", name: "Musanze I", cellId: "musanze_sector_cell" },
+                  { id: "musanze_sector_v2", name: "Musanze II", cellId: "musanze_sector_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nkotsi",
+            name: "Nkotsi",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "nkotsi_cell",
+                name: "Nkotsi",
+                sectorId: "nkotsi",
+                villages: [
+                  { id: "nkotsi_v1", name: "Nkotsi I", cellId: "nkotsi_cell" },
+                  { id: "nkotsi_v2", name: "Nkotsi II", cellId: "nkotsi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nyange",
+            name: "Nyange",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "nyange_cell",
+                name: "Nyange",
+                sectorId: "nyange",
+                villages: [
+                  { id: "nyange_v1", name: "Nyange I", cellId: "nyange_cell" },
+                  { id: "nyange_v2", name: "Nyange II", cellId: "nyange_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "remera_musanze",
+            name: "Remera",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "remera_musanze_cell",
+                name: "Remera",
+                sectorId: "remera_musanze",
+                villages: [
+                  { id: "remera_musanze_v1", name: "Remera I", cellId: "remera_musanze_cell" },
+                  { id: "remera_musanze_v2", name: "Remera II", cellId: "remera_musanze_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rwaza_musanze",
+            name: "Rwaza",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "rwaza_musanze_cell",
+                name: "Rwaza",
+                sectorId: "rwaza_musanze",
+                villages: [
+                  { id: "rwaza_musanze_v1", name: "Rwaza I", cellId: "rwaza_musanze_cell" },
+                  { id: "rwaza_musanze_v2", name: "Rwaza II", cellId: "rwaza_musanze_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "shingiro",
+            name: "Shingiro",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "shingiro_cell",
+                name: "Shingiro",
+                sectorId: "shingiro",
+                villages: [
+                  { id: "shingiro_v1", name: "Shingiro I", cellId: "shingiro_cell" },
+                  { id: "shingiro_v2", name: "Shingiro II", cellId: "shingiro_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "busogo",
+            name: "Busogo",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "busogo_cell",
+                name: "Busogo",
+                sectorId: "busogo",
+                villages: [
+                  { id: "busogo_v1", name: "Busogo I", cellId: "busogo_cell" },
+                  { id: "busogo_v2", name: "Busogo II", cellId: "busogo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "muhoza",
+            name: "Muhoza",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "muhoza_cell",
+                name: "Muhoza",
+                sectorId: "muhoza",
+                villages: [
+                  { id: "muhoza_v1", name: "Muhoza I", cellId: "muhoza_cell" },
+                  { id: "muhoza_v2", name: "Muhoza II", cellId: "muhoza_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "nkotsi",
+            name: "Nkotsi",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "nkotsi_cell",
+                name: "Nkotsi",
+                sectorId: "nkotsi",
+                villages: [
+                  { id: "nkotsi_v1", name: "Nkotsi I", cellId: "nkotsi_cell" },
+                  { id: "nkotsi_v2", name: "Nkotsi II", cellId: "nkotsi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rwaza",
+            name: "Rwaza",
+            districtId: "musanze",
+            cells: [
+              {
+                id: "rwaza_cell",
+                name: "Rwaza",
+                sectorId: "rwaza",
+                villages: [
+                  { id: "rwaza_v1", name: "Rwaza I", cellId: "rwaza_cell" },
+                  { id: "rwaza_v2", name: "Rwaza II", cellId: "rwaza_cell" },
+                ],
+              },
+            ],
+          }
+        ]
+      },
+      {
+        id: "rulindo",
+        name: "Rulindo",
+        provinceId: "northern",
+        sectors: [
+          {
+            id: "base",
+            name: "Base",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "base_cell",
+                name: "Base",
+                sectorId: "base",
+                villages: [
+                  { id: "base_v1", name: "Base I", cellId: "base_cell" },
+                  { id: "base_v2", name: "Base II", cellId: "base_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "burega",
+            name: "Burega",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "burega_cell",
+                name: "Burega",
+                sectorId: "burega",
+                villages: [
+                  { id: "burega_v1", name: "Burega I", cellId: "burega_cell" },
+                  { id: "burega_v2", name: "Burega II", cellId: "burega_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "bushoki",
+            name: "Bushoki",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "bushoki_cell",
+                name: "Bushoki",
+                sectorId: "bushoki",
+                villages: [
+                  { id: "bushoki_v1", name: "Bushoki I", cellId: "bushoki_cell" },
+                  { id: "bushoki_v2", name: "Bushoki II", cellId: "bushoki_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "cyinzuzi",
+            name: "Cyinzuzi",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "cyinzuzi_cell",
+                name: "Cyinzuzi",
+                sectorId: "cyinzuzi",
+                villages: [
+                  { id: "cyinzuzi_v1", name: "Cyinzuzi I", cellId: "cyinzuzi_cell" },
+                  { id: "cyinzuzi_v2", name: "Cyinzuzi II", cellId: "cyinzuzi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "cyungo",
+            name: "Cyungo",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "cyungo_cell",
+                name: "Cyungo",
+                sectorId: "cyungo",
+                villages: [
+                  { id: "cyungo_v1", name: "Cyungo I", cellId: "cyungo_cell" },
+                  { id: "cyungo_v2", name: "Cyungo II", cellId: "cyungo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kinihira",
+            name: "Kinihira",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "kinihira_cell",
+                name: "Kinihira",
+                sectorId: "kinihira",
+                villages: [
+                  { id: "kinihira_v1", name: "Kinihira I", cellId: "kinihira_cell" },
+                  { id: "kinihira_v2", name: "Kinihira II", cellId: "kinihira_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kisaro",
+            name: "Kisaro",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "kisaro_cell",
+                name: "Kisaro",
+                sectorId: "kisaro",
+                villages: [
+                  { id: "kisaro_v1", name: "Kisaro I", cellId: "kisaro_cell" },
+                  { id: "kisaro_v2", name: "Kisaro II", cellId: "kisaro_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mbogo",
+            name: "Mbogo",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "mbogo_cell",
+                name: "Mbogo",
+                sectorId: "mbogo",
+                villages: [
+                  { id: "mbogo_v1", name: "Mbogo I", cellId: "mbogo_cell" },
+                  { id: "mbogo_v2", name: "Mbogo II", cellId: "mbogo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "murambi_rulindo",
+            name: "Murambi",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "murambi_rulindo_cell",
+                name: "Murambi",
+                sectorId: "murambi_rulindo",
+                villages: [
+                  { id: "murambi_rulindo_v1", name: "Murambi I", cellId: "murambi_rulindo_cell" },
+                  { id: "murambi_rulindo_v2", name: "Murambi II", cellId: "murambi_rulindo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ngoma_rulindo",
+            name: "Ngoma",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "ngoma_rulindo_cell",
+                name: "Ngoma",
+                sectorId: "ngoma_rulindo",
+                villages: [
+                  { id: "ngoma_rulindo_v1", name: "Ngoma I", cellId: "ngoma_rulindo_cell" },
+                  { id: "ngoma_rulindo_v2", name: "Ngoma II", cellId: "ngoma_rulindo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ntarabana",
+            name: "Ntarabana",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "ntarabana_cell",
+                name: "Ntarabana",
+                sectorId: "ntarabana",
+                villages: [
+                  { id: "ntarabana_v1", name: "Ntarabana I", cellId: "ntarabana_cell" },
+                  { id: "ntarabana_v2", name: "Ntarabana II", cellId: "ntarabana_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rukozo",
+            name: "Rukozo",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "rukozo_cell",
+                name: "Rukozo",
+                sectorId: "rukozo",
+                villages: [
+                  { id: "rukozo_v1", name: "Rukozo I", cellId: "rukozo_cell" },
+                  { id: "rukozo_v2", name: "Rukozo II", cellId: "rukozo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rulindo_sector",
+            name: "Rulindo",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "rulindo_sector_cell",
+                name: "Rulindo",
+                sectorId: "rulindo_sector",
+                villages: [
+                  { id: "rulindo_sector_v1", name: "Rulindo I", cellId: "rulindo_sector_cell" },
+                  { id: "rulindo_sector_v2", name: "Rulindo II", cellId: "rulindo_sector_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rusiga",
+            name: "Rusiga",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "rusiga_cell",
+                name: "Rusiga",
+                sectorId: "rusiga",
+                villages: [
+                  { id: "rusiga_v1", name: "Rusiga I", cellId: "rusiga_cell" },
+                  { id: "rusiga_v2", name: "Rusiga II", cellId: "rusiga_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "shyorongi",
+            name: "Shyorongi",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "shyorongi_cell",
+                name: "Shyorongi",
+                sectorId: "shyorongi",
+                villages: [
+                  { id: "shyorongi_v1", name: "Shyorongi I", cellId: "shyorongi_cell" },
+                  { id: "shyorongi_v2", name: "Shyorongi II", cellId: "shyorongi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "tumba",
+            name: "Tumba",
+            districtId: "rulindo",
+            cells: [
+              {
+                id: "tumba_cell",
+                name: "Tumba",
+                sectorId: "tumba",
+                villages: [
+                  { id: "tumba_v1", name: "Tumba I", cellId: "tumba_cell" },
+                  { id: "tumba_v2", name: "Tumba II", cellId: "tumba_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "southern",
+    name: "Southern Province",
+    districts: [
+      {
+        id: "gisagara",
+        name: "Gisagara",
+        provinceId: "southern",
+        sectors: [
+          {
+            id: "gishubi",
+            name: "Gishubi",
+            districtId: "gisagara",
+            cells: [
+              {
+                id: "gishubi_cell",
+                name: "Gishubi",
+                sectorId: "gishubi",
+                villages: [
+                  { id: "gishubi_v1", name: "Gishubi I", cellId: "gishubi_cell" },
+                  { id: "gishubi_v2", name: "Gishubi II", cellId: "gishubi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "save",
+            name: "Save",
+            districtId: "gisagara",
+            cells: [
+              {
+                id: "save_cell",
+                name: "Save",
+                sectorId: "save",
+                villages: [
+                  { id: "save_v1", name: "Save I", cellId: "save_cell" },
+                  { id: "save_v2", name: "Save II", cellId: "save_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "kigembe",
+            name: "Kigembe",
+            districtId: "gisagara",
+            cells: [
+              {
+                id: "kigembe_cell",
+                name: "Kigembe",
+                sectorId: "kigembe",
+                villages: [
+                  { id: "kigembe_v1", name: "Kigembe I", cellId: "kigembe_cell" },
+                  { id: "kigembe_v2", name: "Kigembe II", cellId: "kigembe_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mugombwa",
+            name: "Mugombwa",
+            districtId: "gisagara",
+            cells: [
+              {
+                id: "mugombwa_cell",
+                name: "Mugombwa",
+                sectorId: "mugombwa",
+                villages: [
+                  { id: "mugombwa_v1", name: "Mugombwa I", cellId: "mugombwa_cell" },
+                  { id: "mugombwa_v2", name: "Mugombwa II", cellId: "mugombwa_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mukindo",
+            name: "Mukindo",
+            districtId: "gisagara",
+            cells: [
+              {
+                id: "mukindo_cell",
+                name: "Mukindo",
+                sectorId: "mukindo",
+                villages: [
+                  { id: "mukindo_v1", name: "Mukindo I", cellId: "mukindo_cell" },
+                  { id: "mukindo_v2", name: "Mukindo II", cellId: "mukindo_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ndora",
+            name: "Ndora",
+            districtId: "gisagara",
+            cells: [
+              {
+                id: "ndora_cell",
+                name: "Ndora",
+                sectorId: "ndora",
+                villages: [
+                  { id: "ndora_v1", name: "Ndora I", cellId: "ndora_cell" },
+                  { id: "ndora_v2", name: "Ndora II", cellId: "ndora_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "western",
+    name: "Western Province",
+    districts: [
+      {
+        id: "karongi",
+        name: "Karongi",
+        provinceId: "western",
+        sectors: [
+          {
+            id: "bwishyura",
+            name: "Bwishyura",
+            districtId: "karongi",
+            cells: [
+              {
+                id: "bwishyura_cell",
+                name: "Bwishyura",
+                sectorId: "bwishyura",
+                villages: [
+                  { id: "bwishyura_v1", name: "Bwishyura I", cellId: "bwishyura_cell" },
+                  { id: "bwishyura_v2", name: "Bwishyura II", cellId: "bwishyura_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "gitesi",
+            name: "Gitesi",
+            districtId: "karongi",
+            cells: [
+              {
+                id: "gitesi_cell",
+                name: "Gitesi",
+                sectorId: "gitesi",
+                villages: [
+                  { id: "gitesi_v1", name: "Gitesi I", cellId: "gitesi_cell" },
+                  { id: "gitesi_v2", name: "Gitesi II", cellId: "gitesi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "murambi_karongi",
+            name: "Murambi",
+            districtId: "karongi",
+            cells: [
+              {
+                id: "murambi_karongi_cell",
+                name: "Murambi",
+                sectorId: "murambi_karongi",
+                villages: [
+                  { id: "murambi_karongi_v1", name: "Murambi I", cellId: "murambi_karongi_cell" },
+                  { id: "murambi_karongi_v2", name: "Murambi II", cellId: "murambi_karongi_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "mutuntu",
+            name: "Mutuntu",
+            districtId: "karongi",
+            cells: [
+              {
+                id: "mutuntu_cell",
+                name: "Mutuntu",
+                sectorId: "mutuntu",
+                villages: [
+                  { id: "mutuntu_v1", name: "Mutuntu I", cellId: "mutuntu_cell" },
+                  { id: "mutuntu_v2", name: "Mutuntu II", cellId: "mutuntu_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rugabano",
+            name: "Rugabano",
+            districtId: "karongi",
+            cells: [
+              {
+                id: "rugabano_cell",
+                name: "Rugabano",
+                sectorId: "rugabano",
+                villages: [
+                  { id: "rugabano_v1", name: "Rugabano I", cellId: "rugabano_cell" },
+                  { id: "rugabano_v2", name: "Rugabano II", cellId: "rugabano_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "ruganda",
+            name: "Ruganda",
+            districtId: "karongi",
+            cells: [
+              {
+                id: "ruganda_cell",
+                name: "Ruganda",
+                sectorId: "ruganda",
+                villages: [
+                  { id: "ruganda_v1", name: "Ruganda I", cellId: "ruganda_cell" },
+                  { id: "ruganda_v2", name: "Ruganda II", cellId: "ruganda_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rugenge",
+            name: "Rugenge",
+            districtId: "karongi",
+            cells: [
+              {
+                id: "rugenge_cell",
+                name: "Rugenge",
+                sectorId: "rugenge",
+                villages: [
+                  { id: "rugenge_v1", name: "Rugenge I", cellId: "rugenge_cell" },
+                  { id: "rugenge_v2", name: "Rugenge II", cellId: "rugenge_cell" },
+                ],
+              },
+            ],
+          },
+          {
+            id: "rwankuba",
+            name: "Rwankuba",
+            districtId: "karongi",
+            cells: [
+              {
+                id: "rwankuba_cell",
+                name: "Rwankuba",
+                sectorId: "rwankuba",
+                villages: [
+                  { id: "rwankuba_v1", name: "Rwankuba I", cellId: "rwankuba_cell" },
+                  { id: "rwankuba_v2", name: "Rwankuba II", cellId: "rwankuba_cell" },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+]
+
+// Service functions for working with administrative divisions
+export class RwandaAdministrativeService {
+  private static data = rwandaAdministrativeDivisions
+
+  // Get all provinces
+  static getProvinces(): Province[] {
+    return this.data
+  }
+
+  // Get districts by province ID
+  static getDistrictsByProvince(provinceId: string): District[] {
+    const province = this.data.find((p) => p.id === provinceId)
+    return province ? province.districts : []
+  }
+
+  // Get sectors by district ID
+  static getSectorsByDistrict(districtId: string): Sector[] {
+    for (const province of this.data) {
+      const district = province.districts.find((d) => d.id === districtId)
+      if (district) {
+        return district.sectors
+      }
+    }
+    return []
+  }
+
+  // Get cells by sector ID
+  static getCellsBySector(sectorId: string): Cell[] {
+    for (const province of this.data) {
+      for (const district of province.districts) {
+        const sector = district.sectors.find((s) => s.id === sectorId)
+        if (sector) {
+          return sector.cells
+        }
+      }
+    }
+    return []
+  }
+
+  // Get villages by cell ID
+  static getVillagesByCell(cellId: string): Village[] {
+    for (const province of this.data) {
+      for (const district of province.districts) {
+        for (const sector of district.sectors) {
+          const cell = sector.cells.find((c) => c.id === cellId)
+          if (cell) {
+            return cell.villages
+          }
+        }
+      }
+    }
+    return []
+  }
+
+  // Get full address path
+  static getFullAddressPath(villageId: string): {
+    province: string
+    district: string
+    sector: string
+    cell: string
+    village: string
+  } | null {
+    for (const province of this.data) {
+      for (const district of province.districts) {
+        for (const sector of district.sectors) {
+          for (const cell of sector.cells) {
+            const village = cell.villages.find((v) => v.id === villageId)
+            if (village) {
+              return {
+                province: province.name,
+                district: district.name,
+                sector: sector.name,
+                cell: cell.name,
+                village: village.name,
+              }
+            }
+          }
+        }
+      }
+    }
+    return null
+  }
+
+  // Search locations by name
+  static searchLocations(query: string): {
+    provinces: Province[]
+    districts: District[]
+    sectors: Sector[]
+    cells: Cell[]
+    villages: Village[]
+  } {
+    const searchTerm = query.toLowerCase()
+    const results = {
+      provinces: [] as Province[],
+      districts: [] as District[],
+      sectors: [] as Sector[],
+      cells: [] as Cell[],
+      villages: [] as Village[],
+    }
+
+    for (const province of this.data) {
+      if (province.name.toLowerCase().includes(searchTerm)) {
+        results.provinces.push(province)
+      }
+
+      for (const district of province.districts) {
+        if (district.name.toLowerCase().includes(searchTerm)) {
+          results.districts.push(district)
+        }
+
+        for (const sector of district.sectors) {
+          if (sector.name.toLowerCase().includes(searchTerm)) {
+            results.sectors.push(sector)
+          }
+
+          for (const cell of sector.cells) {
+            if (cell.name.toLowerCase().includes(searchTerm)) {
+              results.cells.push(cell)
+            }
+
+            for (const village of cell.villages) {
+              if (village.name.toLowerCase().includes(searchTerm)) {
+                results.villages.push(village)
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return results
+  }
+
+  // Validate administrative division hierarchy
+  static validateHierarchy(
+    provinceId?: string,
+    districtId?: string,
+    sectorId?: string,
+    cellId?: string,
+    villageId?: string,
+  ): boolean {
+    if (!provinceId) return true
+
+    const province = this.data.find((p) => p.id === provinceId)
+    if (!province) return false
+
+    if (!districtId) return true
+    const district = province.districts.find((d) => d.id === districtId)
+    if (!district) return false
+
+    if (!sectorId) return true
+    const sector = district.sectors.find((s) => s.id === sectorId)
+    if (!sector) return false
+
+    if (!cellId) return true
+    const cell = sector.cells.find((c) => c.id === cellId)
+    if (!cell) return false
+
+    if (!villageId) return true
+    const village = cell.villages.find((v) => v.id === villageId)
+    return !!village
+  }
+}

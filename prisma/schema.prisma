@@ -1,0 +1,1433 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                           String                  @id @default(cuid())
+  email                        String                  @unique
+  phone                        String?                 @unique
+  name                         String
+  password                     String
+  avatar                       String?
+  isActive                     Boolean                 @default(true)
+  createdAt                    DateTime                @default(now())
+  updatedAt                    DateTime                @updatedAt
+  mccId                        String?
+  ddin_username                String?
+  ddin_password                String?
+  mvend_wallet_id              String?
+  mvend_linked_msisdn          String?
+  mvend_member_id              String?
+  national_id                  String?
+  gender                       String?
+  district                     String?
+  pharmacyId                   String?
+  evaluations                  ApplicationEvaluation[]
+  managedPharmacy              Pharmacy?               @relation("PharmacyPharmacist")
+  dispensedPrescriptions       Prescription[]
+  approvedStockOrders          StockOrder[]            @relation("ApprovedStockOrders")
+  completedStockOrders         StockOrder[]            @relation("CompletedStockOrders")
+  requestedStockOrders         StockOrder[]            @relation("RequestedStockOrders")
+  paymentConfirmedStockOrders  StockOrder[]            @relation("PaymentConfirmedStockOrders")
+  rejectedStockOrders          StockOrder[]            @relation("RejectedStockOrders")
+  interviewsConducted          ApplicationInterview[]  @relation("Interviewer")
+  applications                 Application[]
+  completedCycleCounts         CycleCount[]            @relation("CompletedCycleCounts")
+  createdCycleCounts           CycleCount[]            @relation("CreatedCycleCounts")
+  dccProfile                   DCCProfile?
+  dccStocks                    DCCStock[]
+  approvedInventoryAdjustments InventoryAdjustment[]   @relation("ApprovedInventoryAdjustments")
+  createdInventoryAdjustments  InventoryAdjustment[]   @relation("CreatedInventoryAdjustments")
+  products                     products[]
+  createdStockMoves            StockMove[]             @relation("CreatedStockMoves")
+  processedStockMoves          StockMove[]             @relation("ProcessedStockMoves")
+  roleAssignments              UserRoleAssignment[]    @relation("RoleAssignments")
+  userRole                     UserRoleAssignment?
+  mcc                          mccs?                   @relation(fields: [mccId], references: [id])
+  pharmacy                     Pharmacy?               @relation("PharmacyUsers", fields: [pharmacyId], references: [id])
+  wallet                       Wallet?
+  processedWithdrawals         WithdrawalRequest[]     @relation("ProcessedWithdrawals")
+  withdrawalRequests           WithdrawalRequest[]
+
+  @@index([mccId])
+  @@index([pharmacyId])
+  @@map("users")
+}
+
+model Application {
+  id          String                  @id
+  userId      String?
+  phone       String
+  email       String?
+  status      ApplicationStatus       @default(SUBMITTED)
+  formData    Json
+  currentStep Int                     @default(1)
+  notes       String?
+  dccCreated  Boolean                 @default(false)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  nationalId  String?                 @unique
+  evaluations ApplicationEvaluation[]
+  interviews  ApplicationInterview[]
+  user        User?                   @relation(fields: [userId], references: [id])
+  dccProfile  DCCProfile?
+
+  @@index([userId])
+  @@map("applications")
+}
+
+model ApplicationEvaluation {
+  id              String      @id @default(cuid())
+  applicationId   String
+  type            String      @default("VULNERABILITY")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  overallLevel    String?
+  recommendations Json?
+  scores          Json?
+  totalScore      Float
+  evaluatorId     String
+  metadata        Json?
+  questionScores  Json?
+  score           Float
+  application     Application @relation(fields: [applicationId], references: [id])
+  evaluator       User        @relation(fields: [evaluatorId], references: [id])
+
+  @@index([applicationId])
+  @@index([evaluatorId])
+}
+
+model DCCProfile {
+  id                String      @id @default(cuid())
+  userId            String      @unique
+  applicationId     String      @unique
+  level             DCCLevel    @default(LEVEL_C)
+  rating            Float       @default(5.0)
+  totalSales        String      @default("RWF 0")
+  monthlySales      String      @default("RWF 0")
+  productsAvailable Int         @default(0)
+  status            String      @default("active")
+  location          String
+  specialties       String[]
+  performance       Json
+  recentActivity    Json
+  approvedBy        String?
+  approvedDate      DateTime    @default(now())
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  application       Application @relation(fields: [applicationId], references: [id])
+  user              User        @relation(fields: [userId], references: [id])
+  wallet            DCCWallet?
+
+  @@map("dcc_profiles")
+}
+
+model EmailLog {
+  id        String    @id @default(cuid())
+  to        String
+  subject   String
+  template  String
+  status    String
+  error     String?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@map("email_logs")
+}
+
+model SMSLog {
+  id        String    @id @default(cuid())
+  to        String
+  message   String
+  status    String
+  error     String?
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@map("sms_logs")
+}
+
+model PasswordReset {
+  id         String    @id @default(cuid())
+  email      String
+  token      String    @unique
+  used       Boolean   @default(false)
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  metadata   String?
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([expiresAt], map: "password_resets_expires_at_idx")
+  @@index([metadata])
+  @@index([used])
+  @@map("password_resets")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+
+  @@map("sessions")
+}
+
+model Job {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  company      String
+  location     String
+  salary       String?
+  type         String
+  category     String
+  requirements Json
+  benefits     Json?
+  isActive     Boolean  @default(true)
+  postedBy     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("jobs")
+}
+
+model Employer {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  phone       String?
+  location    String?
+  description String?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("employers")
+}
+
+model Brand {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  logo        String?
+  website     String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  products    products[]
+
+  @@map("brands")
+}
+
+model ProductVariant {
+  id         String   @id @default(cuid())
+  productId  String
+  sku        String   @unique
+  color      String?
+  size       String?
+  model      String?
+  weight     Float?
+  dimensions Json?
+  stock      Int      @default(0)
+  price      Float
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  product    products @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_variants")
+}
+
+model ProductSpecification {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   products @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_specifications")
+}
+
+model ProductReview {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String
+  rating    Int
+  title     String?
+  comment   String?
+  verified  Boolean  @default(false)
+  helpful   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   products @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_reviews")
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  productId String
+  quantity  Int
+  price     Float
+  total     Float
+  product   products @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  instructor  String
+  duration    String
+  level       String
+  category    String
+  price       Float?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("courses")
+}
+
+model DCCWallet {
+  id                 String              @id @default(cuid())
+  dccProfileId       String              @unique
+  balance            Float               @default(0)
+  minimumBalance     Float               @default(5000)
+  lastWithdrawal     DateTime?
+  status             String              @default("active")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  dccProfile         DCCProfile          @relation(fields: [dccProfileId], references: [id])
+  transactions       WalletTransaction[]
+  withdrawalRequests WithdrawalRequest[]
+
+  @@map("dcc_wallets")
+}
+
+model WalletTransaction {
+  id          String            @id @default(cuid())
+  walletId    String
+  type        TransactionType
+  amount      Float
+  description String
+  status      TransactionStatus @default(COMPLETED)
+  reference   String?
+  metadata    Json?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  wallet      DCCWallet         @relation(fields: [walletId], references: [id])
+
+  @@map("wallet_transactions")
+}
+
+model WithdrawalRequest {
+  id            String           @id @default(cuid())
+  walletId      String
+  amount        Float
+  status        WithdrawalStatus @default(PENDING)
+  reason        String?
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  notes         String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  userId        String
+  adminComment  String?
+  processedAt   DateTime?
+  processedById String?
+  processedBy   User?            @relation("ProcessedWithdrawals", fields: [processedById], references: [id])
+  user          User             @relation(fields: [userId], references: [id])
+  wallet        DCCWallet        @relation(fields: [walletId], references: [id])
+
+  @@map("withdrawal_requests")
+}
+
+model Wallet {
+  id             String        @id @default(cuid())
+  userId         String        @unique
+  balance        Float         @default(0)
+  minimumBalance Float         @default(1000)
+  lastWithdrawal DateTime?
+  status         String        @default("ACTIVE")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  transactions   Transaction[]
+  user           User          @relation(fields: [userId], references: [id])
+
+  @@map("wallets")
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  walletId    String
+  type        String
+  amount      Float
+  status      String   @default("PENDING")
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  wallet      Wallet   @relation(fields: [walletId], references: [id])
+
+  @@map("transactions")
+}
+
+model StockOrder {
+  id                     String              @id @default(cuid())
+  dccId                  String
+  totalAmount            Float
+  status                 String
+  priority               String
+  requestDate            DateTime            @default(now())
+  estimatedDelivery      DateTime?
+  notes                  String?
+  approvedBy             String?
+  approvedAt             DateTime?
+  rejectedBy             String?
+  rejectedAt             DateTime?
+  paymentConfirmedBy     String?
+  paymentConfirmedAt     DateTime?
+  completedBy            String?
+  completedAt            DateTime?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  payment                Payment?
+  approvedByUser         User?               @relation("ApprovedStockOrders", fields: [approvedBy], references: [id])
+  completedByUser        User?               @relation("CompletedStockOrders", fields: [completedBy], references: [id])
+  dcc                    User                @relation("RequestedStockOrders", fields: [dccId], references: [id])
+  paymentConfirmedByUser User?               @relation("PaymentConfirmedStockOrders", fields: [paymentConfirmedBy], references: [id])
+  rejectedByUser         User?               @relation("RejectedStockOrders", fields: [rejectedBy], references: [id])
+  products               StockOrderProduct[]
+
+  @@index([dccId])
+  @@index([status])
+  @@index([priority])
+}
+
+model StockOrderProduct {
+  id             String     @id @default(cuid())
+  stockOrderId   String
+  productId      String
+  quantity       Int
+  currentStock   Int
+  requestedStock Int
+  price          Float
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  product        products   @relation(fields: [productId], references: [id])
+  stockOrder     StockOrder @relation(fields: [stockOrderId], references: [id])
+
+  @@index([stockOrderId])
+  @@index([productId])
+}
+
+model Payment {
+  id           String     @id @default(cuid())
+  stockOrderId String     @unique
+  status       String
+  amount       Float
+  method       String?
+  reference    String?
+  paidAt       DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  stockOrder   StockOrder @relation(fields: [stockOrderId], references: [id])
+
+  @@index([status])
+}
+
+model DCCStock {
+  id        String   @id @default(cuid())
+  dccId     String
+  productId String
+  quantity  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  dcc       User     @relation(fields: [dccId], references: [id])
+  product   products @relation(fields: [productId], references: [id])
+
+  @@unique([dccId, productId])
+  @@map("dcc_stocks")
+}
+
+model FormConfig {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  sections    Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("form_configs")
+}
+
+model DCC {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String   @unique
+  location  String
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("dccs")
+}
+
+model Warehouse {
+  id                   String                @id @default(cuid())
+  name                 String
+  code                 String                @unique
+  description          String?
+  address              String?
+  city                 String?
+  country              String?
+  isActive             Boolean               @default(true)
+  isMain               Boolean               @default(false)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  cycleCounts          CycleCount[]
+  inventoryAdjustments InventoryAdjustment[]
+  locations            Location[]
+  lotNumbers           LotNumber[]
+  milk_collections     milk_collections[]
+  reorderRules         ReorderRule[]
+  serialNumbers        SerialNumber[]
+  stockMoves           StockMove[]
+  stockQuantities      StockQuantity[]
+
+  @@map("warehouses")
+}
+
+model Location {
+  id                    String                @id @default(cuid())
+  name                  String
+  code                  String
+  description           String?
+  warehouseId           String
+  parentId              String?
+  locationType          LocationType          @default(STORAGE)
+  isActive              Boolean               @default(true)
+  maxCapacity           Int?
+  currentCapacity       Int?                  @default(0)
+  barcode               String?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  cycleCounts           CycleCount[]
+  inventoryAdjustments  InventoryAdjustment[]
+  parent                Location?             @relation("LocationHierarchy", fields: [parentId], references: [id])
+  children              Location[]            @relation("LocationHierarchy")
+  warehouse             Warehouse             @relation(fields: [warehouseId], references: [id])
+  lotNumbers            LotNumber[]
+  milk_collections      milk_collections[]
+  reorderRules          ReorderRule[]
+  serialNumbers         SerialNumber[]
+  destinationStockMoves StockMove[]           @relation("DestinationLocation")
+  stockMoves            StockMove[]           @relation("SourceLocation")
+  stockQuantities       StockQuantity[]
+
+  @@unique([warehouseId, code])
+  @@map("locations")
+}
+
+model StockMove {
+  id                    String             @id @default(cuid())
+  productId             String
+  warehouseId           String?
+  locationId            String?
+  destinationLocationId String?
+  quantity              Float
+  unitPrice             Float?
+  moveType              StockMoveType
+  state                 StockMoveState     @default(DRAFT)
+  priority              String             @default("normal")
+  scheduledDate         DateTime?
+  date                  DateTime           @default(now())
+  origin                String?
+  reference             String?
+  notes                 String?
+  createdBy             String
+  processedBy           String?
+  processedAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  milk_collections      milk_collections[]
+  createdByUser         User               @relation("CreatedStockMoves", fields: [createdBy], references: [id])
+  destinationLocation   Location?          @relation("DestinationLocation", fields: [destinationLocationId], references: [id])
+  location              Location?          @relation("SourceLocation", fields: [locationId], references: [id])
+  processedByUser       User?              @relation("ProcessedStockMoves", fields: [processedBy], references: [id])
+  product               products           @relation(fields: [productId], references: [id])
+  warehouse             Warehouse?         @relation(fields: [warehouseId], references: [id])
+
+  @@index([productId])
+  @@index([state])
+  @@index([moveType])
+  @@index([date])
+  @@map("stock_moves")
+}
+
+model StockQuantity {
+  id                String     @id @default(cuid())
+  productId         String
+  warehouseId       String?
+  locationId        String?
+  quantity          Float      @default(0)
+  reservedQuantity  Float      @default(0)
+  availableQuantity Float      @default(0)
+  lastUpdated       DateTime   @default(now())
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  location          Location?  @relation(fields: [locationId], references: [id])
+  product           products   @relation(fields: [productId], references: [id])
+  warehouse         Warehouse? @relation(fields: [warehouseId], references: [id])
+
+  @@unique([productId, warehouseId, locationId])
+  @@index([productId])
+  @@map("stock_quantities")
+}
+
+model InventoryAdjustment {
+  id             String                   @id @default(cuid())
+  productId      String
+  warehouseId    String?
+  locationId     String?
+  quantity       Float
+  adjustmentType InventoryAdjustmentType
+  reason         String
+  notes          String?
+  state          InventoryAdjustmentState @default(DRAFT)
+  createdBy      String
+  approvedBy     String?
+  approvedAt     DateTime?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  approvedByUser User?                    @relation("ApprovedInventoryAdjustments", fields: [approvedBy], references: [id])
+  createdByUser  User                     @relation("CreatedInventoryAdjustments", fields: [createdBy], references: [id])
+  location       Location?                @relation(fields: [locationId], references: [id])
+  product        products                 @relation(fields: [productId], references: [id])
+  warehouse      Warehouse?               @relation(fields: [warehouseId], references: [id])
+
+  @@index([productId])
+  @@index([state])
+  @@map("inventory_adjustments")
+}
+
+model LotNumber {
+  id          String     @id @default(cuid())
+  productId   String
+  lotNumber   String
+  expiryDate  DateTime?
+  quantity    Float      @default(0)
+  warehouseId String?
+  locationId  String?
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  location    Location?  @relation(fields: [locationId], references: [id])
+  product     products   @relation(fields: [productId], references: [id])
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id])
+
+  @@unique([productId, lotNumber])
+  @@index([productId])
+  @@index([expiryDate])
+  @@map("lot_numbers")
+}
+
+model SerialNumber {
+  id           String             @id @default(cuid())
+  productId    String
+  serialNumber String             @unique
+  warehouseId  String?
+  locationId   String?
+  status       SerialNumberStatus @default(AVAILABLE)
+  notes        String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  location     Location?          @relation(fields: [locationId], references: [id])
+  product      products           @relation(fields: [productId], references: [id])
+  warehouse    Warehouse?         @relation(fields: [warehouseId], references: [id])
+
+  @@index([productId])
+  @@index([status])
+  @@map("serial_numbers")
+}
+
+model CycleCount {
+  id              String           @id @default(cuid())
+  name            String
+  warehouseId     String?
+  locationId      String?
+  productId       String?
+  state           CycleCountState  @default(DRAFT)
+  scheduledDate   DateTime?
+  completedAt     DateTime?
+  createdBy       String
+  completedBy     String?
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  items           CycleCountItem[]
+  completedByUser User?            @relation("CompletedCycleCounts", fields: [completedBy], references: [id])
+  createdByUser   User             @relation("CreatedCycleCounts", fields: [createdBy], references: [id])
+  location        Location?        @relation(fields: [locationId], references: [id])
+  product         products?        @relation(fields: [productId], references: [id])
+  warehouse       Warehouse?       @relation(fields: [warehouseId], references: [id])
+
+  @@index([state])
+  @@map("cycle_counts")
+}
+
+model CycleCountItem {
+  id               String     @id @default(cuid())
+  cycleCountId     String
+  productId        String
+  expectedQuantity Float
+  countedQuantity  Float?
+  variance         Float?
+  notes            String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  cycleCount       CycleCount @relation(fields: [cycleCountId], references: [id])
+  product          products   @relation(fields: [productId], references: [id])
+
+  @@index([cycleCountId])
+  @@map("cycle_count_items")
+}
+
+model ReorderRule {
+  id            String     @id @default(cuid())
+  productId     String
+  warehouseId   String?
+  locationId    String?
+  minQuantity   Float
+  maxQuantity   Float?
+  orderQuantity Float
+  leadTime      Int        @default(7)
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  location      Location?  @relation(fields: [locationId], references: [id])
+  product       products   @relation(fields: [productId], references: [id])
+  warehouse     Warehouse? @relation(fields: [warehouseId], references: [id])
+
+  @@unique([productId, warehouseId, locationId])
+  @@map("reorder_rules")
+}
+
+model Packaging {
+  id              String     @id @default(cuid())
+  name            String
+  description     String?
+  unitsPerPackage Int?
+  weight          Float?
+  volume          Float?
+  length          Float?
+  width           Float?
+  height          Float?
+  barcode         String?    @unique
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  products        products[]
+
+  @@map("packaging")
+}
+
+model Permission {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  description     String?
+  category        String
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model Role {
+  id              String               @id @default(cuid())
+  name            String               @unique
+  description     String?
+  isActive        Boolean              @default(true)
+  isSystem        Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  rolePermissions RolePermission[]
+  userRoles       UserRoleAssignment[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  id           String     @id @default(cuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime   @default(now())
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRoleAssignment {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  roleId         String
+  assignedBy     String?
+  assignedAt     DateTime  @default(now())
+  expiresAt      DateTime?
+  isActive       Boolean   @default(true)
+  assignedByUser User?     @relation("RoleAssignments", fields: [assignedBy], references: [id])
+  role           Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_role_assignments")
+}
+
+model ApplicationInterview {
+  id             String           @id @default(cuid())
+  applicationId  String
+  interviewerId  String
+  scheduledDate  DateTime
+  completedAt    DateTime?
+  status         String           @default("SCHEDULED")
+  notes          String?
+  interviewNotes String?
+  overallScore   Float?
+  overallComment String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  application    Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  interviewer    User             @relation("Interviewer", fields: [interviewerId], references: [id], onDelete: Cascade)
+  scores         InterviewScore[]
+
+  @@unique([applicationId, interviewerId])
+  @@map("application_interviews")
+}
+
+model InterviewCriteria {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  maxScore    Int              @default(10)
+  weight      Float            @default(1.0)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  order       Int              @default(0)
+  scores      InterviewScore[]
+
+  @@map("interview_criteria")
+}
+
+model InterviewScore {
+  id          String               @id @default(cuid())
+  interviewId String
+  criteriaId  String
+  score       Float
+  comments    String?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  criteria    InterviewCriteria    @relation(fields: [criteriaId], references: [id], onDelete: Cascade)
+  interview   ApplicationInterview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@unique([interviewId, criteriaId])
+  @@map("interview_scores")
+}
+
+model OTP {
+  id        String   @id @default(cuid())
+  phone     String
+  otp       String
+  type      String   @default("PASSWORD_RESET")
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([phone, type])
+  @@index([expiresAt])
+  @@map("otps")
+}
+
+model farmers {
+  id                 String             @id @default(cuid())
+  mccId              String
+  name               String
+  phone              String
+  location           String
+  registrationDate   DateTime           @default(now())
+  isActive           Boolean            @default(true)
+  totalAmountEarned  Float              @default(0)
+  lastCollectionDate DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  mccs               mccs               @relation(fields: [mccId], references: [id])
+  milk_collections   milk_collections[]
+
+  @@index([mccId])
+  @@index([phone])
+}
+
+model mcc_periods {
+  id                 String             @id
+  mccId              String
+  periodNumber       Int
+  startDate          DateTime
+  endDate            DateTime
+  totalFarmers       Int                @default(0)
+  totalMilkCollected Float              @default(0)
+  totalAmount        Float              @default(0)
+  totalDeductions    Float              @default(0)
+  totalAdvances      Float              @default(0)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime
+  status             String             @default("ACTIVE")
+  mccs               mccs               @relation(fields: [mccId], references: [id])
+  milk_collections   milk_collections[]
+
+  @@index([mccId])
+  @@index([periodNumber])
+}
+
+model mcc_warehouses {
+  id        String           @id
+  mccId     String
+  name      String
+  type      MCCWarehouseType
+  location  String
+  capacity  Float
+  isActive  Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime
+  mccs      mccs             @relation(fields: [mccId], references: [id])
+  products  products[]
+
+  @@index([mccId])
+}
+
+model mccs {
+  id              String            @id
+  name            String
+  location        String
+  contactInfo     Json              @default("{}")
+  settings        Json              @default("{}")
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime
+  farmers         farmers[]
+  mcc_periods     mcc_periods[]
+  mcc_warehouses  mcc_warehouses[]
+  milk_processing milk_processing[]
+  users           User[]
+}
+
+model milk_collections {
+  id              String               @id
+  farmerId        String
+  mccPeriodId     String?
+  collectionDate  DateTime
+  period          Int
+  totalLiters     Float
+  unitPrice       Float
+  totalAmount     Float
+  stockMoveId     String?
+  warehouseId     String?
+  locationId      String?
+  productId       String?
+  deductions      Json                 @default("{}")
+  advances        Float                @default(0)
+  totalDeductions Float                @default(0)
+  netPayment      Float                @default(0)
+  status          MilkCollectionStatus @default(PENDING)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime
+  farmers         farmers              @relation(fields: [farmerId], references: [id])
+  locations       Location?            @relation(fields: [locationId], references: [id])
+  mcc_periods     mcc_periods?         @relation(fields: [mccPeriodId], references: [id])
+  products        products?            @relation(fields: [productId], references: [id])
+  stock_moves     StockMove?           @relation(fields: [stockMoveId], references: [id])
+  warehouses      Warehouse?           @relation(fields: [warehouseId], references: [id])
+
+  @@index([collectionDate])
+  @@index([farmerId])
+  @@index([productId])
+  @@index([stockMoveId])
+}
+
+model milk_processing {
+  id                                                    String   @id
+  mccId                                                 String
+  rawMilkProductId                                      String
+  processedProductId                                    String
+  inputQuantity                                         Float
+  outputQuantity                                        Float
+  processingDate                                        DateTime
+  processingSteps                                       Json     @default("{}")
+  qualityMetrics                                        Json     @default("{}")
+  status                                                String   @default("PENDING")
+  createdAt                                             DateTime @default(now())
+  updatedAt                                             DateTime
+  mccs                                                  mccs     @relation(fields: [mccId], references: [id])
+  products_milk_processing_processedProductIdToproducts products @relation("milk_processing_processedProductIdToproducts", fields: [processedProductId], references: [id])
+  products_milk_processing_rawMilkProductIdToproducts   products @relation("milk_processing_rawMilkProductIdToproducts", fields: [rawMilkProductId], references: [id])
+
+  @@index([mccId])
+  @@index([processedProductId])
+  @@index([rawMilkProductId])
+}
+
+model products {
+  id                                                           String                 @id
+  name                                                         String
+  description                                                  String?
+  price                                                        Float
+  image                                                        String?
+  category                                                     String
+  subcategory                                                  String?
+  createdAt                                                    DateTime               @default(now())
+  updatedAt                                                    DateTime
+  images                                                       String[]
+  isActive                                                     Boolean                @default(true)
+  sellerId                                                     String
+  status                                                       String                 @default("active")
+  stock                                                        Int                    @default(0)
+  brandId                                                      String?
+  countryOfOrigin                                              String?
+  isFragile                                                    Boolean                @default(false)
+  manufacturer                                                 String?
+  maxOrderQuantity                                             Int?
+  minOrderQuantity                                             Int?
+  requiresSpecialHandling                                      Boolean                @default(false)
+  shippingWeight                                               Float?
+  warrantyInfo                                                 String?
+  commission                                                   Float                  @default(0)
+  certifications                                               String[]
+  barcode                                                      String?                @unique
+  costPrice                                                    Float?
+  customAttributes                                             Json?
+  height                                                       Float?
+  internalReference                                            String?                @unique
+  lastPurchasePrice                                            Float?
+  leadTime                                                     Int?                   @default(7)
+  length                                                       Float?
+  maxStockLevel                                                Int?
+  packagingId                                                  String?
+  productType                                                  ProductType            @default(STOCKABLE)
+  purchaseUnitOfMeasure                                        String?
+  reorderPoint                                                 Int?                   @default(10)
+  routes                                                       ProductRoute[]
+  salesUnitOfMeasure                                           String?
+  standardPrice                                                Float?
+  supplierInfo                                                 Json?
+  tracking                                                     ProductTracking        @default(NONE)
+  unitOfMeasure                                                String                 @default("Units")
+  valuationMethod                                              ValuationMethod?       @default(FIFO)
+  volume                                                       Float?
+  width                                                        Float?
+  mccProductType                                               MCCProductType?
+  mccWarehouseId                                               String?
+  processingSteps                                              Json?
+  shelfLife                                                    Int?
+  temperatureRange                                             Json?
+  businessPrice                                                Float?
+  activeIngredient                                             String?
+  batchNumber                                                  String?
+  contraindications                                            String[]
+  controlledSubstance                                          Boolean                @default(false)
+  dosageForm                                                   String?
+  drugCategory                                                 DrugCategory?
+  expiryDate                                                   DateTime?
+  interactions                                                 String[]
+  inventoryType                                                InventoryType          @default(GENERAL)
+  pharmacyProductType                                          PharmacyProductType?
+  pharmacyWarehouseId                                          String?
+  requiresPrescription                                         Boolean                @default(false)
+  sideEffects                                                  String[]
+  storageConditions                                            Json                   @default("{}")
+  strength                                                     String?
+  prescriptionItems                                            PrescriptionItem[]
+  stockOrderProducts                                           StockOrderProduct[]
+  cycleCountItems                                              CycleCountItem[]
+  cycleCounts                                                  CycleCount[]
+  dccStocks                                                    DCCStock[]
+  inventoryAdjustments                                         InventoryAdjustment[]
+  lotNumbers                                                   LotNumber[]
+  milk_collections                                             milk_collections[]
+  milk_processing_milk_processing_processedProductIdToproducts milk_processing[]      @relation("milk_processing_processedProductIdToproducts")
+  milk_processing_milk_processing_rawMilkProductIdToproducts   milk_processing[]      @relation("milk_processing_rawMilkProductIdToproducts")
+  orderItems                                                   OrderItem[]
+  reviews                                                      ProductReview[]
+  specifications                                               ProductSpecification[]
+  variants                                                     ProductVariant[]
+  brands                                                       Brand?                 @relation(fields: [brandId], references: [id])
+  mcc_warehouses                                               mcc_warehouses?        @relation(fields: [mccWarehouseId], references: [id])
+  packaging                                                    Packaging?             @relation(fields: [packagingId], references: [id])
+  pharmacyWarehouse                                            PharmacyWarehouse?     @relation(fields: [pharmacyWarehouseId], references: [id])
+  users                                                        User                   @relation(fields: [sellerId], references: [id])
+  reorderRules                                                 ReorderRule[]
+  serialNumbers                                                SerialNumber[]
+  stockMoves                                                   StockMove[]
+  stockQuantities                                              StockQuantity[]
+
+  @@index([mccProductType])
+  @@index([mccWarehouseId])
+  @@index([inventoryType])
+  @@index([pharmacyProductType])
+  @@index([drugCategory])
+  @@index([expiryDate])
+}
+
+model Pharmacy {
+  id            String              @id @default(cuid())
+  name          String
+  licenseNumber String              @unique
+  location      String
+  contactInfo   Json                @default("{}")
+  settings      Json                @default("{}")
+  isActive      Boolean             @default(true)
+  pharmacistId  String?             @unique
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  pharmacist    User?               @relation("PharmacyPharmacist", fields: [pharmacistId], references: [id])
+  warehouses    PharmacyWarehouse[]
+  prescriptions Prescription[]
+  users         User[]              @relation("PharmacyUsers")
+}
+
+model PharmacyWarehouse {
+  id               String                @id @default(cuid())
+  pharmacyId       String
+  name             String
+  type             PharmacyWarehouseType
+  location         String
+  capacity         Float
+  temperatureRange Json                  @default("{}")
+  isActive         Boolean               @default(true)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  pharmacy         Pharmacy              @relation(fields: [pharmacyId], references: [id])
+  products         products[]
+}
+
+model Prescription {
+  id                 String             @id @default(cuid())
+  pharmacyId         String
+  patientId          String
+  doctorId           String
+  prescriptionNumber String             @unique
+  prescriptionDate   DateTime
+  status             PrescriptionStatus @default(PENDING)
+  notes              String?
+  totalAmount        Float              @default(0)
+  dispensedAt        DateTime?
+  dispensedBy        String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  dispensedByUser    User?              @relation(fields: [dispensedBy], references: [id])
+  pharmacy           Pharmacy           @relation(fields: [pharmacyId], references: [id])
+  items              PrescriptionItem[]
+}
+
+model PrescriptionItem {
+  id                String       @id @default(cuid())
+  prescriptionId    String
+  productId         String
+  quantity          Int
+  dosage            String?
+  frequency         String?
+  duration          String?
+  unitPrice         Float
+  totalPrice        Float
+  dispensedQuantity Int          @default(0)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  prescription      Prescription @relation(fields: [prescriptionId], references: [id])
+  product           products     @relation(fields: [productId], references: [id])
+}
+
+model Patient {
+  id               String   @id @default(cuid())
+  patientId        String   @unique
+  firstName        String
+  lastName         String
+  dateOfBirth      DateTime
+  gender           String
+  phoneNumber      String?
+  email            String?
+  address          String?
+  emergencyContact Json     @default("{}")
+  medicalHistory   Json     @default("{}")
+  allergies        String[]
+  bloodType        String?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model DispensingRecord {
+  id                String    @id @default(cuid())
+  patientId         String
+  prescriptionId    String?
+  medicineId        String
+  quantityDispensed Int
+  dispensingDate    DateTime
+  dispensedBy       String
+  batchNumber       String?
+  expiryDate        DateTime?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model MedicineBatch {
+  id            String    @id @default(cuid())
+  medicineId    String
+  batchNumber   String
+  expiryDate    DateTime
+  quantity      Int
+  supplier      String?
+  purchaseDate  DateTime?
+  purchasePrice Float?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  DCC
+  EMPLOYER
+  CONSUMER
+  AGENT
+}
+
+enum ApplicationStatus {
+  TEMPORARY
+  SUBMITTED
+  UNDER_REVIEW
+  PENDING_DOCUMENTS
+  APPROVED
+  REJECTED
+  INTERVIEW_INVITED
+}
+
+enum DCCLevel {
+  LEVEL_A
+  LEVEL_B
+  LEVEL_C
+}
+
+enum ProductCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  POOR
+  REFURBISHED
+}
+
+enum ProductAvailability {
+  IN_STOCK
+  OUT_OF_STOCK
+  LOW_STOCK
+  PREORDER
+  DISCONTINUED
+  COMING_SOON
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  COMMISSION
+  REFUND
+  FEE
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+enum ProductType {
+  STOCKABLE
+  CONSUMABLE
+  SERVICE
+}
+
+enum ProductTracking {
+  NONE
+  LOT
+  SERIAL
+  LOT_AND_SERIAL
+}
+
+enum LocationType {
+  STORAGE
+  PICKING
+  RECEIVING
+  SHIPPING
+  PRODUCTION
+  SCRAP
+  TRANSIT
+}
+
+enum StockMoveType {
+  INCOMING
+  OUTGOING
+  INTERNAL
+  RETURN
+  ADJUSTMENT
+  PRODUCTION
+  SCRAP
+}
+
+enum StockMoveState {
+  DRAFT
+  CONFIRMED
+  ASSIGNED
+  DONE
+  CANCELLED
+}
+
+enum InventoryAdjustmentType {
+  INCREASE
+  DECREASE
+  SET
+}
+
+enum InventoryAdjustmentState {
+  DRAFT
+  APPROVED
+  DONE
+  CANCELLED
+}
+
+enum SerialNumberStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  SCRAPPED
+  LOST
+}
+
+enum CycleCountState {
+  DRAFT
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum ValuationMethod {
+  FIFO
+  LIFO
+  AVCO
+}
+
+enum ProductRoute {
+  BUY
+  MTO
+  DROPSHIP
+  MANUFACTURE
+  CROSSDOCK
+  CONSIGNMENT
+}
+
+enum MCCWarehouseType {
+  COLLECTION_CENTER
+  PROCESSING_PLANT
+  COLD_STORAGE
+  DISTRIBUTION_CENTER
+}
+
+enum MCCProductType {
+  RAW_MILK
+  PROCESSED_MILK
+  MILK_PRODUCTS
+  BYPRODUCTS
+}
+
+enum MilkCollectionStatus {
+  PENDING
+  APPROVED
+  PAID
+  PROCESSED
+}
+
+enum InventoryType {
+  MILK
+  PHARMACY
+  GENERAL
+}
+
+enum PharmacyWarehouseType {
+  MAIN_PHARMACY
+  DISPENSARY
+  COLD_STORAGE
+  QUARANTINE
+  DISTRIBUTION
+}
+
+enum PharmacyProductType {
+  PRESCRIPTION_DRUG
+  OTC_MEDICATION
+  MEDICAL_SUPPLIES
+  VACCINES
+  DIAGNOSTIC_TOOLS
+  MEDICAL_EQUIPMENT
+}
+
+enum DrugCategory {
+  ANTIBIOTICS
+  ANALGESICS
+  ANTIHISTAMINES
+  CARDIOVASCULAR
+  DIABETES
+  RESPIRATORY
+  GASTROINTESTINAL
+  DERMATOLOGICAL
+  NEUROLOGICAL
+  HORMONAL
+  VITAMINS
+  OTHER
+}
+
+enum PrescriptionStatus {
+  PENDING
+  APPROVED
+  DISPENSED
+  REJECTED
+  EXPIRED
+}
+
+enum ExpiryAlertLevel {
+  NONE
+  WARNING
+  CRITICAL
+  EXPIRED
+}

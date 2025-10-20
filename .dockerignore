@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+.next/
+dist/
+build/
+
+# Development files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+
+# Git
+.git/
+.gitignore
+
+# But keep these important files for Prisma
+!prisma/
+!lib/
+!app/
+!components/
+!types/
+!hooks/
+!styles/
+!public/
+!package.json
+!pnpm-lock.yaml
+!next.config.mjs
+!tailwind.config.ts
+!tsconfig.json
+!postcss.config.mjs
+!components.json
+!middleware.ts 

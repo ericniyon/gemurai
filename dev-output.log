@@ -1,0 +1,300 @@
+
+> DJYH-platform@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.3.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.65:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 2.8s
+(node:48662) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+ ○ Compiling /_error ...
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+Failed to proxy http://localhost:3000/api/v1/superadmin/applications/APP-1751889248174-lxmjpw0 [Error: socket hang up] { code: 'ECONNRESET' }
+[Error: socket hang up] { code: 'ECONNRESET' }
+ ✓ Compiled /_error in 1767ms (371 modules)
+[?25h

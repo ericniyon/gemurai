@@ -1,0 +1,294 @@
+// Variables
+$primary-color: #0f172a;
+$secondary-color: #1e293b;
+$accent-color: #3b82f6;
+$text-primary: #f8fafc;
+$text-secondary: #94a3b8;
+$border-color: #334155;
+$hover-color: #1d4ed8;
+$success-color: #22c55e;
+$warning-color: #f59e0b;
+$danger-color: #ef4444;
+
+// Mixins
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin card-shadow {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+@mixin hover-transition {
+  transition: all 0.2s ease-in-out;
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+// Layout styles
+.superadmin-layout {
+  min-height: 100vh;
+  background-color: $primary-color;
+  color: $text-primary;
+
+  .sidebar {
+    width: 280px;
+    background-color: $secondary-color;
+    border-right: 1px solid $border-color;
+    padding: 1.5rem;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: $secondary-color;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $border-color;
+      border-radius: 2px;
+    }
+
+    .logo {
+      @include flex-center;
+      margin-bottom: 2rem;
+      img {
+        height: 40px;
+      }
+    }
+
+    .nav-item {
+      @include hover-transition;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      color: $text-secondary;
+
+      &:hover {
+        background-color: rgba($accent-color, 0.1);
+        color: $text-primary;
+      }
+
+      &.active {
+        background-color: $accent-color;
+        color: $text-primary;
+      }
+
+      .nav-icon {
+        margin-right: 0.75rem;
+      }
+    }
+  }
+
+  .main-content {
+    margin-left: 280px;
+    padding: 2rem;
+
+    .page-header {
+      @include flex-between;
+      margin-bottom: 2rem;
+
+      h1 {
+        font-size: 1.875rem;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+// Card styles
+.stat-card {
+  @include card-shadow;
+  background-color: $secondary-color;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  @include hover-transition;
+
+  .stat-title {
+    color: $text-secondary;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: $text-primary;
+  }
+
+  .stat-description {
+    color: $text-secondary;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+}
+
+// Table styles
+.data-table {
+  background-color: $secondary-color;
+  border-radius: 0.75rem;
+  overflow: hidden;
+
+  th {
+    background-color: rgba($primary-color, 0.5);
+    color: $text-secondary;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+
+  td {
+    padding: 1rem;
+    border-bottom: 1px solid $border-color;
+    color: $text-primary;
+  }
+
+  tr:hover {
+    background-color: rgba($accent-color, 0.05);
+  }
+}
+
+// Status badges
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  &.success {
+    background-color: rgba($success-color, 0.1);
+    color: $success-color;
+  }
+
+  &.warning {
+    background-color: rgba($warning-color, 0.1);
+    color: $warning-color;
+  }
+
+  &.danger {
+    background-color: rgba($danger-color, 0.1);
+    color: $danger-color;
+  }
+}
+
+// Form styles
+.form-group {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    color: $text-secondary;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    background-color: rgba($primary-color, 0.5);
+    border: 1px solid $border-color;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    color: $text-primary;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: $accent-color;
+    }
+  }
+}
+
+// Button styles
+.btn {
+  @include hover-transition;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+
+  &-primary {
+    background-color: $accent-color;
+    color: $text-primary;
+
+    &:hover {
+      background-color: $hover-color;
+    }
+  }
+
+  &-secondary {
+    background-color: $secondary-color;
+    color: $text-primary;
+    border: 1px solid $border-color;
+
+    &:hover {
+      background-color: lighten($secondary-color, 5%);
+    }
+  }
+
+  &-danger {
+    background-color: $danger-color;
+    color: $text-primary;
+
+    &:hover {
+      background-color: darken($danger-color, 10%);
+    }
+  }
+}
+
+// Modal styles
+.modal {
+  background-color: $secondary-color;
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 32rem;
+  width: 100%;
+  margin: 2rem;
+
+  .modal-header {
+    @include flex-between;
+    margin-bottom: 1.5rem;
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+  }
+
+  .modal-footer {
+    @include flex-between;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid $border-color;
+  }
+}
+
+// Animation
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+} 

@@ -1,0 +1,1192 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Swal from "sweetalert2"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { useToast } from "@/components/ui/use-toast"
+import { 
+  MoreHorizontal, 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2, 
+  UserPlus,
+  Loader2,
+  Filter,
+  Download,
+  Smartphone,
+  Mail,
+  Calendar,
+  Shield
+} from "lucide-react"
+import { DataTable } from "@/components/ui/data-table"
+import { columns } from "./columns"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import styles from "../styles/superadmin.module.scss"
+
+interface User {
+  id: string
+  email: string
+  name: string
+  phone?: string
+  role: string
+  createdAt: string
+  isActive: boolean
+}
+
+interface Role {
+  id: string
+  name: string
+  userCount: number
+}
+
+export default function UsersPage() {
+  const [users, setUsers] = useState<User[]>([])
+  const [roles, setRoles] = useState<Role[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [roleFilter, setRoleFilter] = useState<string>("all")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    role: "CUSTOMER",
+    password: "Login@Gemurai2025"
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSwalOpen, setIsSwalOpen] = useState(false)
+  const [editUser, setEditUser] = useState({
+    id: "",
+    name: "",
+    email: "",
+    phone: "",
+    role: "CUSTOMER",
+    isActive: true,
+  })
+  const [editValidationErrors, setEditValidationErrors] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    role: "",
+  })
+  const [validationErrors, setValidationErrors] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    role: "",
+    password: ""
+  })
+  
+  const { toast } = useToast()
+  const router = useRouter()
+
+  // Handle dialog close and reset
+  const handleDialogClose = (open: boolean) => {
+    // If a SweetAlert2 modal is currently open, ignore external attempts to close the dialog
+    if (isSwalOpen && !open) {
+      return
+    }
+    setIsCreateDialogOpen(open)
+    if (!open) {
+      setNewUser({ name: "", email: "", phone: "", role: "CUSTOMER", password: "Login@Gemurai2025" })
+      setValidationErrors({ name: "", email: "", phone: "", role: "", password: "" })
+    }
+  }
+
+  // Validation functions
+  const validateName = (name: string) => {
+    if (!name.trim()) return "Name is required"
+    if (name.trim().length < 2) return "Name must be at least 2 characters"
+    if (name.trim().length > 100) return "Name must be less than 100 characters"
+    if (!/^[a-zA-Z\s'-]+$/.test(name.trim())) return "Name can only contain letters, spaces, hyphens, and apostrophes"
+    return ""
+  }
+
+  const validateEmail = (email: string) => {
+    if (!email.trim()) return "Email is required"
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email.trim())) return "Please enter a valid email address"
+    if (email.trim().length > 255) return "Email must be less than 255 characters"
+    return ""
+  }
+
+  const validatePhone = (phone: string) => {
+    if (!phone.trim()) return "Phone number is required" // Phone is now required
+    const cleanPhone = phone.trim().replace(/[\s-()]/g, '')
+    
+    // Check if it's a valid phone number format
+    if (!/^\+?[1-9]\d{9,14}$/.test(cleanPhone)) {
+      return "Please enter a valid phone number (e.g., +250700000000)"
+    }
+    
+    // Check length after cleaning
+    if (cleanPhone.length < 10 || cleanPhone.length > 15) {
+      return "Phone number must be between 10-15 digits"
+    }
+    
+    return ""
+  }
+
+  const validatePassword = (password: string) => {
+    if (!password.trim()) return "Password is required"
+    if (password.length < 8) return "Password must be at least 8 characters"
+    if (password.length > 128) return "Password must be less than 128 characters"
+    if (!/(?=.*[a-z])/.test(password)) return "Password must contain at least one lowercase letter"
+    if (!/(?=.*[A-Z])/.test(password)) return "Password must contain at least one uppercase letter"
+    if (!/(?=.*\d)/.test(password)) return "Password must contain at least one number"
+    if (!/(?=.*[@$!%*?&])/.test(password)) return "Password must contain at least one special character (@$!%*?&)"
+    return ""
+  }
+
+  const validateRole = (role: string) => {
+    if (!role || !role.trim()) return "Role is required"
+    const normalized = role.trim().toUpperCase()
+    const matchesId = roles.some(r => r.id === role)
+    const matchesName = roles.some(r => (r.name || "").toUpperCase() === normalized)
+    if (!matchesId && !matchesName) return "Please select a valid role"
+    return ""
+  }
+
+  const validateAllFields = () => {
+    const errors = {
+      name: validateName(newUser.name),
+      email: validateEmail(newUser.email),
+      phone: validatePhone(newUser.phone),
+      role: validateRole(newUser.role),
+      password: validatePassword(newUser.password)
+    }
+    
+    setValidationErrors(errors)
+    return !Object.values(errors).some(error => error !== "")
+  }
+
+  // Fetch roles
+  const fetchRoles = async () => {
+    try {
+      const response = await fetch("/api/v1/roles", {
+        credentials: "include"
+      })
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch roles")
+      }
+      
+      const data = await response.json()
+      if (data.success) {
+        setRoles(data.roles)
+      } else {
+        throw new Error(data.message || "Failed to fetch roles")
+      }
+    } catch (err) {
+      console.error("Error fetching roles:", err)
+      // If roles fail to load, we'll use an empty array
+      setRoles([])
+    }
+  }
+
+  // Fetch users
+  const fetchUsers = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      
+      const response = await fetch("/api/v1/superadmin/users", {
+        credentials: "include"
+      })
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch users")
+      }
+      
+      const data = await response.json()
+      if (data.success) {
+        setUsers(data.users)
+      } else {
+        throw new Error(data.message || "Failed to fetch users")
+      }
+    } catch (err) {
+      console.error("Error fetching users:", err)
+      setError(err instanceof Error ? err.message : "Failed to fetch users")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchRoles()
+    fetchUsers()
+  }, [])
+
+  // Populate edit form when opening Edit dialog
+  useEffect(() => {
+    if (isEditDialogOpen && selectedUser) {
+      setEditUser({
+        id: selectedUser.id,
+        name: selectedUser.name || "",
+        email: selectedUser.email,
+        phone: selectedUser.phone || "",
+        role: selectedUser.role || "CUSTOMER",
+        isActive: !!selectedUser.isActive,
+      })
+      setEditValidationErrors({ name: "", email: "", phone: "", role: "" })
+    }
+  }, [isEditDialogOpen, selectedUser])
+
+  const validateAllEditFields = () => {
+    const errors = {
+      name: validateName(editUser.name),
+      email: validateEmail(editUser.email),
+      phone: validatePhone(editUser.phone),
+      role: validateRole(editUser.role),
+    }
+    setEditValidationErrors(errors)
+    return !Object.values(errors).some((e) => e !== "")
+  }
+
+  const handleCloseEditDialog = (open: boolean) => {
+    console.log('handleCloseEditDialog called with:', open)
+    setIsEditDialogOpen(open)
+    if (!open) {
+      setSelectedUser(null)
+      setEditUser({ id: "", name: "", email: "", phone: "", role: "CUSTOMER", isActive: true })
+      setEditValidationErrors({ name: "", email: "", phone: "", role: "" })
+    }
+  }
+
+  // Update user
+  const handleUpdateUser = async () => {
+    if (!validateAllEditFields()) {
+      await Swal.fire({
+        icon: 'error',
+        title: 'Validation Error',
+        text: 'Please fix all validation errors before submitting',
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'OK',
+        showCloseButton: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true
+      })
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch(`/api/v1/superadmin/users/${editUser.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          name: editUser.name,
+          email: editUser.email,
+          phone: editUser.phone,
+          role: editUser.role,
+          isActive: editUser.isActive,
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || "Failed to update user")
+      }
+
+      // Show SweetAlert2 first, then close Edit User dialog after user closes SweetAlert2
+      setIsSwalOpen(true)
+      await Swal.fire({
+        icon: 'success',
+        title: 'Updated!',
+        text: 'User updated successfully',
+        confirmButtonColor: '#059669',
+        confirmButtonText: 'Great!',
+        showCloseButton: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true
+      })
+      setIsSwalOpen(false)
+
+      // Close the Edit User dialog after SweetAlert2 is closed
+      handleCloseEditDialog(false)
+      fetchUsers()
+    } catch (err) {
+      // Show SweetAlert2 first, then keep Edit User dialog open for retry
+      setIsSwalOpen(true)
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err instanceof Error ? err.message : 'Failed to update user',
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'OK',
+        showCloseButton: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true
+      })
+      setIsSwalOpen(false)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+
+  // Filter users
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesRole = roleFilter === "all" || user.role === roleFilter
+    const matchesStatus = statusFilter === "all" || 
+                         (statusFilter === "active" && user.isActive) ||
+                         (statusFilter === "inactive" && !user.isActive)
+    
+    return matchesSearch && matchesRole && matchesStatus
+  })
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  // Reset to first page when filters/search change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, roleFilter, statusFilter])
+
+  const totalItems = filteredUsers.length
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, totalItems)
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex)
+
+  // Create user
+  const handleCreateUser = async () => {
+    // Validate all fields
+    if (!validateAllFields()) {
+      setIsSwalOpen(true)
+      await Swal.fire({
+        icon: 'error',
+        title: 'Validation Error',
+        text: 'Please fix all validation errors before submitting',
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'OK',
+        showCloseButton: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true
+      })
+      setIsSwalOpen(false)
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch("/api/v1/superadmin/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          name: newUser.name,
+          email: newUser.email,
+          phone: newUser.phone || undefined, // Only include phone if provided
+          role: newUser.role,
+          password: newUser.password
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || "Failed to create user")
+      }
+
+      const data = await response.json()
+      if (data.success) {
+        // Show SweetAlert2 first, then close Create User dialog after user closes SweetAlert2
+        setIsSwalOpen(true)
+        await Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'User created successfully',
+          confirmButtonColor: '#059669',
+          confirmButtonText: 'Great!',
+          showCloseButton: true,
+          allowOutsideClick: true,
+          allowEscapeKey: true
+        })
+        setIsSwalOpen(false)
+        
+        // Close the Create User dialog after SweetAlert2 is closed
+        setIsCreateDialogOpen(false)
+        setNewUser({ name: "", email: "", phone: "", role: "CUSTOMER", password: "Login@Gemurai2025" })
+        setValidationErrors({ name: "", email: "", phone: "", role: "", password: "" })
+        fetchUsers()
+      } else {
+        throw new Error(data.message || "Failed to create user")
+      }
+    } catch (err) {
+      console.error("Error creating user:", err)
+      
+      // Show SweetAlert2 first, then close Create User dialog after user closes SweetAlert2
+      setIsSwalOpen(true)
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err instanceof Error ? err.message : "Failed to create user",
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'OK',
+        showCloseButton: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true
+      })
+      setIsSwalOpen(false)
+      
+      // Close the Create User dialog after SweetAlert2 is closed
+      setIsCreateDialogOpen(false)
+      setNewUser({ name: "", email: "", phone: "", role: "CUSTOMER", password: "Login@Gemurai2025" })
+      setValidationErrors({ name: "", email: "", phone: "", role: "", password: "" })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Delete user
+  const handleDeleteUser = async (userId: string) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
+      showCloseButton: true,
+      allowOutsideClick: true,
+      allowEscapeKey: true
+    })
+
+    if (!result.isConfirmed) return
+
+    try {
+      const response = await fetch(`/api/v1/superadmin/users/${userId}`, {
+        method: "DELETE",
+        credentials: "include"
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || "Failed to delete user")
+      }
+
+      const data = await response.json()
+      if (data.success) {
+        setIsSwalOpen(true)
+        await Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'User has been deleted successfully',
+          confirmButtonColor: '#059669',
+          confirmButtonText: 'OK',
+          showCloseButton: true,
+          allowOutsideClick: true,
+          allowEscapeKey: true
+        })
+        setIsSwalOpen(false)
+        fetchUsers()
+      } else {
+        throw new Error(data.message || "Failed to delete user")
+      }
+    } catch (err) {
+      console.error("Error deleting user:", err)
+      setIsSwalOpen(true)
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err instanceof Error ? err.message : "Failed to delete user",
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'OK',
+        showCloseButton: true,
+        allowOutsideClick: true,
+        allowEscapeKey: true
+      })
+      setIsSwalOpen(false)
+    }
+  }
+
+  // Export users
+  const handleExportUsers = () => {
+    const csvContent = [
+      ["Name", "Email", "Role", "Created At", "Last Updated", "Status"],
+      ...filteredUsers.map(user => [
+        user.name || "",
+        user.email,
+        user.role,
+        new Date(user.createdAt).toLocaleDateString(),
+        new Date(user.updatedAt).toLocaleDateString(),
+        user.isActive ? "Active" : "Inactive"
+      ])
+    ].map(row => row.join(",")).join("\n")
+
+    const blob = new Blob([csvContent], { type: "text/csv" })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "users.csv"
+    a.click()
+    window.URL.revokeObjectURL(url)
+  }
+
+  if (isLoading) {
+    return (
+      <div className={styles.mainContent}>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <p className="text-gray-600">Loading users...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={styles.mainContent}>
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-6 text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <Button onClick={fetchUsers} variant="outline">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.mainContent}>
+      {/* Header */}
+      <div className={styles.pageHeader}>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight text-gray-900 break-words">
+            Users Management
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-gray-500">
+            Manage system users and their roles
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportUsers}
+            className="flex items-center justify-center gap-2 h-12 sm:h-9 px-3 sm:px-4"
+          >
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Export</span>
+          </Button>
+          <Button
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="flex items-center justify-center gap-2 h-12 sm:h-9 px-3 sm:px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          >
+            <UserPlus className="h-4 w-4" />
+            <span className="hidden sm:inline">Add User</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <Card className={styles.statCard}>
+          <CardContent className="p-3 sm:p-4 md:p-5">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1 pr-2">
+                <p className={styles.statTitle}>Total Users</p>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
+                  {users.length}
+                </p>
+              </div>
+              <div className="p-2 sm:p-3 bg-blue-50 rounded-full shrink-0">
+                <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className={styles.statCard}>
+          <CardContent className="p-3 sm:p-4 md:p-5">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1 pr-2">
+                <p className={styles.statTitle}>Active Users</p>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
+                  {users.filter(u => u.isActive).length}
+                </p>
+              </div>
+              <div className="p-2 sm:p-3 bg-green-50 rounded-full shrink-0">
+                <div className="h-4 w-4 sm:h-5 sm:w-5 bg-green-500 rounded-full"></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className={styles.statCard}>
+          <CardContent className="p-3 sm:p-4 md:p-5">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1 pr-2">
+                <p className={styles.statTitle}>DCCs</p>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
+                  {users.filter(u => u.role === "DCC").length}
+                </p>
+              </div>
+              <div className="p-2 sm:p-3 bg-purple-50 rounded-full shrink-0">
+                <div className="h-4 w-4 sm:h-5 sm:w-5 bg-purple-500 rounded-full"></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className={styles.statCard}>
+          <CardContent className="p-3 sm:p-4 md:p-5">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1 pr-2">
+                <p className={styles.statTitle}>Agents</p>
+                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
+                  {users.filter(u => u.role === "AGENT").length}
+                </p>
+              </div>
+              <div className="p-2 sm:p-3 bg-orange-50 rounded-full shrink-0">
+                <div className="h-4 w-4 sm:h-5 sm:w-5 bg-orange-500 rounded-full"></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card className="mb-4 sm:mb-6">
+        <CardContent className="p-3 sm:p-4 md:p-5">
+          <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search users..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-12 sm:h-10"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-full sm:w-[180px] h-12 sm:h-10">
+                  <SelectValue placeholder="Filter by role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  {roles.map((role) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px] h-12 sm:h-10">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Pagination controls */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 py-3">
+        <div className="text-sm text-gray-600">
+          Showing <span className="font-medium">{totalItems === 0 ? 0 : startIndex + 1}</span> to <span className="font-medium">{endIndex}</span> of <span className="font-medium">{totalItems}</span> users
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600">Rows per page</label>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              const next = Number(e.target.value) || 10
+              setPageSize(next)
+              setCurrentPage(1)
+            }}
+            className="border rounded-md px-2 py-1 text-sm"
+          >
+            {[5,10,20,50].map(sz => (
+              <option key={sz} value={sz}>{sz}</option>
+            ))}
+          </select>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="h-8" disabled={currentPage === 1} onClick={() => setCurrentPage(p => Math.max(1, p - 1))}>
+              Previous
+            </Button>
+            <div className="text-sm text-gray-700">
+              Page <span className="font-medium">{currentPage}</span> of <span className="font-medium">{totalPages}</span>
+            </div>
+            <Button variant="outline" size="sm" className="h-8" disabled={currentPage === totalPages || totalItems === 0} onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}>
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Users Table */}
+      <Card>
+        <CardHeader className="p-3 sm:p-4 md:p-5">
+          <CardTitle className="text-base sm:text-lg md:text-xl">Users ({filteredUsers.length})</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
+            Manage user accounts and permissions
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {/* Desktop Table */}
+          <div className="hidden lg:block overflow-x-auto">
+            <Table className={styles.dataTable}>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">Name</TableHead>
+                  <TableHead className="w-[240px]">Email</TableHead>
+                  <TableHead className="w-[150px]">Phone</TableHead>
+                  <TableHead className="w-[130px]">Role</TableHead>
+                  <TableHead className="w-[110px]">Status</TableHead>
+                  <TableHead className="w-[120px]">Created</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <div className="flex flex-col items-center gap-2">
+                        <UserPlus className="h-8 w-8 text-gray-400" />
+                        <p className="text-gray-500">No users found</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  paginatedUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">
+                        {user.name || "N/A"}
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {user.phone || "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="capitalize">
+                          {user.role.replace("_", " ").toLowerCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={user.isActive ? "default" : "secondary"}>
+                          {user.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-white border shadow-xl backdrop-blur-none opacity-100">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedUser(user)
+                                setIsEditDialogOpen(true)
+                              }}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="lg:hidden">
+            {paginatedUsers.length === 0 ? (
+              <div className="p-8 text-center">
+                <div className="flex flex-col items-center gap-2">
+                  <UserPlus className="h-8 w-8 text-gray-400" />
+                  <p className="text-gray-500">No users found</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 p-3 sm:p-4">
+                {paginatedUsers.map((user) => (
+                  <Card key={user.id} className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-gray-900 truncate">
+                            {user.name || "N/A"}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Mail className="h-3 w-3 text-gray-400" />
+                            <p className="text-sm text-gray-600 truncate">{user.email}</p>
+                          </div>
+                          {user.phone && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <Smartphone className="h-3 w-3 text-gray-400" />
+                              <p className="text-sm text-gray-600 truncate">{user.phone}</p>
+                            </div>
+                          )}
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 shrink-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-white border shadow-xl backdrop-blur-none opacity-100">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedUser(user)
+                                setIsEditDialogOpen(true)
+                              }}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteUser(user.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="capitalize">
+                          <Shield className="h-3 w-3 mr-1" />
+                          {user.role.replace("_", " ").toLowerCase()}
+                        </Badge>
+                        <Badge variant={user.isActive ? "default" : "secondary"}>
+                          {user.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>Created: {new Date(user.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>Updated: {new Date(user.updatedAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Edit User Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={handleCloseEditDialog} modal={false}>
+        <DialogContent
+          className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-white border shadow-xl backdrop-blur-none opacity-100"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name *</label>
+              <Input
+                value={editUser.name}
+                onChange={(e) => {
+                  setEditUser({ ...editUser, name: e.target.value })
+                  setEditValidationErrors({ ...editValidationErrors, name: validateName(e.target.value) })
+                }}
+                placeholder="Enter full name"
+                className={`h-12 sm:h-10 ${editValidationErrors.name ? 'border-red-500 focus:border-red-500' : ''}`}
+              />
+              {editValidationErrors.name && <p className="text-xs text-red-500">{editValidationErrors.name}</p>}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email *</label>
+              <Input
+                type="email"
+                value={editUser.email}
+                onChange={(e) => {
+                  setEditUser({ ...editUser, email: e.target.value })
+                  setEditValidationErrors({ ...editValidationErrors, email: validateEmail(e.target.value) })
+                }}
+                placeholder="Enter email address"
+                className={`h-12 sm:h-10 ${editValidationErrors.email ? 'border-red-500 focus:border-red-500' : ''}`}
+              />
+              {editValidationErrors.email && <p className="text-xs text-red-500">{editValidationErrors.email}</p>}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone Number *</label>
+              <Input
+                type="tel"
+                value={editUser.phone}
+                onChange={(e) => {
+                  setEditUser({ ...editUser, phone: e.target.value })
+                  setEditValidationErrors({ ...editValidationErrors, phone: validatePhone(e.target.value) })
+                }}
+                placeholder="e.g. +250700000000"
+                className={`h-12 sm:h-10 ${editValidationErrors.phone ? 'border-red-500 focus:border-red-500' : ''}`}
+              />
+              {editValidationErrors.phone && <p className="text-xs text-red-500">{editValidationErrors.phone}</p>}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Role *</label>
+              <select
+                value={editUser.role}
+                onChange={(e) => {
+                  setEditUser({ ...editUser, role: e.target.value })
+                  setEditValidationErrors({ ...editValidationErrors, role: validateRole(e.target.value) })
+                }}
+                className={`w-full h-12 sm:h-10 border rounded-md px-3 ${editValidationErrors.role ? 'border-red-500 focus:border-red-500' : ''}`}
+              >
+                <option value="">Select role</option>
+                {roles.map((r) => (
+                  <option key={r.id} value={(r.name || "").toUpperCase()}>{r.name}</option>
+                ))}
+              </select>
+              {editValidationErrors.role && <p className="text-xs text-red-500">{editValidationErrors.role}</p>}
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                id="edit-active"
+                type="checkbox"
+                checked={editUser.isActive}
+                onChange={(e) => setEditUser({ ...editUser, isActive: e.target.checked })}
+              />
+              <label htmlFor="edit-active" className="text-sm">Active</label>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => handleCloseEditDialog(false)}
+              disabled={isSubmitting}
+              className="h-12 sm:h-10 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 font-medium"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateUser}
+              disabled={isSubmitting}
+              className="h-12 sm:h-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Create User Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={handleDialogClose} modal={!isSwalOpen}>
+        <DialogContent
+          className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-white border shadow-xl backdrop-blur-none opacity-100"
+          onInteractOutside={(e) => { if (!isSwalOpen) e.preventDefault() }}
+          onEscapeKeyDown={(e) => { if (!isSwalOpen) e.preventDefault() }}
+        >
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name *</label>
+              <Input
+                value={newUser.name}
+                onChange={(e) => {
+                  setNewUser({ ...newUser, name: e.target.value })
+                  setValidationErrors({ ...validationErrors, name: validateName(e.target.value) })
+                }}
+                placeholder="Enter full name"
+                className={`h-12 sm:h-10 ${validationErrors.name ? 'border-red-500 focus:border-red-500' : ''}`}
+              />
+              {validationErrors.name && (
+                <p className="text-xs text-red-500">{validationErrors.name}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email *</label>
+              <Input
+                type="email"
+                value={newUser.email}
+                onChange={(e) => {
+                  setNewUser({ ...newUser, email: e.target.value })
+                  setValidationErrors({ ...validationErrors, email: validateEmail(e.target.value) })
+                }}
+                placeholder="Enter email address"
+                className={`h-12 sm:h-10 ${validationErrors.email ? 'border-red-500 focus:border-red-500' : ''}`}
+              />
+              {validationErrors.email && (
+                <p className="text-xs text-red-500">{validationErrors.email}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone Number *</label>
+              <Input
+                type="tel"
+                value={newUser.phone}
+                onChange={(e) => {
+                  setNewUser({ ...newUser, phone: e.target.value })
+                  setValidationErrors({ ...validationErrors, phone: validatePhone(e.target.value) })
+                }}
+                placeholder="Enter phone number (e.g., +250700000000)"
+                className={`h-12 sm:h-10 ${validationErrors.phone ? 'border-red-500 focus:border-red-500' : ''}`}
+              />
+              {validationErrors.phone && (
+                <p className="text-xs text-red-500">{validationErrors.phone}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Role *</label>
+              <Select
+                value={newUser.role}
+                onValueChange={(value) => {
+                  setNewUser({ ...newUser, role: value })
+                  setValidationErrors({ ...validationErrors, role: validateRole(value) })
+                }}
+              >
+                <SelectTrigger className={`h-12 sm:h-10 ${validationErrors.role ? 'border-red-500 focus:border-red-500' : ''}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((role) => (
+                    <SelectItem key={role.id} value={role.id}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {validationErrors.role && (
+                <p className="text-xs text-red-500">{validationErrors.role}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Password *</label>
+              <Input
+                type="password"
+                value={newUser.password}
+                onChange={(e) => {
+                  setNewUser({ ...newUser, password: e.target.value })
+                  setValidationErrors({ ...validationErrors, password: validatePassword(e.target.value) })
+                }}
+                placeholder="Enter secure password"
+                className={`h-12 sm:h-10 ${validationErrors.password ? 'border-red-500 focus:border-red-500' : ''}`}
+              />
+              {validationErrors.password && (
+                <p className="text-xs text-red-500">{validationErrors.password}</p>
+              )}
+              <p className="text-xs text-gray-500">
+                Password must be at least 8 characters with uppercase, lowercase, number, and special character
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => handleDialogClose(false)}
+              disabled={isSubmitting}
+              className="h-12 sm:h-10 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 font-medium"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateUser}
+              disabled={isSubmitting}
+              className="h-12 sm:h-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Create User
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+} 

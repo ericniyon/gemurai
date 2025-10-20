@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "products" ADD COLUMN     "commission" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "isNew" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "isPopular" BOOLEAN NOT NULL DEFAULT false;

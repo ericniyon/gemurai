@@ -1,0 +1,447 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import {
+  Filter,
+  Search,
+  ShoppingBag,
+  ShoppingCart,
+  Eye,
+  Star,
+  Heart,
+  Plus,
+  Minus,
+  ArrowLeft,
+  TrendingUp,
+  Shield,
+  Award,
+  Package,
+  X,
+} from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { AuthHeader } from "@/components/auth-header"
+import { AuthFooter } from "@/components/auth-footer"
+import { ClientOnly } from "@/components/client-only"
+import { marketplaceTranslations } from "../translations/marketplace"
+import { cn } from "@/lib/utils"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  commission: number
+  category: string
+  stock: number
+  image: string
+  status?: string
+  isNew?: boolean
+  isPopular?: boolean
+  isBestSeller?: boolean
+  discount?: number
+  originalPrice?: number
+  trackingNumber?: string
+  rating?: number
+  reviews?: number
+  createdAt?: string
+  updatedAt?: string
+  provider?: string
+  dccStockTotal?: number
+  dcc?: { name: string }
+  images?: string[] // Added for multiple images
+}
+
+interface WishlistItem {
+  productId: string
+  addedAt: string
+}
+
+const products: Product[] = [
+  {
+    id: "1",
+    name: "Mosquito Net (LLIN)",
+    price: 3500,
+    description: "Long-lasting insecticide-treated net for malaria prevention. Provides protection for up to 3 years.",
+    category: "preventative",
+    provider: "ADMIN",
+    stock: 15,
+    image: "/placeholder.svg?height=300&width=400",
+    rating: 4.8,
+    commission: 350,
+    isPopular: true,
+    dccStockTotal: 10,
+    dcc: { name: "DCC 1" },
+  },
+  {
+    id: "2",
+    name: "Water Purification Tablets",
+    price: 1200,
+    description: "Safe water treatment solution. Each tablet purifies 1 liter of water.",
+    category: "water",
+    provider: "ADMIN",
+    stock: 8,
+    image: "/placeholder.svg?height=300&width=400",
+    rating: 4.6,
+    commission: 120,
+    isNew: true,
+    dccStockTotal: 5,
+    dcc: { name: "DCC 2" },
+  },
+  {
+    id: "3",
+    name: "Contraceptive Pills",
+    price: 2800,
+    description: "Family planning solution. 28-day pack with clear instructions.",
+    category: "reproductive",
+    provider: "ADMIN",
+    stock: 12,
+    image: "/placeholder.svg?height=300&width=400",
+    rating: 4.7,
+    commission: 280,
+    isPopular: true,
+    originalPrice: 3200,
+    dccStockTotal: 8,
+    dcc: { name: "DCC 3" },
+  },
+  {
+    id: "4",
+    name: "Oral Rehydration Salts",
+    price: 800,
+    description: "Essential treatment for dehydration. WHO/UNICEF recommended formula.",
+    category: "preventative",
+    provider: "EdenCare",
+    stock: 25,
+    image: "/placeholder.svg?height=300&width=400",
+    rating: 4.9,
+    commission: 80,
+    dccStockTotal: 15,
+    dcc: { name: "DCC 4" },
+  },
+  {
+    id: "5",
+    name: "Pregnancy Test Kit",
+    price: 1500,
+    description: "Accurate home pregnancy testing kit with clear results.",
+    category: "reproductive",
+    provider: "ADMIN",
+    stock: 18,
+    image: "/placeholder.svg?height=300&width=400",
+    rating: 4.5,
+    commission: 150,
+    isNew: true,
+    dccStockTotal: 10,
+    dcc: { name: "DCC 5" },
+  },
+  {
+    id: "6",
+    name: "Hand Sanitizer",
+    price: 2000,
+    description: "70% alcohol-based hand sanitizer for infection prevention.",
+    category: "preventative",
+    provider: "EdenCare",
+    stock: 30,
+    image: "/placeholder.svg?height=300&width=400",
+    rating: 4.4,
+    commission: 200,
+    dccStockTotal: 12,
+    dcc: { name: "DCC 6" },
+  },
+]
+
+function MarketplaceContent() {
+  const params = useParams()
+  const lang = (params?.lang as string) || "en"
+  const t = marketplaceTranslations[lang as keyof typeof marketplaceTranslations] || marketplaceTranslations.en
+  const [cart, setCart] = useState<{ [key: string]: number }>({})
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedProvider, setSelectedProvider] = useState("all")
+  const [priceRange, setPriceRange] = useState({ min: "", max: "" })
+  const [sortBy, setSortBy] = useState("featured")
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [dccProducts, setDCCProducts] = useState<Product[]>([])
+  const [isDCCProductsLoading, setIsDCCProductsLoading] = useState(true)
+  const { toast } = useToast()
+  const [showProductDialog, setShowProductDialog] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [quantity, setQuantity] = useState(1)
+  const [showCartDialog, setShowCartDialog] = useState(false)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+
+  // Reset quantity when product dialog opens
+  useEffect(() => {
+    if (showProductDialog) {
+      setQuantity(1)
+      setSelectedImageIndex(0)
+    }
+  }, [showProductDialog])
+
+  // Validate quantity when stock changes
+  useEffect(() => {
+    if (selectedProduct && quantity > selectedProduct.stock) {
+      setQuantity(selectedProduct.stock)
+    }
+  }, [selectedProduct, quantity])
+
+  // Fetch DCC products
+  const fetchDCCProducts = async () => {
+    try {
+      setIsDCCProductsLoading(true)
+      const token = localStorage.getItem("DJYH_token")
+      const response = await fetch("/api/dcc-products", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch DCC products")
+      }
+
+      const data = await response.json()
+      if (data.success) {
+        setDCCProducts(data.products || [])
+      }
+    } catch (error) {
+      console.error("Error fetching DCC products:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load DCC products",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDCCProductsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchDCCProducts()
+  }, [])
+
+  // Filter and sort DCC products
+  const filteredDCCProducts = dccProducts.filter(product => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = selectedCategory === "all" || product.category === selectedCategory
+    const matchesProvider = selectedProvider === "all" || product.provider === selectedProvider
+    const matchesPrice =
+      (!priceRange.min || product.price >= Number.parseInt(priceRange.min)) &&
+      (!priceRange.max || product.price <= Number.parseInt(priceRange.max))
+    return matchesSearch && matchesCategory && matchesProvider && matchesPrice
+  })
+
+  const sortedDCCProducts = [...filteredDCCProducts].sort((a, b) => {
+    switch (sortBy) {
+      case "price-low":
+        return a.price - b.price
+      case "price-high":
+        return b.price - a.price
+      case "rating":
+        return (b.rating || 0) - (a.rating || 0)
+      case "newest":
+        return (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0)
+      default: // featured
+        return 0
+    }
+  })
+
+  const addToCart = async (productId: string, quantity: number = 1) => {
+    setIsLoading(true)
+    try {
+      const product = dccProducts.find((p) => p.id === productId)
+      if (!product) {
+        throw new Error("Product not found")
+      }
+
+      if (product.stock < quantity) {
+        toast({
+          title: "Error",
+          description: "Not enough stock available",
+          variant: "destructive",
+        })
+        return
+      }
+
+      setCart((prev) => {
+        const currentQuantity = prev[productId] || 0
+        const newQuantity = currentQuantity + quantity
+
+        if (newQuantity > product.stock) {
+          toast({
+            title: "Warning",
+            description: "Cannot add more items than available in stock",
+            variant: "destructive",
+          })
+          return prev
+        }
+
+        return {
+          ...prev,
+          [productId]: newQuantity,
+        }
+      })
+
+      toast({
+        title: t.cart.added.title,
+        description: (
+          <div className="flex items-center gap-2">
+            <div className="relative w-8 h-8 rounded overflow-hidden">
+              <Image
+                src={product.image || "/img/Cooking_Oil_Vegetable.png"}
+                alt={product.name}
+                fill
+                className="object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/img/Cooking_Oil_Vegetable.png";
+                }}
+              />
+            </div>
+            <div>
+              <p className="font-medium">{quantity}x {product.name}</p>
+              <p className="text-sm text-gray-500">Added to cart</p>
+            </div>
+          </div>
+        ),
+      })
+    } catch (error) {
+      toast({
+        title: t.cart.error.title,
+        description: t.cart.error.description,
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const toggleWishlist = async (productId: string) => {
+    try {
+      const product = dccProducts.find((p) => p.id === productId)
+      if (!product) {
+        throw new Error("Product not found")
+      }
+
+      const isInWishlist = wishlist.some(item => item.productId === productId)
+      if (isInWishlist) {
+        setWishlist(prev => prev.filter(item => item.productId !== productId))
+        
+        // Save to localStorage
+        const updatedWishlist = wishlist.filter(item => item.productId !== productId)
+        localStorage.setItem('marketplace_wishlist', JSON.stringify(updatedWishlist))
+
+        toast({
+          title: t.wishlist.remove.title,
+          description: (
+            <div className="flex items-center gap-2">
+              <div className="relative w-8 h-8 rounded overflow-hidden">
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div>
+                <p className="font-medium">{product.name}</p>
+                <p className="text-sm text-gray-500">Removed from wishlist</p>
+              </div>
+            </div>
+          ),
+        })
+      } else {
+        const newWishlistItem = {
+          productId,
+          addedAt: new Date().toISOString()
+        }
+        setWishlist(prev => [...prev, newWishlistItem])
+        
+        // Save to localStorage
+        const updatedWishlist = [...wishlist, newWishlistItem]
+        localStorage.setItem('marketplace_wishlist', JSON.stringify(updatedWishlist))
+
+        toast({
+          title: t.wishlist.add.title,
+          description: (
+            <div className="flex items-center gap-2">
+              <div className="relative w-8 h-8 rounded overflow-hidden">
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div>
+                <p className="font-medium">{product.name}</p>
+                <p className="text-sm text-gray-500">Added to wishlist</p>
+              </div>
+            </div>
+          ),
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update wishlist",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Load wishlist from localStorage on mount
+  useEffect(() => {
+    const savedWishlist = localStorage.getItem('marketplace_wishlist')
+    if (savedWishlist) {
+      try {
+        const parsedWishlist = JSON.parse(savedWishlist)
+        setWishlist(parsedWishlist)
+      } catch (error) {
+        console.error('Failed to parse saved wishlist:', error)
+      }
+    }
+  }, [])
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div>Test</div>
+    </div>
+  )
+}
+
+export default function Marketplace() {
+  return (
+    <ClientOnly fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
+      <MarketplaceContent />
+    </ClientOnly>
+  )
+} 

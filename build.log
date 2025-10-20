@@ -1,0 +1,106 @@
+import React, { useState } from 'react'
+
+const [selectedApplication, setSelectedApplication] = useState<Application | null>(null)
+const [selectedDCC, setSelectedDCC] = useState<DCC | null>(null)
+const [application, setApplication] = useState<ApplicationData | null>(null)
+const [formData, setFormData] = useState<FormData>({})
+
+> DJYH-platform@0.1.0 prebuild
+> prisma generate
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v5.22.0) to ./node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client in 176ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Curious about the SQL queries Prisma ORM generates? Optimize helps you enhance your visibility: https://pris.ly/tip-2-optimize
+
+
+> DJYH-platform@0.1.0 build
+> prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v5.22.0) to ./node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/@prisma/client in 194ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+
+  ▲ Next.js 14.2.16
+  - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+
+const getStatusBadge = (status: string) => {
+  // ...switch logic...
+}
+
+const getDocumentStatusIcon = (status: string) => {
+  switch (status) {
+    case "verified":
+      return <CheckCircle className="h-4 w-4 text-green-500" />
+    case "pending":
+      return <Clock className="h-4 w-4 text-yellow-500" />
+    case "missing":
+      return <XCircle className="h-4 w-4 text-red-500" />
+    default:
+      return <AlertCircle className="h-4 w-4 text-gray-500" />
+  }
+}
+
+const handleViewApplication = (application: Application) => {
+  setSelectedApplication(application)
+}
+
+const handleStatusChange = async (applicationId: string, newStatus: string) => {
+  // ...
+}
+
+const handleViewDCC = (dcc: DCC) => {
+  setSelectedDCC(dcc)
+  setIsViewDialogOpen(true)
+}
+
+const handleSendSMS = (dcc: DCC) => {
+  setSelectedDCC(dcc)
+  setIsSMSDialogOpen(true)
+}
+
+const handleSendEmail = (dcc: DCC) => {
+  setSelectedDCC(dcc)
+  setIsEmailDialogOpen(true)
+}
+
+(selectedApplication.formData.q20 as string[]).map((language: string, index: number) => (
+  <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
+    {language}
+  </Badge>
+))
+
+type ProductStatus = "active" | "inactive" | "out_of_stock";
+
+const { formData = {} } = selectedApplication as ApplicationData
+
+if (application) {
+  const typedAppData = application as ApplicationData;
+  setFormData(typedAppData.formData || {});
+  setCurrentStep(typedAppData.currentStep || 1);
+  setCurrentSection(getFormSectionByStep(typedAppData.currentStep || 1));
+  setHasCreatedTempAccount(true);
+
+  toast({
+    title: "Application Resumed",
+    description: "Your previous application data has been loaded successfully.",
+  });
+}
+
+if (import.meta.main) {
+  verifyEmployerProductAccess()
+}
+

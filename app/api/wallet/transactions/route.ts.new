@@ -1,0 +1,48 @@
+export const runtime = "nodejs"
+
+import { NextResponse } from "next/server"
+import { verifyAuthToken } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+
+export async function GET(req: Request) {
+  try {
+    // Get token from Authorization header
+    const authHeader = req.headers.get("Authorization")
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new NextResponse("Unauthorized", { status: 401 })
+    }
+
+    const token = authHeader.split(" ")[1]
+    const user = await verifyAuthToken(token)
+
+    if (!user) {
+      return new NextResponse("Unauthorized", { status: 401 })
+    }
+
+    // Allow access for DCC role and admins
+    if (user.role !== "DCC" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
+      return new NextResponse("Access denied", { status: 403 })
+    }
+
+    // Get user's wallet
+    const wallet = await prisma.wallet.findUnique({
+      where: { userId: user.id }
+    })
+
+    if (!wallet) {
+      return new NextResponse("Wallet not found", { status: 404 })
+    }
+
+    // Get transactions for the wallet
+    const transactions = await prisma.transaction.findMany({
+      where: { walletId: wallet.id },
+      orderBy: { createdAt: "desc" },
+      take: 50 // Limit to last 50 transactions
+    })
+
+    return NextResponse.json(transactions)
+  } catch (error) {
+    console.error("[TRANSACTIONS_GET]", error)
+    return new NextResponse("Internal Error", { status: 500 })
+  }
+} 

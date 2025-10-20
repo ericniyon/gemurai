@@ -1,0 +1,16 @@
+{
+  "name": "Gemurai Platform",
+  "short_name": "Gemurai",
+  "description": "Digital Community Platform for Rwanda",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0D47A1",
+  "icons": [
+    {
+      "src": "https://www.ihuzo.rw/frontend/assets/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+} 

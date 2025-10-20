@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>API Debug Tool</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Basic API Call</h2>
+        <button onclick="testBasicAPI()">Test Basic API</button>
+        <div id="result1" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: API Call with Full URL</h2>
+        <button onclick="testFullURL()">Test Full URL</button>
+        <div id="result2" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Check Current Location</h2>
+        <button onclick="checkLocation()">Check Location</button>
+        <div id="result3" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Test Different Endpoints</h2>
+        <button onclick="testOtherEndpoints()">Test Other Endpoints</button>
+        <div id="result4" class="result"></div>
+    </div>
+
+    <script>
+        function logResult(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${isError ? 'error' : 'success'}">${message}</div>`;
+            console.log(message);
+        }
+
+        async function testBasicAPI() {
+            try {
+                console.log('🔍 Testing basic API call...');
+                const response = await fetch('/api/v1/applications/invite-interview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ applicationId: 'test-123' })
+                });
+                
+                const text = await response.text();
+                logResult('result1', `
+                    <strong>Status:</strong> ${response.status}<br>
+                    <strong>URL:</strong> ${response.url}<br>
+                    <strong>Response:</strong> ${text}
+                `, response.status === 404);
+            } catch (error) {
+                logResult('result1', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function testFullURL() {
+            try {
+                console.log('🔍 Testing with full URL...');
+                const fullURL = window.location.origin + '/api/v1/applications/invite-interview';
+                console.log('🔍 Full URL:', fullURL);
+                
+                const response = await fetch(fullURL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ applicationId: 'test-123' })
+                });
+                
+                const text = await response.text();
+                logResult('result2', `
+                    <strong>Status:</strong> ${response.status}<br>
+                    <strong>URL:</strong> ${response.url}<br>
+                    <strong>Response:</strong> ${text}
+                `, response.status === 404);
+            } catch (error) {
+                logResult('result2', `Error: ${error.message}`, true);
+            }
+        }
+
+        function checkLocation() {
+            const info = `
+                <strong>Current URL:</strong> ${window.location.href}<br>
+                <strong>Origin:</strong> ${window.location.origin}<br>
+                <strong>Protocol:</strong> ${window.location.protocol}<br>
+                <strong>Host:</strong> ${window.location.host}<br>
+                <strong>Port:</strong> ${window.location.port}<br>
+                <strong>Pathname:</strong> ${window.location.pathname}
+            `;
+            logResult('result3', info);
+        }
+
+        async function testOtherEndpoints() {
+            const endpoints = [
+                '/api/health',
+                '/api/v1/applications',
+                '/api/v1/auth/verify'
+            ];
+            
+            let results = '<h3>Testing multiple endpoints:</h3>';
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint, { method: 'GET' });
+                    results += `<p><strong>${endpoint}:</strong> ${response.status}</p>`;
+                } catch (error) {
+                    results += `<p><strong>${endpoint}:</strong> Error - ${error.message}</p>`;
+                }
+            }
+            
+            logResult('result4', results);
+        }
+    </script>
+</body>
+</html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>API Debug Tool</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Basic API Call</h2>
+        <button onclick="testBasicAPI()">Test Basic API</button>
+        <div id="result1" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: API Call with Full URL</h2>
+        <button onclick="testFullURL()">Test Full URL</button>
+        <div id="result2" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Check Current Location</h2>
+        <button onclick="checkLocation()">Check Location</button>
+        <div id="result3" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Test Different Endpoints</h2>
+        <button onclick="testOtherEndpoints()">Test Other Endpoints</button>
+        <div id="result4" class="result"></div>
+    </div>
+
+    <script>
+        function logResult(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${isError ? 'error' : 'success'}">${message}</div>`;
+            console.log(message);
+        }
+
+        async function testBasicAPI() {
+            try {
+                console.log('🔍 Testing basic API call...');
+                const response = await fetch('/api/v1/applications/invite-interview', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ applicationId: 'test-123' })
+                });
+                
+                const text = await response.text();
+                logResult('result1', `
+                    <strong>Status:</strong> ${response.status}<br>
+                    <strong>URL:</strong> ${response.url}<br>
+                    <strong>Response:</strong> ${text}
+                `, response.status === 404);
+            } catch (error) {
+                logResult('result1', `Error: ${error.message}`, true);
+            }
+        }
+
+        async function testFullURL() {
+            try {
+                console.log('🔍 Testing with full URL...');
+                const fullURL = window.location.origin + '/api/v1/applications/invite-interview';
+                console.log('🔍 Full URL:', fullURL);
+                
+                const response = await fetch(fullURL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ applicationId: 'test-123' })
+                });
+                
+                const text = await response.text();
+                logResult('result2', `
+                    <strong>Status:</strong> ${response.status}<br>
+                    <strong>URL:</strong> ${response.url}<br>
+                    <strong>Response:</strong> ${text}
+                `, response.status === 404);
+            } catch (error) {
+                logResult('result2', `Error: ${error.message}`, true);
+            }
+        }
+
+        function checkLocation() {
+            const info = `
+                <strong>Current URL:</strong> ${window.location.href}<br>
+                <strong>Origin:</strong> ${window.location.origin}<br>
+                <strong>Protocol:</strong> ${window.location.protocol}<br>
+                <strong>Host:</strong> ${window.location.host}<br>
+                <strong>Port:</strong> ${window.location.port}<br>
+                <strong>Pathname:</strong> ${window.location.pathname}
+            `;
+            logResult('result3', info);
+        }
+
+        async function testOtherEndpoints() {
+            const endpoints = [
+                '/api/health',
+                '/api/v1/applications',
+                '/api/v1/auth/verify'
+            ];
+            
+            let results = '<h3>Testing multiple endpoints:</h3>';
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint, { method: 'GET' });
+                    results += `<p><strong>${endpoint}:</strong> ${response.status}</p>`;
+                } catch (error) {
+                    results += `<p><strong>${endpoint}:</strong> Error - ${error.message}</p>`;
+                }
+            }
+            
+            logResult('result4', results);
+        }
+    </script>
+</body>
+</html> 
+ 
+ 
