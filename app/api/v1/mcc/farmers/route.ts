@@ -67,14 +67,13 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const mccId = searchParams.get("mccId")
 
-    if (!mccId) {
-      return NextResponse.json(
-        { error: "mccId parameter is required" },
-        { status: 400 }
-      )
+    let farmers;
+    if (mccId) {
+      farmers = await MCCInventoryService.getMCCFarmers(mccId)
+    } else {
+      // Get all farmers if no mccId specified
+      farmers = await MCCInventoryService.getAllFarmers()
     }
-
-    const farmers = await MCCInventoryService.getMCCFarmers(mccId)
 
     return NextResponse.json({
       success: true,

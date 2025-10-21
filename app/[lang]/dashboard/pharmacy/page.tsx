@@ -157,6 +157,7 @@ export default function PharmacyPage() {
 
   const todayIso = new Date().toISOString().slice(0, 10);
 
+  const [loading, setLoading] = useState(true)
   const [isSavingPurchase, setIsSavingPurchase] = useState(false)
   const [isSavingSale, setIsSavingSale] = useState(false)
 
@@ -309,13 +310,19 @@ export default function PharmacyPage() {
   // Function to ensure Main warehouse exists
   const ensureMainWarehouse = async () => {
     try {
+      console.log('Ensuring main warehouse exists...')
       const auth = { 'Authorization': `Bearer ${localStorage.getItem('Gemurai_token')}` }
       const response = await fetch('/api/v1/inventory/warehouses', { headers: auth })
       const data = await response.json()
       
+      console.log('Warehouse fetch response:', data)
+      
       if (data.success && data.data) {
         const mainWarehouse = data.data.find((w: any) => w.isMain)
+        console.log('Found main warehouse:', mainWarehouse)
+        
         if (!mainWarehouse) {
+          console.log('No main warehouse found, creating one...')
           // Create Main warehouse if it doesn't exist
           const mainWarehouseData = {
             name: "Main Warehouse",
@@ -332,10 +339,17 @@ export default function PharmacyPage() {
             body: JSON.stringify(mainWarehouseData)
           })
           
+          const createData = await createResponse.json()
+          console.log('Main warehouse creation response:', createData)
+          
           if (createResponse.ok) {
             console.log('Main warehouse created successfully')
+          } else {
+            console.error('Failed to create main warehouse:', createData)
           }
         }
+      } else {
+        console.error('Failed to fetch warehouses:', data)
       }
     } catch (error) {
       console.error('Error ensuring main warehouse:', error)
@@ -346,10 +360,13 @@ export default function PharmacyPage() {
     // Load products and warehouses (minimal)
     const fetchData = async () => {
       try {
+        setLoading(true)
+        console.log('Starting fetchData...')
         // First ensure Main warehouse exists
         await ensureMainWarehouse()
         
         const auth = { 'Authorization': `Bearer ${localStorage.getItem('Gemurai_token')}` }
+        console.log('Fetching inventory data...')
         const [prodRes, whRes, locRes, purchasesRes, salesRes] = await Promise.all([
           fetch('/api/v1/inventory/products', { headers: auth }),
           fetch('/api/v1/inventory/warehouses', { headers: auth }),
@@ -357,11 +374,27 @@ export default function PharmacyPage() {
           fetch('/api/v1/pharmacy/purchases', { headers: auth }),
           fetch('/api/v1/pharmacy/sales', { headers: auth })
         ])
+        
+        console.log('API responses:', {
+          products: prodRes.status,
+          warehouses: whRes.status,
+          locations: locRes.status,
+          purchases: purchasesRes.status,
+          sales: salesRes.status
+        })
         const prodData = await prodRes.json()
         const whList = await whRes.json()
         const locList = await locRes.json()
         const purchasesData = await purchasesRes.json()
         const salesData = await salesRes.json()
+        
+        console.log('Parsed data:', {
+          products: prodData.success,
+          warehouses: whList.success,
+          locations: locList.success,
+          purchases: purchasesData.success,
+          sales: salesData.success
+        })
         
         if (prodData.success && prodData.data) {
           setProducts(prodData.data)
@@ -383,7 +416,10 @@ export default function PharmacyPage() {
             createdAt: w.createdAt,
             updatedAt: w.updatedAt
           }))
+          console.log('Setting warehouses:', mappedWh)
           setWarehouses(mappedWh)
+        } else {
+          console.log('No warehouse data received:', whList)
         }
         if (purchasesData.success && purchasesData.data) {
           setPurchases(purchasesData.data)
@@ -393,6 +429,8 @@ export default function PharmacyPage() {
         }
       } catch (e) {
         console.error('Failed to load products/warehouses', e)
+      } finally {
+        setLoading(false)
       }
     }
     fetchData()
@@ -855,6 +893,14 @@ export default function PharmacyPage() {
             </TabsContent>
 
             <TabsContent value="inventory">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading inventory data...</p>
+                  </div>
+                </div>
+              ) : (
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2 items-center justify-between">
                   <div className="flex gap-2">
@@ -1050,6 +1096,7 @@ export default function PharmacyPage() {
                   )}
                 </div>
               </div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>

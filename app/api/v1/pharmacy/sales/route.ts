@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/database"
+import { prisma } from "@/lib/prisma"
 import { verifyAuth } from "@/lib/api-auth"
 
 // POST /api/v1/pharmacy/sales - Record a medicine sale

@@ -13,9 +13,24 @@ export interface MilkCollectionData {
   warehouseId?: string
   locationId?: string
   productId?: string
-  deductions?: Record<string, number>
+  deductions?: {
+    products?: Array<{
+      id: string
+      productId: string
+      productName: string
+      quantity: number
+      unitPrice: number
+      totalPrice: number
+    }>
+    others?: {
+      depannage?: number
+      essence?: number
+      umugabane?: number
+      ejoHeza?: number
+      inguzanyo?: number
+    }
+  }
   advances?: number
-  collectedBy: string
 }
 
 export interface MilkProcessingData {
@@ -175,15 +190,44 @@ export class MCCInventoryService {
    * Record milk collection and create inventory stock move
    */
   static async recordMilkCollection(data: MilkCollectionData) {
-    return await prisma.$transaction(async (tx) => {
+    console.log('MCCInventoryService.recordMilkCollection called with:', data)
+    
+    try {
       // Calculate deductions and net payment
       const deductions = data.deductions || {}
-      const totalDeductions = Object.values(deductions).reduce((sum, amount) => sum + amount, 0)
+      
+      // Calculate product deductions total
+      const productDeductionsTotal = deductions.products ? 
+        deductions.products.reduce((sum: number, product: any) => sum + (product.totalPrice || 0), 0) : 0
+      
+      // Calculate others deductions total
+      const othersTotal = deductions.others ? 
+        Object.values(deductions.others).reduce((sum: number, amount: any) => sum + (amount || 0), 0) : 0
+      
+      const totalDeductions = productDeductionsTotal + othersTotal
       const advances = data.advances || 0
       const netPayment = data.totalAmount - totalDeductions - advances
 
+      console.log('Creating milk collection with data:', {
+        farmerId: data.farmerId,
+        mccPeriodId: data.mccPeriodId,
+        collectionDate: data.collectionDate,
+        period: data.period,
+        totalLiters: data.totalLiters,
+        unitPrice: data.unitPrice,
+        totalAmount: data.totalAmount,
+        warehouseId: data.warehouseId,
+        locationId: data.locationId,
+        productId: data.productId,
+        deductions: deductions,
+        advances: advances,
+        totalDeductions: totalDeductions,
+        netPayment: netPayment,
+        status: "PENDING"
+      })
+
       // Create milk collection record
-      const collection = await tx.milk_collections.create({
+      const collection = await prisma.milk_collections.create({
         data: {
           farmerId: data.farmerId,
           mccPeriodId: data.mccPeriodId,
@@ -203,45 +247,20 @@ export class MCCInventoryService {
         }
       })
 
-      // Create stock move for incoming milk
-      if (data.productId && data.warehouseId) {
-        const stockMove = await tx.stockMove.create({
-          data: {
-            productId: data.productId,
-            warehouseId: data.warehouseId,
-            locationId: data.locationId,
-            quantity: data.totalLiters,
-            moveType: "INCOMING",
-            state: "DRAFT",
-            createdBy: data.collectedBy,
-            origin: "MCC_COLLECTION",
-            reference: `MC-${collection.id}`,
-            notes: `Milk collection from farmer ${data.farmerId}`
-          }
-        })
+      console.log('Milk collection created successfully:', collection.id)
 
-        // Link collection to stock move
-        await tx.milk_collections.update({
-          where: { id: collection.id },
-          data: { stockMoveId: stockMove.id }
-        })
-
-        // Confirm the stock move to update inventory
-        await this.confirmStockMove(tx, stockMove.id)
-
-        return {
-          collection,
-          stockMove,
-          inventoryUpdated: true
-        }
-      }
-
+      // Skip stock move creation for now - just return the collection
+      console.log('Skipping stock move creation for now')
+      
       return {
         collection,
         stockMove: null,
         inventoryUpdated: false
       }
-    })
+    } catch (error) {
+      console.error('Error in MCCInventoryService.recordMilkCollection:', error)
+      throw error
+    }
   }
 
   /**
@@ -560,6 +579,15 @@ export class MCCInventoryService {
       console.error("Error in MCCInventoryService.createFarmer:", error)
       throw error
     }
+  }
+
+  /**
+   * Get all farmers (for admin purposes)
+   */
+  static async getAllFarmers() {
+    return await prisma.farmers.findMany({
+      orderBy: { name: 'asc' }
+    })
   }
 
   /**

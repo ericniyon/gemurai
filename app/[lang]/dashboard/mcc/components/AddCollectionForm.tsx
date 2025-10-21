@@ -23,7 +23,8 @@ import {
   Calculator,
   Users,
   Hash,
-  Package
+  Package,
+  Lock
 } from "lucide-react"
 
 interface AddCollectionFormProps {
@@ -68,6 +69,17 @@ interface CollectionFormData {
   notes?: string
 }
 
+interface FarmerCollectionHistory {
+  farmerId: string
+  collections: Array<{
+    id: string
+    collectionDate: string
+    totalLiters: number
+    period: number
+    status: string
+  }>
+}
+
 export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollectionFormProps) {
   const [formData, setFormData] = useState<CollectionFormData>({
     farmerId: '',
@@ -99,9 +111,13 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
   })
   
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [errors, setErrors] = useState<Partial<CollectionFormData>>({})
   const [farmers, setFarmers] = useState<Array<{id: string, name: string, farmerNumber: number}>>([])
-  const [products, setProducts] = useState<Array<{id: string, name: string, price: number}>>([])
+  const [products, setProducts] = useState<Array<{id: string, name: string, price: number, stockQuantity?: number}>>([])
+  const [farmerCollectionHistory, setFarmerCollectionHistory] = useState<FarmerCollectionHistory | null>(null)
+  const [completedDays, setCompletedDays] = useState<Set<number>>(new Set())
+  const [nextDayNumber, setNextDayNumber] = useState<number>(1)
 
   // Fetch real farmers data
   useEffect(() => {
@@ -154,42 +170,50 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
     fetchFarmers()
   }, [])
 
-  // Fetch products data
+  // Fetch products data with stock quantities
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/v1/inventory/products', {
+        // Fetch products
+        const productsResponse = await fetch('/api/v1/inventory/products', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('Gemurai_token')}`
           }
         })
         
-        if (response.ok) {
-          const data = await response.json()
-          const productsList = data.data?.map((product: any) => ({
-            id: product.id,
-            name: product.name,
-            price: product.price || 0
-          })) || []
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json()
+          const productsList = productsData.data?.map((product: any) => {
+            // Calculate total stock from stockQuantities
+            const totalStock = product.stockQuantities?.reduce((sum: number, stock: any) => sum + (stock.quantity || 0), 0) || 0
+            
+            return {
+              id: product.id,
+              name: product.name,
+              price: product.price || 0,
+              stockQuantity: totalStock
+            }
+          }) || []
+          
           setProducts(productsList)
         } else {
-          console.error('Failed to fetch products:', response.statusText)
-          // Fallback to mock data
+          console.error('Failed to fetch products:', productsResponse.statusText)
+          // Fallback to mock data with stock
           setProducts([
-            { id: "1", name: "Milk (Fresh)", price: 500 },
-            { id: "2", name: "Cheese", price: 2000 },
-            { id: "3", name: "Yogurt", price: 800 },
-            { id: "4", name: "Butter", price: 1500 }
+            { id: "1", name: "Milk (Fresh)", price: 500, stockQuantity: 100 },
+            { id: "2", name: "Cheese", price: 2000, stockQuantity: 50 },
+            { id: "3", name: "Yogurt", price: 800, stockQuantity: 75 },
+            { id: "4", name: "Butter", price: 1500, stockQuantity: 25 }
           ])
         }
       } catch (error) {
         console.error('Error fetching products:', error)
-        // Fallback to mock data
+        // Fallback to mock data with stock
         setProducts([
-          { id: "1", name: "Milk (Fresh)", price: 500 },
-          { id: "2", name: "Cheese", price: 2000 },
-          { id: "3", name: "Yogurt", price: 800 },
-          { id: "4", name: "Butter", price: 1500 }
+          { id: "1", name: "Milk (Fresh)", price: 500, stockQuantity: 100 },
+          { id: "2", name: "Cheese", price: 2000, stockQuantity: 50 },
+          { id: "3", name: "Yogurt", price: 800, stockQuantity: 75 },
+          { id: "4", name: "Butter", price: 1500, stockQuantity: 25 }
         ])
       }
     }
@@ -217,6 +241,13 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
   useEffect(() => {
     setFormData(prev => ({ ...prev, period: computePeriodFromDate(prev.collectionDate) }))
   }, [formData.collectionDate])
+
+  // Recalculate completed days when period changes
+  useEffect(() => {
+    if (farmerCollectionHistory && formData.farmerId) {
+      calculateCompletedDays(farmerCollectionHistory.collections, formData.period)
+    }
+  }, [formData.period, farmerCollectionHistory])
 
   const calculateTotals = () => {
     // Milk collection calculations
@@ -277,10 +308,47 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
     setIsLoading(true)
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Prepare collection data for API
+      const collectionData = {
+        farmerId: formData.farmerId,
+        collectionDate: formData.collectionDate,
+        period: formData.period,
+        totalLiters: formData.totalLiters,
+        unitPrice: formData.unitPrice,
+        totalAmount: formData.totalAmount,
+        deductions: formData.deductions,
+        advances: formData.advances,
+        notes: formData.notes
+      }
+
+      console.log('Sending collection data:', collectionData)
+
+      // Make API call to save collection
+      const response = await fetch('/api/v1/mcc/collections', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('Gemurai_token')}`
+        },
+        body: JSON.stringify(collectionData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('API Error:', errorData)
+        throw new Error(errorData.error || 'Failed to save collection')
+      }
+
+      const result = await response.json()
+      console.log('Collection saved successfully:', result)
       
       toast.success("Milk collection recorded successfully!")
+      
+      // Refresh farmer collection history to show the new collection
+      if (formData.farmerId) {
+        await fetchFarmerCollectionHistory(formData.farmerId)
+      }
+      
       onSuccess?.()
       onOpenChange(false)
       
@@ -314,12 +382,94 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
         notes: ''
       })
       setErrors({})
+      setFarmerCollectionHistory(null)
+      setCompletedDays(new Set())
       
     } catch (error) {
+      console.error('Collection save error:', error)
       toast.error("Failed to record collection. Please try again.")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Fetch farmer collection history
+  const fetchFarmerCollectionHistory = async (farmerId: string) => {
+    setIsLoadingHistory(true)
+    try {
+      const response = await fetch(`/api/v1/mcc/collections?farmerId=${farmerId}&limit=50`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('Gemurai_token')}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        const collections = data.data || []
+        
+        setFarmerCollectionHistory({
+          farmerId,
+          collections: collections.map((collection: any) => ({
+            id: collection.id,
+            collectionDate: collection.collectionDate,
+            totalLiters: collection.totalLiters || 0,
+            period: collection.period || 1,
+            status: collection.status || 'PENDING'
+          }))
+        })
+        
+        // Calculate completed days for the current period
+        calculateCompletedDays(collections, formData.period)
+      } else {
+        console.error('Failed to fetch farmer collection history:', response.statusText)
+        setFarmerCollectionHistory(null)
+        setCompletedDays(new Set())
+      }
+    } catch (error) {
+      console.error('Error fetching farmer collection history:', error)
+      setFarmerCollectionHistory(null)
+      setCompletedDays(new Set())
+    } finally {
+      setIsLoadingHistory(false)
+    }
+  }
+
+  // Calculate which days are completed and populate daily collections with historical data
+  const calculateCompletedDays = (collections: any[], currentPeriod: number) => {
+    const completed = new Set<number>()
+    const dailyCollections = new Array(15).fill(0)
+    
+    // Get collections for the current period (include both PENDING and completed)
+    const periodCollections = collections.filter((collection: any) => 
+      collection.period === currentPeriod && (collection.status === 'completed' || collection.status === 'PENDING')
+    )
+    
+    // Sort collections by collection date to get chronological order
+    const sortedCollections = periodCollections.sort((a: any, b: any) => 
+      new Date(a.collectionDate).getTime() - new Date(b.collectionDate).getTime()
+    )
+    
+    // Map each collection to a sequential day number (1-15) and populate daily collections
+    sortedCollections.forEach((collection: any, index: number) => {
+      // Each collection represents one day, starting from day 1
+      const dayNumber = index + 1
+      if (dayNumber <= 15) {
+        completed.add(dayNumber)
+        dailyCollections[dayNumber - 1] = collection.totalLiters || 0
+      }
+    })
+    
+    setCompletedDays(completed)
+    
+    // Calculate the next available day number
+    const nextDay = completed.size + 1
+    setNextDayNumber(nextDay <= 15 ? nextDay : 15)
+    
+    // Update the form data with historical daily collections
+    setFormData(prev => ({
+      ...prev,
+      dailyCollections: dailyCollections
+    }))
   }
 
   const handleFarmerSelect = (farmerId: string) => {
@@ -328,8 +478,16 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
       setFormData(prev => ({
         ...prev,
         farmerId: farmer.id,
-        farmerName: farmer.name
+        farmerName: farmer.name,
+        // Reset daily collections when selecting a new farmer
+        dailyCollections: new Array(15).fill(0)
       }))
+      
+      // Clear completed days initially
+      setCompletedDays(new Set())
+      
+      // Fetch collection history for the selected farmer
+      fetchFarmerCollectionHistory(farmerId)
     }
   }
 
@@ -414,6 +572,19 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
                 updatedProduct.productName = selectedProduct.name
                 updatedProduct.unitPrice = selectedProduct.price
                 updatedProduct.totalPrice = updatedProduct.quantity * selectedProduct.price
+              }
+            }
+            
+            // Stock validation for quantity field
+            if (field === 'quantity') {
+              const selectedProduct = products.find(prod => prod.id === updatedProduct.productId)
+              if (selectedProduct && selectedProduct.stockQuantity !== undefined) {
+                const requestedQuantity = parseFloat(value) || 0
+                if (requestedQuantity > selectedProduct.stockQuantity) {
+                  toast.error(`Insufficient stock! Available: ${selectedProduct.stockQuantity}, Requested: ${requestedQuantity}`)
+                  // Don't update the quantity if it exceeds stock
+                  return p
+                }
               }
             }
             
@@ -588,6 +759,11 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
                                 {products.map(prod => (
                                   <SelectItem key={prod.id} value={prod.id}>
                                     {prod.name} - {prod.price.toLocaleString()} Frw
+                                    {prod.stockQuantity !== undefined && (
+                                      <span className="ml-2 text-xs text-gray-500">
+                                        (Stock: {prod.stockQuantity})
+                                      </span>
+                                    )}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -609,8 +785,36 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
                               }}
                               placeholder="0"
                               min="0"
+                              max={(() => {
+                                const selectedProduct = products.find(prod => prod.id === product.productId)
+                                return selectedProduct?.stockQuantity || undefined
+                              })()}
                               step="0.1"
                             />
+                            {product.productId && (() => {
+                              const selectedProduct = products.find(prod => prod.id === product.productId)
+                              if (selectedProduct && selectedProduct.stockQuantity !== undefined) {
+                                const isOverStock = product.quantity > selectedProduct.stockQuantity
+                                return (
+                                  <div className="text-xs">
+                                    <div className={`flex items-center gap-1 ${
+                                      isOverStock ? 'text-red-600' : 'text-gray-600'
+                                    }`}>
+                                      <Package className="h-3 w-3" />
+                                      <span>
+                                        Available: {selectedProduct.stockQuantity}
+                                        {isOverStock && (
+                                          <span className="ml-1 font-medium">
+                                            (Exceeds stock!)
+                                          </span>
+                                        )}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )
+                              }
+                              return null
+                            })()}
                           </div>
                           
                           <div className="space-y-2">
@@ -699,38 +903,141 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
           {/* Daily Collections */}
           <Card className="bg-white border border-gray-200 shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg">Daily Milk Collections (15 Days)</CardTitle>
-              <CardDescription>Enter milk quantity for each day of the period</CardDescription>
+              <CardTitle className="text-lg flex items-center justify-between">
+                <span>Daily Milk Collections (15 Days)</span>
+                {isLoadingHistory ? (
+                  <div className="flex items-center gap-2 text-sm text-blue-600">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Loading history...</span>
+                  </div>
+                ) : farmerCollectionHistory && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>{completedDays.size} days completed</span>
+                  </div>
+                )}
+              </CardTitle>
+              <CardDescription>
+                {isLoadingHistory ? (
+                  "Loading farmer's collection history..."
+                ) : farmerCollectionHistory ? (
+                  <>
+                    Collection data loaded for {formData.farmerName} - Period {formData.period}
+                    <span className="ml-2 text-green-600">
+                      • Green days are locked with saved amounts
+                    </span>
+                    <span className="ml-2 text-blue-600 font-medium">
+                      • Next collection will be Day {nextDayNumber}
+                    </span>
+                  </>
+                ) : (
+                  "Enter milk quantity for each day of the period"
+                )}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
-                {formData.dailyCollections.map((amount, index) => (
-                  <div key={index} className="space-y-1">
-                    <Label className="text-xs text-center block">Day {index + 1}</Label>
-                    <Input
-                      type="number"
-                      value={amount}
-                      onFocus={(e) => {
-                        // Select existing value so typing replaces the default 0
-                        e.currentTarget.select()
-                      }}
-                      onChange={(e) => {
-                        // Remove leading zeros except for decimals like 0.5
-                        const raw = e.target.value
-                        const sanitized = raw && !raw.startsWith('0.') ? raw.replace(/^0+(?=\d)/, '') : raw
-                        const num = parseFloat(sanitized)
-                        updateDailyCollection(index, isNaN(num) ? 0 : num)
-                      }}
-                      placeholder="0"
-                      className="text-center"
-                      min="0"
-                      step="0.1"
-                    />
-                  </div>
-                ))}
+                {formData.dailyCollections.map((amount, index) => {
+                  const dayNumber = index + 1
+                  const isCompleted = completedDays.has(dayNumber)
+                  const isNextDay = dayNumber === nextDayNumber && !isCompleted
+                  const hasValue = amount > 0
+                  
+                  return (
+                    <div key={index} className="space-y-1">
+                      <Label className={`text-xs text-center block ${
+                        isCompleted ? 'text-green-700 font-semibold' : 
+                        isNextDay ? 'text-blue-700 font-semibold' : ''
+                      }`}>
+                        Day {dayNumber}
+                        {isCompleted && <CheckCircle className="h-3 w-3 inline ml-1 text-green-600" />}
+                        {isNextDay && <span className="ml-1 text-blue-600 font-bold">← Next</span>}
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          value={amount}
+                          disabled={isCompleted}
+                          onFocus={(e) => {
+                            // Only select if not disabled
+                            if (!isCompleted) {
+                              e.currentTarget.select()
+                            }
+                          }}
+                          onChange={(e) => {
+                            // Only allow changes if not completed
+                            if (!isCompleted) {
+                              // Remove leading zeros except for decimals like 0.5
+                              const raw = e.target.value
+                              const sanitized = raw && !raw.startsWith('0.') ? raw.replace(/^0+(?=\d)/, '') : raw
+                              const num = parseFloat(sanitized)
+                              updateDailyCollection(index, isNaN(num) ? 0 : num)
+                            }
+                          }}
+                          placeholder="0"
+                          className={`text-center ${
+                            isCompleted 
+                              ? 'border-green-500 bg-green-100 text-green-800 font-medium cursor-not-allowed' 
+                              : isNextDay
+                                ? 'border-blue-500 bg-blue-100 text-blue-800 font-medium ring-2 ring-blue-200'
+                                : hasValue 
+                                  ? 'border-blue-300 bg-blue-50' 
+                                  : ''
+                          }`}
+                          min="0"
+                          step="0.1"
+                        />
+                        {isCompleted && (
+                          <div className="absolute -top-1 -right-1">
+                            <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                              <Lock className="h-2 w-2 text-white" />
+                            </div>
+                          </div>
+                        )}
+                        {isNextDay && (
+                          <div className="absolute -top-1 -right-1">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">→</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
               
+              
               <Separator />
+              
+              {/* Collection Summary */}
+              {farmerCollectionHistory && completedDays.size > 0 && (
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h4 className="text-sm font-semibold text-green-800 mb-2 flex items-center gap-2">
+                    <Lock className="h-4 w-4" />
+                    Saved Collections
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-green-700">Saved days:</span>
+                      <span className="font-medium text-green-800">{completedDays.size}/15</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-green-700">Saved total:</span>
+                      <span className="font-medium text-green-800">
+                        {formData.dailyCollections
+                          .filter((amount, index) => completedDays.has(index + 1))
+                          .reduce((sum, amount) => sum + amount, 0)
+                          .toFixed(1)}L
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-700">Next day:</span>
+                      <span className="font-medium text-blue-800">Day {nextDayNumber}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-2">

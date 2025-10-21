@@ -878,6 +878,7 @@ model farmers {
   updatedAt          DateTime           @updatedAt
   mccs               mccs               @relation(fields: [mccId], references: [id])
   milk_collections   milk_collections[]
+  mcc_payments       mcc_payments[]
 
   @@index([mccId])
   @@index([phone])
@@ -920,8 +921,31 @@ model mcc_warehouses {
   @@index([mccId])
 }
 
+model mcc_sales {
+  id              String        @id @default(cuid())
+  mccId           String
+  litersSold      Float
+  unitPrice       Float
+  totalAmount     Float
+  companyName     String
+  companyContact  String
+  companyAddress  String        @default("")
+  paymentStatus   PaymentStatus @default(pending)
+  saleDate        DateTime
+  notes           String        @default("")
+  recordedBy      String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  mccs            mccs          @relation(fields: [mccId], references: [id])
+
+  @@index([mccId])
+  @@index([saleDate])
+  @@index([paymentStatus])
+  @@index([companyName])
+}
+
 model mccs {
-  id              String            @id
+  id              String            @id @default(cuid())
   name            String
   location        String
   contactInfo     Json              @default("{}")
@@ -933,11 +957,13 @@ model mccs {
   mcc_periods     mcc_periods[]
   mcc_warehouses  mcc_warehouses[]
   milk_processing milk_processing[]
+  mcc_sales       mcc_sales[]
+  mcc_payments    mcc_payments[]
   users           User[]
 }
 
 model milk_collections {
-  id              String               @id
+  id              String               @id @default(cuid())
   farmerId        String
   mccPeriodId     String?
   collectionDate  DateTime
@@ -955,13 +981,14 @@ model milk_collections {
   netPayment      Float                @default(0)
   status          MilkCollectionStatus @default(PENDING)
   createdAt       DateTime             @default(now())
-  updatedAt       DateTime
+  updatedAt       DateTime             @updatedAt
   farmers         farmers              @relation(fields: [farmerId], references: [id])
   locations       Location?            @relation(fields: [locationId], references: [id])
   mcc_periods     mcc_periods?         @relation(fields: [mccPeriodId], references: [id])
   products        products?            @relation(fields: [productId], references: [id])
   stock_moves     StockMove?           @relation(fields: [stockMoveId], references: [id])
   warehouses      Warehouse?           @relation(fields: [warehouseId], references: [id])
+  mcc_payments    mcc_payments[]
 
   @@index([collectionDate])
   @@index([farmerId])
@@ -970,7 +997,7 @@ model milk_collections {
 }
 
 model milk_processing {
-  id                                                    String   @id
+  id                                                    String   @id @default(cuid())
   mccId                                                 String
   rawMilkProductId                                      String
   processedProductId                                    String
@@ -1430,4 +1457,43 @@ enum ExpiryAlertLevel {
   WARNING
   CRITICAL
   EXPIRED
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  partial
+}
+
+model mcc_payments {
+  id              String        @id @default(cuid())
+  farmerId        String
+  collectionId    String
+  mccId           String
+  totalAmount     Float
+  deductions      Float         @default(0)
+  advances        Float         @default(0)
+  netPayment      Float
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(pending)
+  paymentDate     DateTime
+  processedBy     String
+  notes           String        @default("")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  farmers         farmers       @relation(fields: [farmerId], references: [id])
+  milk_collections milk_collections @relation(fields: [collectionId], references: [id])
+  mccs            mccs          @relation(fields: [mccId], references: [id])
+
+  @@index([farmerId])
+  @@index([collectionId])
+  @@index([mccId])
+  @@index([paymentDate])
+  @@index([paymentStatus])
+}
+
+enum PaymentMethod {
+  cash
+  mobile_money
+  bank_transfer
 }

@@ -7,6 +7,9 @@ import { prisma } from "@/lib/prisma"
 export async function POST(req: NextRequest) {
   try {
     const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
+    console.log('Auth token received:', authToken ? 'Present' : 'Missing')
+    console.log('Auth token value:', authToken)
+    
     if (!authToken) {
       return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
     }
@@ -29,21 +32,35 @@ export async function POST(req: NextRequest) {
     // Add collectedBy field
     const collectionData = {
       ...data,
-      collectionDate: data.collectionDate ? new Date(data.collectionDate) : new Date(),
-      collectedBy: user.id
+      collectionDate: data.collectionDate ? new Date(data.collectionDate) : new Date()
     }
 
-    const result = await MCCInventoryService.recordMilkCollection(collectionData)
-
-    return NextResponse.json({
-      success: true,
-      message: "Milk collection recorded successfully",
-      data: result
-    })
+    console.log('About to call MCCInventoryService.recordMilkCollection with:', collectionData)
+    
+    try {
+      const result = await MCCInventoryService.recordMilkCollection(collectionData)
+      console.log('MCCInventoryService.recordMilkCollection result:', result)
+      
+      return NextResponse.json({
+        success: true,
+        message: "Milk collection recorded successfully",
+        data: result
+      })
+    } catch (serviceError) {
+      console.error('MCCInventoryService error:', serviceError)
+      throw serviceError
+    }
   } catch (error) {
     console.error("Milk collection error:", error)
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return NextResponse.json(
-      { error: "Failed to record milk collection" },
+      { 
+        error: "Failed to record milk collection",
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }

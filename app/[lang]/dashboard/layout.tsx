@@ -31,7 +31,6 @@ import {
   Plus,
   ChevronDown,
   Wallet,
-  Receipt,
   ShoppingBag,
   ChevronRight,
   LayoutDashboard,
@@ -90,20 +89,6 @@ const getAllNavigationItems = (lang: string): NavigationItem[] => [
       { name: "Milk Inventory", href: `/${lang}/dashboard/mcc`, icon: Droplets, requiredPermissions: [] },
       { name: "Pharmacy Inventory", href: `/${lang}/dashboard/pharmacy`, icon: Pill, requiredPermissions: [] }
     ]
-  },
-  { 
-    name: "Stock Orders", 
-    href: `/${lang}/dashboard/stock-orders`, 
-    icon: Receipt, 
-    requiredPermissions: [],
-    roles: ["EMPLOYER", "BRANCH_MANAGER"]
-  },
-  { 
-    name: "Accounts", 
-    href: `/${lang}/dashboard/accounts`, 
-    icon: Wallet, 
-    requiredPermissions: [],
-    roles: ["EMPLOYER", "BRANCH_MANAGER"]
   },
 ]
 

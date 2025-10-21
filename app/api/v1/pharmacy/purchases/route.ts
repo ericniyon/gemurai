@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database";
+import { prisma } from "@/lib/prisma";
 
 // GET /api/v1/pharmacy/purchases - Fetch purchase records
 export async function GET(request: NextRequest) {

@@ -27,15 +27,19 @@ import {
   CheckCircle,
   Clock,
   Loader2,
-  Package
+  Package,
+  X
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { MCCStats, Farmer, MilkCollection, MCCPeriod } from "@/types/mcc"
 import { AddFarmerForm } from "./components/AddFarmerForm"
 import { AddCollectionForm } from "./components/AddCollectionForm"
 import { GenerateReportForm } from "./components/GenerateReportForm"
+import ReportsTab from "./components/ReportsTab"
 import { ViewAnalytics } from "./components/ViewAnalytics"
-import EnhancedMCCDashboard from "@/components/mcc/EnhancedMCCDashboard"
+import SalesTab from "./components/SalesTab"
+import StockTab from "./components/StockTab"
+import PaymentsTab from "./components/PaymentsTab"
 
 export default function MCCDashboard() {
   const [stats, setStats] = useState<MCCStats>({
@@ -58,6 +62,16 @@ export default function MCCDashboard() {
   const [farmers, setFarmers] = useState<Farmer[]>([])
   const [collections, setCollections] = useState<MilkCollection[]>([])
   const [periods, setPeriods] = useState<MCCPeriod[]>([])
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCollections, setTotalCollections] = useState(0)
+  const [collectionsPerPage] = useState(10)
+  const [collectionsLoading, setCollectionsLoading] = useState(false)
+  
+  // Search and filtering
+  const [filteredCollections, setFilteredCollections] = useState<MilkCollection[]>([])
   
   // Form modal states
   const [addFarmerOpen, setAddFarmerOpen] = useState(false)
@@ -166,9 +180,10 @@ export default function MCCDashboard() {
     }
   }
 
-  const fetchCollections = async () => {
+  const fetchCollections = async (page: number = currentPage) => {
     try {
-      const response = await fetch('/api/v1/mcc/collections', {
+      setCollectionsLoading(true)
+      const response = await fetch(`/api/v1/mcc/collections?page=${page}&limit=${collectionsPerPage}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('Gemurai_token')}`
         }
@@ -179,6 +194,12 @@ export default function MCCDashboard() {
         const collectionsData = data.data || []
         setCollections(collectionsData)
         
+        // Update pagination metadata
+        if (data.meta) {
+          setTotalPages(data.meta.totalPages || 1)
+          setTotalCollections(data.meta.total || 0)
+        }
+        
         // Update stats based on collections data
         const collectionStats = calculateStatsFromCollections(collectionsData)
         setStats(prev => ({
@@ -187,18 +208,39 @@ export default function MCCDashboard() {
         }))
       } else {
         console.error('Failed to fetch collections:', response.statusText)
+        setCollections([])
       }
     } catch (error) {
       console.error('Error fetching collections:', error)
+      setCollections([])
+    } finally {
+      setCollectionsLoading(false)
     }
   }
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
     await fetchStats()
-    await fetchCollections()
+    await fetchCollections(currentPage)
     setIsRefreshing(false)
     toast.success("MCC data refreshed successfully")
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    fetchCollections(page)
+  }
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      handlePageChange(currentPage - 1)
+    }
+  }
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      handlePageChange(currentPage + 1)
+    }
   }
 
   const handleAddFarmer = () => {
@@ -212,7 +254,7 @@ export default function MCCDashboard() {
   }
 
   const handleCollectionSuccess = () => {
-    fetchCollections() // This will also update stats automatically
+    fetchCollections(currentPage) // This will also update stats automatically
   }
 
   const handleGenerateReport = () => {
@@ -330,8 +372,36 @@ export default function MCCDashboard() {
 
   useEffect(() => {
     fetchStats()
-    fetchCollections()
+    fetchCollections(1) // Start with page 1
   }, [])
+
+  // Filter collections based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredCollections(collections)
+    } else {
+      const filtered = collections.filter(collection => {
+        const farmerName = collection.farmers?.name || collection.farmerName || ''
+        const collectionDate = new Date(collection.collectionDate).toLocaleDateString()
+        const period = collection.period?.toString() || ''
+        const totalLiters = collection.totalLiters?.toString() || ''
+        const totalAmount = collection.totalAmount?.toString() || ''
+        const status = collection.status || ''
+        
+        const searchLower = searchQuery.toLowerCase()
+        
+        return (
+          farmerName.toLowerCase().includes(searchLower) ||
+          collectionDate.includes(searchQuery) ||
+          period.includes(searchQuery) ||
+          totalLiters.includes(searchQuery) ||
+          totalAmount.includes(searchQuery) ||
+          status.toLowerCase().includes(searchLower)
+        )
+      })
+      setFilteredCollections(filtered)
+    }
+  }, [collections, searchQuery])
 
   if (loading) {
     return (
@@ -497,7 +567,7 @@ export default function MCCDashboard() {
         <Tabs value={tab} onValueChange={setTab} className="space-y-6">
           {/* Tab Navigation */}
           <div className="bg-white rounded-lg border border-gray-200 p-1">
-            <TabsList className="grid w-full grid-cols-7 bg-transparent h-auto p-0">
+            <TabsList className="grid w-full grid-cols-8 bg-transparent h-auto p-0">
               <TabsTrigger
                 value="overview"
                 className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200 py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-50"
@@ -520,11 +590,18 @@ export default function MCCDashboard() {
                 <span className="hidden sm:inline font-medium">Collections</span>
               </TabsTrigger>
               <TabsTrigger
-                value="inventory"
+                value="stock"
                 className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200 py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-50"
               >
                 <Package className="h-4 w-4" />
-                <span className="hidden sm:inline font-medium">Inventory</span>
+                <span className="hidden sm:inline font-medium">Stock</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="sales"
+                className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200 py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-50"
+              >
+                <DollarSign className="h-4 w-4" />
+                <span className="hidden sm:inline font-medium">Sales</span>
               </TabsTrigger>
               <TabsTrigger
                 value="payments"
@@ -809,12 +886,30 @@ export default function MCCDashboard() {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-gray-900">Milk Collections</h2>
                   <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search collections..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10 pr-10 w-64 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      />
+                      {searchQuery && (
+                        <button
+                          onClick={() => setSearchQuery('')}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 hover:text-gray-600"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
                     <Button 
-                      onClick={() => fetchCollections()} 
+                      onClick={() => fetchCollections(currentPage)} 
                       variant="outline" 
                       className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                      disabled={collectionsLoading}
                     >
-                      <RefreshCw className="h-4 w-4 mr-2" />
+                      <RefreshCw className={`h-4 w-4 mr-2 ${collectionsLoading ? 'animate-spin' : ''}`} />
                       Refresh
                     </Button>
                     <Button onClick={handleAddCollection} className="bg-blue-600 hover:bg-blue-700 text-white">
@@ -824,15 +919,30 @@ export default function MCCDashboard() {
                   </div>
                 </div>
 
-                {collections.length === 0 ? (
+                {collectionsLoading ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="h-12 w-12 text-blue-500 animate-spin mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Collections...</h3>
+                    <p className="text-gray-500">Please wait while we fetch your data</p>
+                  </div>
+                ) : filteredCollections.length === 0 ? (
                   <div className="text-center py-12">
                     <Droplets className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Collection Records</h3>
-                    <p className="text-gray-500 mb-4">Start recording milk collections to track daily quantities</p>
-                    <Button onClick={handleAddCollection} className="bg-blue-600 hover:bg-blue-700 text-white">
-                      <Droplets className="h-4 w-4 mr-2" />
-                      Record First Collection
-                    </Button>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {searchQuery ? 'No Collections Found' : 'No Collection Records'}
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      {searchQuery 
+                        ? `No collections match "${searchQuery}". Try a different search term.`
+                        : 'Start recording milk collections to track daily quantities'
+                      }
+                    </p>
+                    {!searchQuery && (
+                      <Button onClick={handleAddCollection} className="bg-blue-600 hover:bg-blue-700 text-white">
+                        <Droplets className="h-4 w-4 mr-2" />
+                        Record First Collection
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -871,7 +981,7 @@ export default function MCCDashboard() {
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
-                            {collections.map((collection) => (
+                            {filteredCollections.map((collection) => (
                               <tr key={collection.id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <div className="flex items-center">
@@ -936,55 +1046,86 @@ export default function MCCDashboard() {
                         </table>
                       </div>
                     </div>
+                    
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between mt-6 px-6 py-3 bg-gray-50 border-t border-gray-200">
+                        <div className="flex items-center text-sm text-gray-700">
+                          <span>
+                            {searchQuery ? (
+                              <>Showing {filteredCollections.length} of {totalCollections} collections matching "{searchQuery}"</>
+                            ) : (
+                              <>Showing {((currentPage - 1) * collectionsPerPage) + 1} to {Math.min(currentPage * collectionsPerPage, totalCollections)} of {totalCollections} collections</>
+                            )}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handlePreviousPage}
+                            disabled={currentPage === 1 || collectionsLoading}
+                            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                          >
+                            Previous
+                          </Button>
+                          
+                          <div className="flex items-center space-x-1">
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                              const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
+                              if (pageNum > totalPages) return null
+                              
+                              return (
+                                <Button
+                                  key={pageNum}
+                                  variant={pageNum === currentPage ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => handlePageChange(pageNum)}
+                                  disabled={collectionsLoading}
+                                  className={
+                                    pageNum === currentPage
+                                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                                      : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                                  }
+                                >
+                                  {pageNum}
+                                </Button>
+                              )
+                            })}
+                          </div>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleNextPage}
+                            disabled={currentPage === totalPages || collectionsLoading}
+                            className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             </TabsContent>
 
-            <TabsContent value="inventory" className="m-0">
-              <div className="p-0">
-                <EnhancedMCCDashboard />
-              </div>
+            <TabsContent value="stock" className="m-0">
+              <StockTab mccId="mcc_1760697250506" />
+            </TabsContent>
+
+            <TabsContent value="sales" className="m-0">
+              <SalesTab mccId="mcc_1760697250506" />
             </TabsContent>
 
             <TabsContent value="payments" className="m-0">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">Payment Management</h2>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50">
-                      <Download className="h-4 w-4 mr-2" />
-                      Export
-                    </Button>
-                    <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                      <DollarSign className="h-4 w-4 mr-2" />
-                      Process Payments
-                    </Button>
-                  </div>
-                </div>
-                <div className="text-center py-12">
-                  <DollarSign className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Payment Processing</h3>
-                  <p className="text-gray-500">Manage farmer payments and deductions</p>
-                </div>
-              </div>
+              <PaymentsTab mccId="mcc_1760697250506" />
             </TabsContent>
 
             <TabsContent value="reports" className="m-0">
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">MCC Reports</h2>
-                  <Button onClick={handleGenerateReport} className="bg-orange-600 hover:bg-orange-700 text-white">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Generate Report
-                  </Button>
-                </div>
-                <div className="text-center py-12">
-                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Reports & Analytics</h3>
-                  <p className="text-gray-500">Generate comprehensive MCC reports and analytics</p>
-                </div>
-              </div>
+              <ReportsTab mccId="mcc_1760697250506" />
             </TabsContent>
 
             <TabsContent value="settings" className="m-0">
@@ -1022,7 +1163,7 @@ export default function MCCDashboard() {
         onOpenChange={setAddCollectionOpen}
         onSuccess={() => {
           toast.success("Collection recorded successfully!")
-          fetchCollections() // This will also update stats automatically
+          fetchCollections(currentPage) // This will also update stats automatically
         }}
       />
       

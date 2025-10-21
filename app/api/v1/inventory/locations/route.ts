@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database";
+import { prisma } from "@/lib/prisma";
 
 // GET /api/v1/inventory/locations - List locations (zones)
 export async function GET(_request: NextRequest) {

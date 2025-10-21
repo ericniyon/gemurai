@@ -71,10 +71,6 @@ const roleProtectedRoutes = new Map([
   ["/dashboard/vouchers", ["EMPLOYER", "ADMIN", "SUPER_ADMIN", "BRANCH_MANAGER"]],
   ["/en/dashboard/vouchers", ["EMPLOYER", "ADMIN", "SUPER_ADMIN", "BRANCH_MANAGER"]],
   ["/rw/dashboard/vouchers", ["EMPLOYER", "ADMIN", "SUPER_ADMIN", "BRANCH_MANAGER"]],
-  // Stock Orders routes (more specific - check first)
-  ["/dashboard/stock-orders", ["EMPLOYER", "ADMIN", "SUPER_ADMIN", "BRANCH_MANAGER"]],
-  ["/en/dashboard/stock-orders", ["EMPLOYER", "ADMIN", "SUPER_ADMIN", "BRANCH_MANAGER"]],
-  ["/rw/dashboard/stock-orders", ["EMPLOYER", "ADMIN", "SUPER_ADMIN", "BRANCH_MANAGER"]],
   // DCC Sales routes
   ["/dashboard/dcc-sales", ["EMPLOYER", "ADMIN", "SUPER_ADMIN", "BRANCH_MANAGER"]],
   ["/en/dashboard/dcc-sales", ["EMPLOYER", "ADMIN", "SUPER_ADMIN", "BRANCH_MANAGER"]],

@@ -91,9 +91,10 @@ interface Farmer {
   name: string
   phone: string
   location: string
-  totalAmountEarned: number
-  lastCollectionDate: string | null
-  collections: MilkCollection[]
+  mccId: string
+  totalAmountEarned?: number
+  lastCollectionDate?: string | null
+  collections?: MilkCollection[]
 }
 
 export default function EnhancedMCCDashboard() {
@@ -106,20 +107,31 @@ export default function EnhancedMCCDashboard() {
   const [tab, setTab] = useState("overview")
   const [searchQuery, setSearchQuery] = useState("")
 
-  // Mock MCC ID - in real implementation, this would come from user context
-  const mccId = "mock-mcc-id"
+  // Get MCC ID from the first farmer's mccId, or use a default
+  const [mccId, setMccId] = useState<string>("")
+
+  // Update MCC ID when farmers are loaded
+  useEffect(() => {
+    if (farmers.length > 0 && farmers[0].mccId) {
+      setMccId(farmers[0].mccId);
+    }
+  }, [farmers]);
 
   const fetchInventorySummary = async () => {
     try {
+      const token = localStorage.getItem('Gemurai_token');
       const response = await fetch(`/api/v1/mcc/inventory?mccId=${mccId}`, {
         headers: {
-          'Authorization': `Bearer ${user?.accessToken}`
+          'Authorization': `Bearer ${token}`
         }
       })
       
       if (response.ok) {
         const data = await response.json()
         setInventorySummary(data.data)
+      } else {
+        console.error("Failed to fetch inventory summary:", response.statusText)
+        toast.error("Failed to load inventory summary")
       }
     } catch (error) {
       console.error("Failed to fetch inventory summary:", error)
@@ -129,15 +141,19 @@ export default function EnhancedMCCDashboard() {
 
   const fetchCollections = async () => {
     try {
-      const response = await fetch(`/api/v1/mcc/collections?mccId=${mccId}`, {
+      const token = localStorage.getItem('Gemurai_token');
+      const response = await fetch(`/api/v1/mcc/collections`, {
         headers: {
-          'Authorization': `Bearer ${user?.accessToken}`
+          'Authorization': `Bearer ${token}`
         }
       })
       
       if (response.ok) {
         const data = await response.json()
-        setCollections(data.data)
+        setCollections(data.data || [])
+      } else {
+        console.error("Failed to fetch collections:", response.statusText)
+        toast.error("Failed to load collections")
       }
     } catch (error) {
       console.error("Failed to fetch collections:", error)
@@ -145,17 +161,43 @@ export default function EnhancedMCCDashboard() {
     }
   }
 
+  const updateFarmersWithCollections = () => {
+    setFarmers(prevFarmers => 
+      prevFarmers.map(farmer => ({
+        ...farmer,
+        collections: collections.filter(collection => collection.farmerId === farmer.id),
+        totalAmountEarned: collections
+          .filter(collection => collection.farmerId === farmer.id)
+          .reduce((sum, collection) => sum + collection.totalAmount, 0),
+        lastCollectionDate: collections
+          .filter(collection => collection.farmerId === farmer.id)
+          .sort((a, b) => new Date(b.collectionDate).getTime() - new Date(a.collectionDate).getTime())[0]?.collectionDate || null
+      }))
+    )
+  }
+
   const fetchFarmers = async () => {
     try {
-      const response = await fetch(`/api/v1/mcc/farmers?mccId=${mccId}`, {
+      const token = localStorage.getItem('Gemurai_token');
+      // First get farmers without mccId filter to get all farmers
+      const response = await fetch(`/api/v1/mcc/farmers`, {
         headers: {
-          'Authorization': `Bearer ${user?.accessToken}`
+          'Authorization': `Bearer ${token}`
         }
       })
       
       if (response.ok) {
         const data = await response.json()
-        setFarmers(data.data)
+        const farmersData = data.data || []
+        setFarmers(farmersData)
+        
+        // If we have farmers and no mccId yet, set it from the first farmer
+        if (farmersData.length > 0 && !mccId) {
+          setMccId(farmersData[0].mccId);
+        }
+      } else {
+        console.error("Failed to fetch farmers:", response.statusText)
+        toast.error("Failed to load farmers")
       }
     } catch (error) {
       console.error("Failed to fetch farmers:", error)
@@ -166,11 +208,19 @@ export default function EnhancedMCCDashboard() {
   const fetchAllData = async () => {
     setLoading(true)
     try {
-      await Promise.all([
-        fetchInventorySummary(),
-        fetchCollections(),
-        fetchFarmers()
-      ])
+      // First fetch farmers to get MCC ID
+      await fetchFarmers()
+      
+      // Then fetch collections and other data if we have an MCC ID
+      if (mccId) {
+        await Promise.all([
+          fetchInventorySummary(),
+          fetchCollections()
+        ])
+        
+        // After collections are loaded, update farmers with collection data
+        updateFarmersWithCollections()
+      }
     } catch (error) {
       console.error("Failed to fetch data:", error)
     } finally {
@@ -189,6 +239,19 @@ export default function EnhancedMCCDashboard() {
     fetchAllData()
   }, [])
 
+  // Refetch inventory and collections when mccId changes
+  useEffect(() => {
+    if (mccId) {
+      Promise.all([
+        fetchInventorySummary(),
+        fetchCollections()
+      ]).then(() => {
+        // Update farmers with collections data after collections are loaded
+        updateFarmersWithCollections()
+      })
+    }
+  }, [mccId])
+
   const filteredFarmers = farmers.filter(farmer =>
     farmer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     farmer.phone.includes(searchQuery) ||
@@ -196,8 +259,8 @@ export default function EnhancedMCCDashboard() {
   )
 
   const filteredCollections = collections.filter(collection =>
-    collection.farmer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    collection.product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    (collection.farmers?.name || collection.farmerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (collection.products?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   if (loading) {
@@ -322,9 +385,9 @@ export default function EnhancedMCCDashboard() {
                       <div className="flex items-center space-x-3">
                         <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                         <div>
-                          <p className="font-medium">{collection.farmer.name}</p>
+                          <p className="font-medium">{collection.farmers?.name || collection.farmerName || 'Unknown Farmer'}</p>
                           <p className="text-sm text-muted-foreground">
-                            {collection.totalLiters}L • {collection.product.name}
+                            {collection.totalLiters}L • {collection.products?.name || 'Unknown Product'}
                           </p>
                         </div>
                       </div>
@@ -440,9 +503,9 @@ export default function EnhancedMCCDashboard() {
                         <Droplets className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="font-medium">{collection.farmer.name}</p>
+                        <p className="font-medium">{collection.farmers?.name || collection.farmerName || 'Unknown Farmer'}</p>
                         <p className="text-sm text-muted-foreground">
-                          {collection.product.name} • {collection.warehouse.name}
+                          {collection.products?.name || 'Unknown Product'} • {collection.warehouses?.name || 'Unknown Warehouse'}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(collection.collectionDate).toLocaleDateString()}
@@ -513,9 +576,9 @@ export default function EnhancedMCCDashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">RWF {farmer.totalAmountEarned.toLocaleString()}</p>
+                      <p className="font-medium">RWF {(farmer.totalAmountEarned || 0).toLocaleString()}</p>
                       <p className="text-sm text-muted-foreground">
-                        {farmer.collections.length} collections
+                        {farmer.collections?.length || 0} collections
                       </p>
                     </div>
                   </div>

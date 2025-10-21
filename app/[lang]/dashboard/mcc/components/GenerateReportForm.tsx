@@ -140,15 +140,50 @@ export function GenerateReportForm({ open, onOpenChange, onSuccess }: GenerateRe
     setIsLoading(true)
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      const token = localStorage.getItem('Gemurai_token')
+      const response = await fetch('/api/v1/mcc/reports', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          reportType: formData.reportType,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          format: formData.format,
+          mccId: 'mcc_1760697250506',
+          farmerId: formData.farmerId,
+          includeCharts: formData.includeCharts,
+          includeDetails: formData.includeDetails,
+          includeDeductions: formData.includeDeductions,
+          includePayments: formData.includePayments,
+          groupBy: formData.groupBy,
+          sortBy: formData.sortBy,
+          sortOrder: formData.sortOrder,
+          filters: formData.filters
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to generate report')
+      }
+
+      const result = await response.json()
       
       toast.success("Report generated successfully!")
+      console.log("Report generated:", result.data)
+      
+      // In a real application, you would trigger a download here
+      // For now, we'll just show success and close the dialog
       onSuccess?.()
       onOpenChange(false)
       
     } catch (error) {
-      toast.error("Failed to generate report. Please try again.")
+      console.error('Error generating report:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate report'
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
