@@ -189,3 +189,5 @@ ALTER TABLE "products" ADD CONSTRAINT "products_mccWarehouseId_fkey" FOREIGN KEY
 ALTER TABLE "users" ADD CONSTRAINT "users_mccId_fkey" FOREIGN KEY ("mccId") REFERENCES "mccs"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 
+
+

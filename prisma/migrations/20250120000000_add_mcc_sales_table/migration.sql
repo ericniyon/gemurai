@@ -29,3 +29,5 @@ CREATE INDEX "mcc_sales_mccId_idx" ON "mcc_sales"("mccId");
 CREATE INDEX "mcc_sales_saleDate_idx" ON "mcc_sales"("saleDate");
 CREATE INDEX "mcc_sales_paymentStatus_idx" ON "mcc_sales"("paymentStatus");
 CREATE INDEX "mcc_sales_companyName_idx" ON "mcc_sales"("companyName");
+
+
