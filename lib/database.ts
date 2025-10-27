@@ -5,13 +5,9 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Simple, reliable Prisma client initialization
+// Simple Prisma client initialization
+// Uses DATABASE_URL from environment or schema.prisma datasource
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL
-    }
-  },
   log: process.env.NODE_ENV === 'development' ? ['error'] : ['error']
 })
 

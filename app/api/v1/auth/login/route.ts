@@ -9,6 +9,9 @@ const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "fal
 export const runtime = "nodejs"
 
 export async function POST(request: NextRequest) {
+  // Create a fresh Prisma client instance (declare at function level for finally block)
+  let prisma: PrismaClient | null = null
+  
   try {
     const { email, phone, password } = await request.json()
     
@@ -27,8 +30,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create a fresh Prisma client instance
-    let prisma: PrismaClient | null = null
+    // Create Prisma client
     try {
       console.log("🔌 Creating fresh Prisma client...")
       prisma = new PrismaClient({
