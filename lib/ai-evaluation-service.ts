@@ -1,9 +1,20 @@
 import OpenAI from 'openai'
 import { Application } from '@prisma/client'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+// Lazy initialization of OpenAI client
+let openaiInstance: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!openaiInstance) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OpenAI API key is not configured');
+    }
+    openaiInstance = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
+  }
+  return openaiInstance;
+}
 
 // Scoring criteria for the AI to follow
 const VULNERABILITY_SCORING_CRITERIA = {
@@ -192,11 +203,8 @@ Format your response as JSON with the following structure:
   "recommendations": string[]
 }`
 
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OpenAI API key is not configured')
-    }
-
     // Get AI evaluation
+    const openai = getOpenAI();
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo-1106",
       messages: [

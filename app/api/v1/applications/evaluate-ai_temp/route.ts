@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { verifyAuthToken } from "@/lib/token"
-import { openai } from "@/lib/openai"
 import { questionTitles } from "@/lib/form-service"
 import { evaluateApplication } from '@/lib/ai-evaluation-service'
 import { getServerSession } from 'next-auth'
