@@ -33,15 +33,35 @@ export default function NewsPage() {
   ]
 
   return (
-    <div className="pt-16 min-h-screen bg-slate-50">
-      <div className="bg-white py-12 border-b border-slate-200">
+    <div className="pt-16 min-h-screen bg-slate-50 relative overflow-hidden">
+      {/* Background Symbol */}
+      <div className="absolute top-32 left-10 w-28 h-28 md:w-36 md:h-36 opacity-10 pointer-events-none z-0">
+        <div 
+          style={{
+            animation: 'float 8s ease-in-out infinite, symbol-rotate-reverse 22s linear infinite',
+            animationDelay: '2s',
+          }}
+        >
+          <svg width="100%" height="100%" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style={{ color: '#0099f2' }}>
+            <g transform="translate(100,100)">
+              <path d="M0,-50 Q-25,-25 -25,0 Q-25,25 0,50 Q25,25 25,0 Q25,-25 0,-50 Z" fill="currentColor" opacity="0.9" />
+              <path d="M0,-35 Q-15,-18 -15,0 Q-15,18 0,35 Q15,18 15,0 Q15,-18 0,-35 Z" fill="currentColor" opacity="0.6" />
+              <circle cx="-30" cy="-30" r="8" fill="currentColor" opacity="0.7" />
+              <circle cx="30" cy="-30" r="8" fill="currentColor" opacity="0.7" />
+              <circle cx="0" cy="-60" r="6" fill="currentColor" opacity="0.8" />
+            </g>
+          </svg>
+        </div>
+      </div>
+      
+      <div className="bg-white py-12 border-b border-slate-200 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
           <h1 className="text-3xl font-bold text-slate-900">News & Events</h1>
           <p className="text-slate-600 mt-2">Latest updates from the network and the dairy sector.</p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         <div className="grid md:grid-cols-3 gap-8">
           {newsItems.map((item, idx) => (
             <ScrollReveal key={idx} delay={idx * 100}>

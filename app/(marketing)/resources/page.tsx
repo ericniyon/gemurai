@@ -23,8 +23,27 @@ export default function ResourcesPage() {
   const filtered = activeTab === "all" ? resources : resources.filter((r) => r.type === activeTab)
 
   return (
-    <div className="pt-16 min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-200 py-12">
+    <div className="pt-16 min-h-screen bg-slate-50 relative overflow-hidden">
+      {/* Background Symbol */}
+      <div className="absolute top-40 right-10 w-32 h-32 md:w-40 md:h-40 opacity-10 pointer-events-none z-0">
+        <div 
+          style={{
+            animation: 'float 7s ease-in-out infinite, symbol-rotate 18s linear infinite',
+          }}
+        >
+          <svg width="100%" height="100%" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" style={{ color: '#0099f2' }}>
+            <g transform="translate(100,100)">
+              <path d="M0,-50 Q-25,-25 -25,0 Q-25,25 0,50 Q25,25 25,0 Q25,-25 0,-50 Z" fill="currentColor" opacity="0.9" />
+              <path d="M0,-35 Q-15,-18 -15,0 Q-15,18 0,35 Q15,18 15,0 Q15,-18 0,-35 Z" fill="currentColor" opacity="0.6" />
+              <circle cx="-30" cy="-30" r="8" fill="currentColor" opacity="0.7" />
+              <circle cx="30" cy="-30" r="8" fill="currentColor" opacity="0.7" />
+              <circle cx="0" cy="-60" r="6" fill="currentColor" opacity="0.8" />
+            </g>
+          </svg>
+        </div>
+      </div>
+      
+      <div className="bg-white border-b border-slate-200 py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
           <h1 className="text-3xl font-bold text-slate-900 mb-6">Resources & Stories</h1>
 
@@ -51,7 +70,7 @@ export default function ResourcesPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((item, idx) => (
             <ScrollReveal key={idx} delay={idx * 50}>

@@ -18,6 +18,28 @@ export default function YouthPage() {
             className="object-cover"
           />
         </div>
+        
+        {/* Background Symbols */}
+        <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
+          <div 
+            className="absolute bottom-20 right-10 w-32 h-32 md:w-40 md:h-40 opacity-20"
+            style={{
+              animation: 'float 7s ease-in-out infinite, symbol-rotate 22s linear infinite',
+              animationDelay: '1s',
+            }}
+          >
+            <svg width="100%" height="100%" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg" style={{ color: '#016629' }}>
+              <g transform="translate(100,100)">
+                <path d="M0,-50 Q-25,-25 -25,0 Q-25,25 0,50 Q25,25 25,0 Q25,-25 0,-50 Z" fill="currentColor" opacity="0.9" className="animate-pulse" />
+                <path d="M0,-35 Q-15,-18 -15,0 Q-15,18 0,35 Q15,18 15,0 Q15,-18 0,-35 Z" fill="currentColor" opacity="0.6" />
+                <circle cx="-30" cy="-30" r="8" fill="currentColor" opacity="0.7" />
+                <circle cx="30" cy="-30" r="8" fill="currentColor" opacity="0.7" />
+                <circle cx="0" cy="-60" r="6" fill="currentColor" opacity="0.8" />
+              </g>
+            </svg>
+          </div>
+        </div>
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center relative z-10">
           <div className="animate-fade-in-up">
             <span className="font-bold uppercase tracking-wider text-sm mb-2 block" style={{ color: '#016629' }}>

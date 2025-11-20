@@ -11,8 +11,45 @@ export default function ContactPage() {
 
   return (
     <div className="pt-16 min-h-screen bg-white">
-      <div className="text-white py-16" style={{ backgroundColor: '#0099f2' }}>
-        <div className="max-w-7xl mx-auto px-4 text-center animate-fade-in-up">
+      <div className="text-white py-16 relative overflow-hidden" style={{ backgroundColor: '#0099f2' }}>
+        {/* Background Symbols */}
+        <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
+          <div 
+            className="absolute top-20 right-20 w-32 h-32 md:w-40 md:h-40 opacity-20"
+            style={{
+              animation: 'float 6s ease-in-out infinite, symbol-rotate 20s linear infinite',
+            }}
+          >
+            <svg width="100%" height="100%" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+              <g transform="translate(100,100)">
+                <path d="M0,-50 Q-25,-25 -25,0 Q-25,25 0,50 Q25,25 25,0 Q25,-25 0,-50 Z" fill="currentColor" opacity="0.9" className="animate-pulse" />
+                <path d="M0,-35 Q-15,-18 -15,0 Q-15,18 0,35 Q15,18 15,0 Q15,-18 0,-35 Z" fill="currentColor" opacity="0.6" />
+                <circle cx="-30" cy="-30" r="8" fill="currentColor" opacity="0.7" />
+                <circle cx="30" cy="-30" r="8" fill="currentColor" opacity="0.7" />
+                <circle cx="0" cy="-60" r="6" fill="currentColor" opacity="0.8" />
+              </g>
+            </svg>
+          </div>
+          <div 
+            className="absolute bottom-24 left-16 w-24 h-24 md:w-32 md:h-32 opacity-15"
+            style={{
+              animation: 'float 8s ease-in-out infinite, symbol-rotate-reverse 25s linear infinite',
+              animationDelay: '3s',
+            }}
+          >
+            <svg width="100%" height="100%" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              <g transform="translate(100,100)">
+                <path d="M0,-50 Q-25,-25 -25,0 Q-25,25 0,50 Q25,25 25,0 Q25,-25 0,-50 Z" fill="currentColor" opacity="0.9" />
+                <path d="M0,-35 Q-15,-18 -15,0 Q-15,18 0,35 Q15,18 15,0 Q15,-18 0,-35 Z" fill="currentColor" opacity="0.6" />
+                <circle cx="-30" cy="-30" r="8" fill="currentColor" opacity="0.7" />
+                <circle cx="30" cy="-30" r="8" fill="currentColor" opacity="0.7" />
+                <circle cx="0" cy="-60" r="6" fill="currentColor" opacity="0.8" />
+              </g>
+            </svg>
+          </div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 text-center animate-fade-in-up relative z-10">
           <h1 className="text-3xl font-bold">Get in touch</h1>
           <p className="mt-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>We&apos;d love to hear from you.</p>
         </div>

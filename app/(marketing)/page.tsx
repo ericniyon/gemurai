@@ -205,7 +205,7 @@ export default function HomePage() {
               {/* Secondary Image: Farmer */}
               <div className="absolute bottom-0 left-0 w-3/5 h-1/2 rounded-2xl overflow-hidden shadow-2xl z-20 border-4 border-white">
                 <Image
-                  src="https://images.unsplash.com/photo-1595414688142-d92053d35963?q=80&w=800&auto=format&fit=crop"
+                  src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?q=80&w=1000&auto=format&fit=crop"
                   alt="Young Farmer"
                   fill
                   className="object-cover hover:scale-105 transition-transform duration-700"
@@ -441,7 +441,7 @@ export default function HomePage() {
           <ScrollReveal className="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row">
             <div className="md:w-1/2 relative min-h-[400px]">
               <Image
-                src="https://images.unsplash.com/photo-1528498033381-246f1f202572?q=80&w=1000&auto=format&fit=crop"
+                src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?q=80&w=1000&auto=format&fit=crop"
                 alt="Aline at Milk Collection Center"
                 fill
                 className="object-cover"
@@ -556,8 +556,8 @@ export default function HomePage() {
               <div className="flex items-center gap-2">
                 <TrendingUp size={20} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />
                 <span className="text-sm">Proven Success Stories</span>
-              </div>
-            </div>
+          </div>
+        </div>
           </ScrollReveal>
         </div>
       </section>
