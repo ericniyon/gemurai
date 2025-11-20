@@ -22,6 +22,7 @@ export interface AuthUser {
   rolePermissions?: string[] // Add role permissions
   databasePermissions?: string[] // Add database permissions
   avatar: string | null
+  mccId?: string | null
 }
 
 export async function verifyAuthToken(token: string): Promise<AuthUser | null> {
@@ -49,7 +50,7 @@ export async function verifyAuthToken(token: string): Promise<AuthUser | null> {
     
     // Verify role is a valid role
     const role = (payload.role as string).toUpperCase() as UserRole
-    const validRoles: UserRole[] = ["DCC", "EMPLOYER", "CONSUMER", "SUPER_ADMIN", "ADMIN", "AGENT", "DIGITAL_SERVICE", "BRANCH_MANAGER"]
+    const validRoles: UserRole[] = ["DCC", "EMPLOYER", "CONSUMER", "SUPER_ADMIN", "ADMIN", "AGENT", "DIGITAL_SERVICE", "BRANCH_MANAGER", "MCC_MANAGER", "FIELD_AGENT", "COOP_ADMIN", "FARMER", "ACCOUNTANT"]
     if (!validRoles.includes(role)) {
       console.error("Invalid role in token:", role)
       return null
@@ -57,7 +58,7 @@ export async function verifyAuthToken(token: string): Promise<AuthUser | null> {
 
     // For now, return minimal user data without permissions
     // Permissions will be fetched separately when needed
-    const user = {
+    const user: AuthUser = {
       id: payload.sub,
       email: payload.email as string,
       phone: (payload.phone as string) || null,
@@ -66,7 +67,8 @@ export async function verifyAuthToken(token: string): Promise<AuthUser | null> {
       permissions: [], // Will be fetched separately
       rolePermissions: [], // Will be fetched separately
       databasePermissions: [], // Will be fetched separately
-      avatar: (payload.avatar as string) || null
+      avatar: (payload.avatar as string) || null,
+      mccId: (payload.mccId as string) || null,
     }
 
     console.log("Token verification completed successfully for user:", user.email)
@@ -93,7 +95,9 @@ export async function verifyAuthToken(token: string): Promise<AuthUser | null> {
   }
 }
 
-export async function generateAuthToken(user: Pick<AuthUser, 'id' | 'email' | 'phone' | 'role' | 'name' | 'permissions' | 'avatar' | 'rolePermissions' | 'databasePermissions'>): Promise<string> {
+export async function generateAuthToken(
+  user: Pick<AuthUser, "id" | "email" | "phone" | "role" | "name" | "permissions" | "avatar" | "rolePermissions" | "databasePermissions" | "mccId">
+): Promise<string> {
   console.log("🔑 Starting token generation for user:", user.email)
   console.log("🔑 JWT_SECRET available:", !!JWT_SECRET)
   console.log("🔑 JWT_SECRET length:", JWT_SECRET?.length || 0)
@@ -109,7 +113,8 @@ export async function generateAuthToken(user: Pick<AuthUser, 'id' | 'email' | 'p
     // Only include a flag to indicate if user has permissions (not the actual permissions)
     hasPermissions: (user.permissions && user.permissions.length > 0) || 
                    (user.rolePermissions && user.rolePermissions.length > 0) ||
-                   (user.databasePermissions && user.databasePermissions.length > 0)
+                   (user.databasePermissions && user.databasePermissions.length > 0),
+    mccId: user.mccId,
   }
   
   const token = await new SignJWT(tokenPayload)

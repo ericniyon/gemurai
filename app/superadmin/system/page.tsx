@@ -1147,87 +1147,104 @@ export default function SystemPage() {
         {/* System Settings Tab */}
         <TabsContent value="settings" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-0 bg-white rounded-xl shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-gray-100 rounded-t-xl">
-                <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-3">
-                  <div className="p-2 bg-purple-500 rounded-lg">
-                    <Settings className="h-5 w-5 text-white" />
+            <Card className="group relative overflow-hidden border-2 border-gray-300 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+              <CardHeader className="bg-gradient-to-r from-gray-700 via-gray-700 to-gray-800 text-white rounded-t-xl pb-4 shadow-lg">
+                <CardTitle className="text-2xl font-bold text-white flex items-center gap-3">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm group-hover:scale-110 transition-transform">
+                    <Settings className="h-6 w-6 text-white" />
                   </div>
-                  General Settings
+                  <span>General Settings</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium text-gray-700">Maintenance Mode</Label>
-                      <p className="text-xs text-gray-500">Enable maintenance mode to restrict access</p>
+                <div className="space-y-4">
+                  <div className="group/item flex items-center justify-between p-5 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border-2 border-orange-200 hover:border-orange-400 hover:shadow-md transition-all duration-200">
+                    <div className="flex-1">
+                      <Label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                        <div className="w-3 h-3 bg-orange-500 rounded-full shadow-sm"></div>
+                        Maintenance Mode
+                      </Label>
+                      <p className="text-xs text-gray-600 mt-1">Enable maintenance mode to restrict access</p>
                     </div>
-                    <Switch />
+                    <div className="ml-4 p-1 bg-white rounded-full shadow-inner">
+                      <Switch className="data-[state=checked]:bg-orange-600" />
+                    </div>
                   </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium text-gray-700">Auto Backup</Label>
-                      <p className="text-xs text-gray-500">Automatically create backups</p>
+                  
+                  <div className="group/item flex items-center justify-between p-5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 hover:border-green-400 hover:shadow-md transition-all duration-200">
+                    <div className="flex-1">
+                      <Label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full shadow-sm"></div>
+                        Auto Backup
+                      </Label>
+                      <p className="text-xs text-gray-600 mt-1">Automatically create backups</p>
                     </div>
-                    <Switch defaultChecked />
+                    <div className="ml-4 p-1 bg-white rounded-full shadow-inner">
+                      <Switch defaultChecked className="data-[state=checked]:bg-green-600" />
+                    </div>
                   </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium text-gray-700">Email Notifications</Label>
-                      <p className="text-xs text-gray-500">Send email alerts for system events</p>
+                  
+                  <div className="group/item flex items-center justify-between p-5 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200 hover:border-blue-400 hover:shadow-md transition-all duration-200">
+                    <div className="flex-1">
+                      <Label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full shadow-sm"></div>
+                        Email Notifications
+                      </Label>
+                      <p className="text-xs text-gray-600 mt-1">Send email alerts for system events</p>
                     </div>
-                    <Switch defaultChecked />
+                    <div className="ml-4 p-1 bg-white rounded-full shadow-inner">
+                      <Switch defaultChecked className="data-[state=checked]:bg-blue-600" />
+                    </div>
                   </div>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium text-gray-700">Debug Mode</Label>
-                      <p className="text-xs text-gray-500">Enable detailed logging</p>
+                  
+                  <div className="group/item flex items-center justify-between p-5 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl border-2 border-yellow-200 hover:border-yellow-400 hover:shadow-md transition-all duration-200">
+                    <div className="flex-1">
+                      <Label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full shadow-sm"></div>
+                        Debug Mode
+                      </Label>
+                      <p className="text-xs text-gray-600 mt-1">Enable detailed logging</p>
                     </div>
-                    <Switch />
+                    <div className="ml-4 p-1 bg-white rounded-full shadow-inner">
+                      <Switch className="data-[state=checked]:bg-yellow-600" />
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-0 bg-white rounded-xl shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 border-b border-gray-100 rounded-t-xl">
-                <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-3">
-                  <div className="p-2 bg-red-500 rounded-lg">
-                    <AlertTriangle className="h-5 w-5 text-white" />
+            <Card className="group relative overflow-hidden border-2 border-gray-300 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+              <CardHeader className="bg-gradient-to-r from-red-600 via-red-600 to-orange-600 text-white rounded-t-xl pb-4 shadow-lg">
+                <CardTitle className="text-2xl font-bold text-white flex items-center gap-3">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm group-hover:scale-110 transition-transform">
+                    <AlertTriangle className="h-6 w-6 text-white" />
                   </div>
-                  System Actions
+                  <span>System Actions</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <Button 
                     onClick={handleSystemRestart}
-                    className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 px-6 py-3 rounded-lg font-semibold"
+                    className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 px-6 py-3 rounded-xl font-bold"
                   >
                     <RefreshCw className="h-5 w-5 mr-2" />
                     Restart System
                   </Button>
                   <Button 
-                    variant="outline"
-                    className="w-full border-orange-200 hover:bg-orange-50 hover:border-orange-300 transition-all duration-200"
+                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 px-6 py-3 rounded-xl font-bold border-0"
                   >
                     <Database className="h-5 w-5 mr-2" />
                     Clear Cache
                   </Button>
                   <Button 
-                    variant="outline"
-                    className="w-full border-yellow-200 hover:bg-yellow-50 hover:border-yellow-300 transition-all duration-200"
+                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 px-6 py-3 rounded-xl font-bold border-0"
                   >
                     <Trash2 className="h-5 w-5 mr-2" />
                     Clean Logs
                   </Button>
                   <Button 
-                    variant="outline"
-                    className="w-full border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 px-6 py-3 rounded-xl font-bold border-0"
                   >
                     <Download className="h-5 w-5 mr-2" />
                     Export Configuration

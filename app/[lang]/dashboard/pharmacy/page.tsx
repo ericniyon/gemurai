@@ -729,7 +729,7 @@ export default function PharmacyPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white tracking-tight">Pharmacy Inventory</h1>
-              <p className="text-purple-100 mt-2">Buying Medicines and Medicine Sold</p>
+              <p className="text-gray-300 mt-2">Buying Medicines and Medicine Sold</p>
             </div>
             
             <div className="hidden md:flex gap-2">
@@ -751,23 +751,23 @@ export default function PharmacyPage() {
           <Tabs value={tab} onValueChange={setTab} className="space-y-6">
             <div className="flex items-center justify-between">
               <TabsList className="bg-gray-50 border border-gray-200 rounded-lg p-1">
-                <TabsTrigger value="inventory" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-purple-700 rounded-md px-4 py-2 order-1">
+                <TabsTrigger value="inventory" className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white rounded-md px-4 py-2 order-1 transition-all duration-200 hover:bg-gray-100">
                   <WarehouseIcon className="h-4 w-4" /> Inventory
                 </TabsTrigger>
-                <TabsTrigger value="purchases" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-purple-700 rounded-md px-4 py-2 order-2">
+                <TabsTrigger value="purchases" className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white rounded-md px-4 py-2 order-2 transition-all duration-200 hover:bg-gray-100">
                   <ShoppingCart className="h-4 w-4" /> Buying Medicines
                 </TabsTrigger>
-                <TabsTrigger value="sales" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-purple-700 rounded-md px-4 py-2 order-3">
+                <TabsTrigger value="sales" className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white rounded-md px-4 py-2 order-3 transition-all duration-200 hover:bg-gray-100">
                   <FileText className="h-4 w-4" /> Medicine Sold
                 </TabsTrigger>
               </TabsList>
               <div className="flex gap-2">
                 {tab === 'purchases' ? (
-                  <Button className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-sm" onClick={() => setIsPurchaseOpen(true)}>
+                  <Button className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white shadow-sm" onClick={() => setIsPurchaseOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" /> New Purchase
                   </Button>
                 ) : tab === 'sales' ? (
-                  <Button className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-sm" onClick={() => setIsSaleOpen(true)}>
+                  <Button className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white shadow-sm" onClick={() => setIsSaleOpen(true)}>
                     <Plus className="h-4 w-4 mr-2" /> New Sale
                   </Button>
                 ) : null}
@@ -815,7 +815,7 @@ export default function PharmacyPage() {
                                 {purchase.createdByUser.name}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
                                   {purchase.state}
                                 </span>
                               </td>
@@ -896,7 +896,7 @@ export default function PharmacyPage() {
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600 mx-auto mb-4"></div>
                     <p className="text-gray-600">Loading inventory data...</p>
                   </div>
                 </div>
@@ -904,16 +904,16 @@ export default function PharmacyPage() {
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2 items-center justify-between">
                   <div className="flex gap-2">
-                    <Button variant="outline" onClick={() => setIsCreateWarehouseOpen(true)} className="flex items-center gap-2 border-purple-200 hover:bg-purple-50 shadow-sm">
+                    <Button variant="outline" onClick={() => setIsCreateWarehouseOpen(true)} className="flex items-center gap-2 border-gray-300 hover:bg-gray-50 shadow-sm">
                       <WarehouseIcon className="h-4 w-4" /> Create Warehouse
                     </Button>
-                    <Button variant="outline" onClick={() => setIsCreateZoneOpen(true)} className="flex items-center gap-2 border-purple-200 hover:bg-purple-50 shadow-sm">
+                    <Button variant="outline" onClick={() => setIsCreateZoneOpen(true)} className="flex items-center gap-2 border-gray-300 hover:bg-gray-50 shadow-sm">
                       <Layers className="h-4 w-4" /> Create Zone
                     </Button>
-                    <Button variant="outline" onClick={() => setIsCreateProductOpen(true)} className="flex items-center gap-2 border-purple-200 hover:bg-purple-50 shadow-sm">
+                    <Button variant="outline" onClick={() => setIsCreateProductOpen(true)} className="flex items-center gap-2 border-gray-300 hover:bg-gray-50 shadow-sm">
                       <Pill className="h-4 w-4" /> Create Product
                     </Button>
-                    <Button variant="outline" onClick={refreshInventoryData} className="flex items-center gap-2 border-blue-200 hover:bg-blue-50 shadow-sm">
+                    <Button variant="outline" onClick={refreshInventoryData} className="flex items-center gap-2 border-gray-300 hover:bg-gray-50 shadow-sm">
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
@@ -1071,7 +1071,7 @@ export default function PharmacyPage() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => openEditProduct(p)}
-                                    className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    className="h-7 px-2 text-xs text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                                   >
                                     Edit
                                   </Button>
@@ -1204,7 +1204,7 @@ export default function PharmacyPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsPurchaseOpen(false)} disabled={isSavingPurchase}>Cancel</Button>
-            <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleSavePurchase} disabled={isSavingPurchase}>
+            <Button className="bg-gray-700 hover:bg-gray-800 text-white" onClick={handleSavePurchase} disabled={isSavingPurchase}>
               {isSavingPurchase ? 'Saving...' : 'Save Purchase'}
             </Button>
           </DialogFooter>
@@ -1374,7 +1374,7 @@ export default function PharmacyPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsSaleOpen(false)} disabled={isSavingSale}>Cancel</Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleSaveSale} disabled={isSavingSale}>
+            <Button className="bg-gray-700 hover:bg-gray-800 text-white" onClick={handleSaveSale} disabled={isSavingSale}>
               {isSavingSale ? 'Saving...' : 'Save Sale'}
             </Button>
           </DialogFooter>
@@ -1417,7 +1417,7 @@ export default function PharmacyPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateWarehouseOpen(false)}>Cancel</Button>
-            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-sm" onClick={async () => {
+            <Button className="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white shadow-sm" onClick={async () => {
               try {
                 if (!createWarehouseForm.name.trim()) {
                   await swalError('Validation', 'Warehouse name is required')
@@ -1649,7 +1649,7 @@ export default function PharmacyPage() {
       <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] bg-gradient-to-br from-white to-gray-50 border-0 shadow-2xl flex flex-col">
           <DialogHeader className="text-center pb-6 flex-shrink-0">
-            <div className="mx-auto w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mb-4">
+            <div className="mx-auto w-12 h-12 bg-gradient-to-r from-gray-600 to-gray-700 rounded-full flex items-center justify-center mb-4">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
@@ -1663,7 +1663,7 @@ export default function PharmacyPage() {
               {/* Basic Information */}
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
                   <h3 className="font-semibold text-gray-900">Basic Information</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1673,13 +1673,13 @@ export default function PharmacyPage() {
                       value={editProductForm.name}
                       onChange={(e) => setEditProductForm({...editProductForm, name: e.target.value})}
                       placeholder="Enter product name"
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-gray-300 focus:border-gray-700 focus:ring-gray-700"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-700">Category</Label>
                     <Select value={editProductForm.category} onValueChange={(value) => setEditProductForm({...editProductForm, category: value})}>
-                      <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                      <SelectTrigger className="border-gray-300 focus:border-gray-700 focus:ring-gray-700">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1698,7 +1698,7 @@ export default function PharmacyPage() {
                     value={editProductForm.description}
                     onChange={(e) => setEditProductForm({...editProductForm, description: e.target.value})}
                     placeholder="Enter product description"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-700 focus:border-gray-700"
                     rows={3}
                   />
                 </div>
@@ -1707,7 +1707,7 @@ export default function PharmacyPage() {
               {/* Product Details */}
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
                   <h3 className="font-semibold text-gray-900">Product Details</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1755,7 +1755,7 @@ export default function PharmacyPage() {
                         setEditProductForm({...editProductForm, pricePerUnit: value})
                       }}
                       placeholder="0"
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-gray-300 focus:border-gray-700 focus:ring-gray-700"
                     />
                     <p className="text-xs text-gray-500">💡 Enter the price per unit in Rwandan Francs</p>
                   </div>
@@ -1771,7 +1771,7 @@ export default function PharmacyPage() {
                       placeholder="0"
                       min="0"
                       max="100"
-                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="border-gray-300 focus:border-gray-700 focus:ring-gray-700"
                     />
                     <p className="text-xs text-gray-500">🏪 Discount percentage for cooperative members (0-100%)</p>
                   </div>
@@ -1781,7 +1781,7 @@ export default function PharmacyPage() {
               {/* Requirements & Restrictions */}
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
                   <h3 className="font-semibold text-gray-900">Requirements & Restrictions</h3>
                 </div>
                 <div className="space-y-4">
@@ -1791,7 +1791,7 @@ export default function PharmacyPage() {
                       id="requiresPrescription"
                       checked={editProductForm.requiresPrescription}
                       onChange={(e) => setEditProductForm({...editProductForm, requiresPrescription: e.target.checked})}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-gray-300 text-gray-700 focus:ring-gray-700"
                     />
                     <Label htmlFor="requiresPrescription" className="text-sm font-medium text-gray-700">
                       Requires Prescription
@@ -1803,7 +1803,7 @@ export default function PharmacyPage() {
                       id="controlledSubstance"
                       checked={editProductForm.controlledSubstance}
                       onChange={(e) => setEditProductForm({...editProductForm, controlledSubstance: e.target.checked})}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-gray-300 text-gray-700 focus:ring-gray-700"
                     />
                     <Label htmlFor="controlledSubstance" className="text-sm font-medium text-gray-700">
                       Controlled Substance
@@ -1815,14 +1815,14 @@ export default function PharmacyPage() {
               {/* Location Assignment */}
               <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
                   <h3 className="font-semibold text-gray-900">Location Assignment</h3>
                 </div>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-gray-700">Assign to Warehouse (optional)</Label>
                     <Select value={editProductForm.pharmacyWarehouseId} onValueChange={(value) => setEditProductForm({...editProductForm, pharmacyWarehouseId: value, locationId: ""})}>
-                      <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                      <SelectTrigger className="border-gray-300 focus:border-gray-700 focus:ring-gray-700">
                         <SelectValue placeholder="Select warehouse" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1836,7 +1836,7 @@ export default function PharmacyPage() {
                     <div className="space-y-2">
                       <Label className="text-sm font-medium text-gray-700">Assign to Zone (optional)</Label>
                       <Select value={editProductForm.locationId} onValueChange={(value) => setEditProductForm({...editProductForm, locationId: value})}>
-                        <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                        <SelectTrigger className="border-gray-300 focus:border-gray-700 focus:ring-gray-700">
                           <SelectValue placeholder="Select zone" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1856,7 +1856,7 @@ export default function PharmacyPage() {
             <Button variant="outline" onClick={() => setIsEditProductOpen(false)} className="px-6">
               Cancel
             </Button>
-            <Button onClick={submitEditProduct} className="px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+            <Button onClick={submitEditProduct} className="px-6 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900">
               Update Product
             </Button>
           </DialogFooter>
@@ -1867,7 +1867,7 @@ export default function PharmacyPage() {
       <Dialog open={isCreateProductOpen} onOpenChange={setIsCreateProductOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] bg-gradient-to-br from-white to-gray-50 border-0 shadow-2xl flex flex-col">
           <DialogHeader className="text-center pb-6 flex-shrink-0">
-            <div className="mx-auto w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-full flex items-center justify-center mb-4">
+            <div className="mx-auto w-12 h-12 bg-gradient-to-r from-gray-600 to-gray-700 rounded-full flex items-center justify-center mb-4">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
               </svg>
@@ -1912,7 +1912,7 @@ export default function PharmacyPage() {
               {/* Product Details Section */}
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
                   Product Details
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -2062,7 +2062,7 @@ export default function PharmacyPage() {
               {/* Location Assignment Section */}
               <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
                   Location Assignment
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2148,7 +2148,7 @@ export default function PharmacyPage() {
                   await swalSuccess('Product created')
                 } catch (e:any) { console.error(e); await swalError('Failed', e?.message || 'Could not create product') }
               }} 
-              className="h-11 px-8 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              className="h-11 px-8 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900 text-white shadow-lg hover:shadow-xl transition-all duration-200"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

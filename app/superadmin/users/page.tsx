@@ -44,16 +44,30 @@ import {
   Loader2,
   Filter,
   Download,
+  Milk,
+  Building2,
   Smartphone,
   Mail,
   Calendar,
-  Shield
+  Shield,
+  Users as UsersIcon
 } from "lucide-react"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import styles from "../styles/superadmin.module.scss"
+
+const pageBackgroundClasses = "bg-gradient-to-br from-slate-50 via-white to-blue-50/40"
+const cardBaseClasses =
+  "relative overflow-hidden rounded-2xl border border-white/60 bg-white/85 backdrop-blur-md shadow-xl shadow-blue-100/60"
+const statCardClasses =
+  "relative overflow-hidden rounded-2xl border border-white/60 bg-white/85 backdrop-blur-md shadow-lg shadow-blue-100/40 transition hover:shadow-blue-100/70 p-3 sm:p-4 md:p-5"
+const formatDate = (value?: string) => {
+  if (!value) return "N/A"
+  const parsed = new Date(value)
+  return isNaN(parsed.getTime()) ? "N/A" : parsed.toLocaleDateString()
+}
 
 interface User {
   id: string
@@ -63,6 +77,7 @@ interface User {
   role: string
   createdAt: string
   isActive: boolean
+  updatedAt?: string
 }
 
 interface Role {
@@ -176,10 +191,18 @@ export default function UsersPage() {
 
   const validateRole = (role: string) => {
     if (!role || !role.trim()) return "Role is required"
+    // Check if role matches any role ID or name (case-insensitive)
     const normalized = role.trim().toUpperCase()
-    const matchesId = roles.some(r => r.id === role)
-    const matchesName = roles.some(r => (r.name || "").toUpperCase() === normalized)
-    if (!matchesId && !matchesName) return "Please select a valid role"
+    const matchesId = roles.some(r => r.id === role || r.id.toUpperCase() === normalized)
+    const matchesName = roles.some(r => {
+      const roleName = (r.name || "").toUpperCase()
+      return roleName === normalized || roleName.replace(/\s+/g, "_") === normalized
+    })
+    // Also check against known MCC roles
+    const mccRoles = ['MCC_MANAGER', 'FIELD_AGENT', 'COOP_ADMIN', 'FARMER', 'ACCOUNTANT']
+    const matchesMccRole = mccRoles.includes(normalized)
+    
+    if (!matchesId && !matchesName && !matchesMccRole) return "Please select a valid role"
     return ""
   }
 
@@ -307,6 +330,17 @@ export default function UsersPage() {
 
     setIsSubmitting(true)
     try {
+      // Get role name from role ID if needed
+      let roleToSend = editUser.role
+      const selectedRole = roles.find(r => r.id === editUser.role || r.id.toUpperCase() === editUser.role.toUpperCase())
+      if (selectedRole) {
+        // Use role ID if it's a database ID, otherwise use role name
+        roleToSend = selectedRole.id.length > 20 ? selectedRole.id : (selectedRole.name || selectedRole.id).toUpperCase()
+      } else {
+        // If not found in roles list, use as-is (might be a direct role name)
+        roleToSend = editUser.role.toUpperCase()
+      }
+
       const response = await fetch(`/api/v1/superadmin/users/${editUser.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -315,7 +349,7 @@ export default function UsersPage() {
           name: editUser.name,
           email: editUser.email,
           phone: editUser.phone,
-          role: editUser.role,
+          role: roleToSend,
           isActive: editUser.isActive,
         })
       })
@@ -366,13 +400,85 @@ export default function UsersPage() {
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesRole = roleFilter === "all" || user.role === roleFilter
+    
+    // Match role by either role ID or role name (uppercase)
+    let matchesRole = roleFilter === "all"
+    if (!matchesRole) {
+      const userRoleUpper = user.role?.toUpperCase() || ""
+      const roleFilterUpper = roleFilter.toUpperCase()
+      
+      // Check if roleFilter matches user.role directly
+      if (userRoleUpper === roleFilterUpper) {
+        matchesRole = true
+      } else {
+        // Check if roleFilter is a role ID and matches a role name
+        const role = roles.find(r => r.id === roleFilter || r.id.toUpperCase() === roleFilterUpper)
+        if (role) {
+          const roleNameUpper = (role.name || "").toUpperCase()
+          matchesRole = userRoleUpper === roleNameUpper || userRoleUpper === role.id.toUpperCase()
+        }
+      }
+    }
+    
     const matchesStatus = statusFilter === "all" || 
                          (statusFilter === "active" && user.isActive) ||
                          (statusFilter === "inactive" && !user.isActive)
     
     return matchesSearch && matchesRole && matchesStatus
   })
+
+  const totalUsers = users.length
+  const activeUsers = users.filter((u) => u.isActive).length
+  const dccCount = users.filter((u) => (u.role || "").toUpperCase() === "DCC").length
+  const agentCount = users.filter((u) => (u.role || "").toUpperCase() === "AGENT").length
+  const mccManagerCount = users.filter((u) => (u.role || "").toUpperCase() === "MCC_MANAGER").length
+  const fieldAgentCount = users.filter((u) => (u.role || "").toUpperCase() === "FIELD_AGENT").length
+  const farmerCount = users.filter((u) => (u.role || "").toUpperCase() === "FARMER").length
+
+  const statCards = [
+    {
+      title: "Total Users",
+      value: totalUsers,
+      subtext: "All roles combined",
+      iconBg: "from-blue-500 to-indigo-500",
+      icon: UserPlus,
+    },
+    {
+      title: "Active Users",
+      value: activeUsers,
+      subtext: "Currently enabled",
+      iconBg: "from-emerald-500 to-teal-500",
+      icon: Shield,
+    },
+    {
+      title: "Agents",
+      value: agentCount,
+      subtext: "Sales & support",
+      iconBg: "from-orange-500 to-amber-500",
+      icon: UsersIcon,
+    },
+    {
+      title: "MCC Managers",
+      value: mccManagerCount,
+      subtext: "Collection center leads",
+      iconBg: "from-sky-500 to-blue-500",
+      icon: Milk,
+    },
+    {
+      title: "Field Agents",
+      value: fieldAgentCount,
+      subtext: "On-the-ground staff",
+      iconBg: "from-green-500 to-lime-500",
+      icon: Smartphone,
+    },
+    {
+      title: "Farmers",
+      value: farmerCount,
+      subtext: "Registered suppliers",
+      iconBg: "from-amber-500 to-yellow-500",
+      icon: Calendar,
+    },
+  ]
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -410,6 +516,17 @@ export default function UsersPage() {
 
     setIsSubmitting(true)
     try {
+      // Get role name from role ID if needed
+      let roleToSend = newUser.role
+      const selectedRole = roles.find(r => r.id === newUser.role || r.id.toUpperCase() === newUser.role.toUpperCase())
+      if (selectedRole) {
+        // Use role ID if it's a database ID, otherwise use role name
+        roleToSend = selectedRole.id.length > 20 ? selectedRole.id : (selectedRole.name || selectedRole.id).toUpperCase()
+      } else {
+        // If not found in roles list, use as-is (might be a direct role name)
+        roleToSend = newUser.role.toUpperCase()
+      }
+
       const response = await fetch("/api/v1/superadmin/users", {
         method: "POST",
         headers: {
@@ -420,7 +537,7 @@ export default function UsersPage() {
           name: newUser.name,
           email: newUser.email,
           phone: newUser.phone || undefined, // Only include phone if provided
-          role: newUser.role,
+          role: roleToSend,
           password: newUser.password
         })
       })
@@ -552,8 +669,8 @@ export default function UsersPage() {
         user.name || "",
         user.email,
         user.role,
-        new Date(user.createdAt).toLocaleDateString(),
-        new Date(user.updatedAt).toLocaleDateString(),
+        formatDate(user.createdAt),
+        formatDate(user.updatedAt),
         user.isActive ? "Active" : "Inactive"
       ])
     ].map(row => row.join(",")).join("\n")
@@ -569,11 +686,17 @@ export default function UsersPage() {
 
   if (isLoading) {
     return (
-      <div className={styles.mainContent}>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <p className="text-gray-600">Loading users...</p>
+      <div className={`relative min-h-screen overflow-hidden ${pageBackgroundClasses}`}>
+        <div className="pointer-events-none absolute top-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-400/10 to-purple-400/10 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-[-160px] left-[-160px] h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-400/15 via-sky-400/10 to-blue-400/5 blur-3xl" />
+        <div className="relative z-10 flex-1 p-2 sm:p-4 md:p-6 lg:p-8 max-w-[2000px] mx-auto">
+          <div className={styles.mainContent}>
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="flex flex-col items-center gap-4">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                <p className="text-gray-600">Loading users...</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -582,20 +705,30 @@ export default function UsersPage() {
 
   if (error) {
     return (
-      <div className={styles.mainContent}>
-        <Card className="max-w-md mx-auto">
-          <CardContent className="p-6 text-center">
-            <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={fetchUsers} variant="outline">
-              Try Again
-            </Button>
-          </CardContent>
-        </Card>
+      <div className={`relative min-h-screen overflow-hidden ${pageBackgroundClasses}`}>
+        <div className="pointer-events-none absolute top-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-400/10 to-purple-400/10 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-[-160px] left-[-160px] h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-400/15 via-sky-400/10 to-blue-400/5 blur-3xl" />
+        <div className="relative z-10 flex-1 p-2 sm:p-4 md:p-6 lg:p-8 max-w-[2000px] mx-auto">
+          <div className={styles.mainContent}>
+            <Card className={`${cardBaseClasses} max-w-md mx-auto`}>
+              <CardContent className="p-6 text-center">
+                <p className="text-red-600 mb-4">{error}</p>
+                <Button onClick={fetchUsers} variant="outline">
+                  Try Again
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
+    <div className={`relative min-h-screen overflow-hidden ${pageBackgroundClasses}`}>
+      <div className="pointer-events-none absolute top-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-400/10 to-purple-400/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-[-160px] left-[-160px] h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-400/15 via-sky-400/10 to-blue-400/5 blur-3xl" />
+      <div className="relative z-10 flex-1 p-2 sm:p-4 md:p-6 lg:p-8 max-w-[2000px] mx-auto">
     <div className={styles.mainContent}>
       {/* Header */}
       <div className={styles.pageHeader}>
@@ -628,74 +761,30 @@ export default function UsersPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <Card className={styles.statCard}>
-          <CardContent className="p-3 sm:p-4 md:p-5">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1 pr-2">
-                <p className={styles.statTitle}>Total Users</p>
-                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
-                  {users.length}
-                </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+        {statCards.map((card) => {
+          const Icon = card.icon
+          return (
+            <Card key={card.title} className={statCardClasses}>
+              <div className="flex items-center justify-between">
+                <div className="min-w-0 flex-1 pr-2">
+                  <p className="text-xs uppercase tracking-[0.2em] text-gray-500">{card.title}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
+                  <p className="text-xs text-gray-500 mt-1">{card.subtext}</p>
+                </div>
+                <div
+                  className={`p-3 rounded-2xl bg-gradient-to-br ${card.iconBg} text-white shadow-lg shadow-blue-500/20`}
+                >
+                  <Icon className="h-4 w-4" />
+                </div>
               </div>
-              <div className="p-2 sm:p-3 bg-blue-50 rounded-full shrink-0">
-                <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className={styles.statCard}>
-          <CardContent className="p-3 sm:p-4 md:p-5">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1 pr-2">
-                <p className={styles.statTitle}>Active Users</p>
-                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
-                  {users.filter(u => u.isActive).length}
-                </p>
-              </div>
-              <div className="p-2 sm:p-3 bg-green-50 rounded-full shrink-0">
-                <div className="h-4 w-4 sm:h-5 sm:w-5 bg-green-500 rounded-full"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className={styles.statCard}>
-          <CardContent className="p-3 sm:p-4 md:p-5">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1 pr-2">
-                <p className={styles.statTitle}>DCCs</p>
-                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
-                  {users.filter(u => u.role === "DCC").length}
-                </p>
-              </div>
-              <div className="p-2 sm:p-3 bg-purple-50 rounded-full shrink-0">
-                <div className="h-4 w-4 sm:h-5 sm:w-5 bg-purple-500 rounded-full"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className={styles.statCard}>
-          <CardContent className="p-3 sm:p-4 md:p-5">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1 pr-2">
-                <p className={styles.statTitle}>Agents</p>
-                <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
-                  {users.filter(u => u.role === "AGENT").length}
-                </p>
-              </div>
-              <div className="p-2 sm:p-3 bg-orange-50 rounded-full shrink-0">
-                <div className="h-4 w-4 sm:h-5 sm:w-5 bg-orange-500 rounded-full"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </Card>
+          )
+        })}
       </div>
 
       {/* Filters */}
-      <Card className="mb-4 sm:mb-6">
+      <Card className={`${cardBaseClasses} mb-4 sm:mb-6`}>
         <CardContent className="p-3 sm:p-4 md:p-5">
           <div className="flex flex-col lg:flex-row gap-3 sm:gap-4">
             <div className="flex-1 min-w-0">
@@ -705,7 +794,7 @@ export default function UsersPage() {
                   placeholder="Search users..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12 sm:h-10"
+                  className="pl-10 h-12 sm:h-10 rounded-xl border border-blue-100 bg-white/80 backdrop-blur-sm"
                 />
               </div>
             </div>
@@ -716,11 +805,18 @@ export default function UsersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Roles</SelectItem>
-                  {roles.map((role) => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
+                  {roles
+                    .filter(
+                      (role) =>
+                        !["DCC", "CONSUMER", "ADMIN"].includes(role.name?.toUpperCase() || "")
+                    )
+                    .map((role) => (
+                      <SelectItem key={role.id} value={role.id}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
+                  <SelectItem value="UMUCUNDA">UMUCUNDA</SelectItem>
+                  <SelectItem value="FARMER">FARMER</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -773,7 +869,7 @@ export default function UsersPage() {
       </div>
 
       {/* Users Table */}
-      <Card>
+      <Card className={cardBaseClasses}>
         <CardHeader className="p-3 sm:p-4 md:p-5">
           <CardTitle className="text-base sm:text-lg md:text-xl">Users ({filteredUsers.length})</CardTitle>
           <CardDescription className="text-xs sm:text-sm">
@@ -826,7 +922,7 @@ export default function UsersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-gray-500">
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {formatDate(user.createdAt)}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -874,7 +970,7 @@ export default function UsersPage() {
             ) : (
               <div className="space-y-3 p-3 sm:p-4">
                 {paginatedUsers.map((user) => (
-                  <Card key={user.id} className="p-4">
+                  <Card key={user.id} className={`${cardBaseClasses} p-4`}>
                     <div className="space-y-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
@@ -932,11 +1028,11 @@ export default function UsersPage() {
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Created: {new Date(user.createdAt).toLocaleDateString()}</span>
+                            <span>Created: {formatDate(user.createdAt)}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Updated: {new Date(user.updatedAt).toLocaleDateString()}</span>
+                            <span>Updated: {formatDate(user.updatedAt)}</span>
                         </div>
                       </div>
                     </div>
@@ -1002,19 +1098,24 @@ export default function UsersPage() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Role *</label>
-              <select
+              <Select
                 value={editUser.role}
-                onChange={(e) => {
-                  setEditUser({ ...editUser, role: e.target.value })
-                  setEditValidationErrors({ ...editValidationErrors, role: validateRole(e.target.value) })
+                onValueChange={(value) => {
+                  setEditUser({ ...editUser, role: value })
+                  setEditValidationErrors({ ...editValidationErrors, role: validateRole(value) })
                 }}
-                className={`w-full h-12 sm:h-10 border rounded-md px-3 ${editValidationErrors.role ? 'border-red-500 focus:border-red-500' : ''}`}
               >
-                <option value="">Select role</option>
-                {roles.map((r) => (
-                  <option key={r.id} value={(r.name || "").toUpperCase()}>{r.name}</option>
-                ))}
-              </select>
+                <SelectTrigger className={`h-12 sm:h-10 ${editValidationErrors.role ? 'border-red-500 focus:border-red-500' : ''}`}>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {editValidationErrors.role && <p className="text-xs text-red-500">{editValidationErrors.role}</p>}
             </div>
             <div className="flex items-center gap-2">
@@ -1059,14 +1160,21 @@ export default function UsersPage() {
       {/* Create User Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={handleDialogClose} modal={!isSwalOpen}>
         <DialogContent
-          className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-white border shadow-xl backdrop-blur-none opacity-100"
-          onInteractOutside={(e) => { if (!isSwalOpen) e.preventDefault() }}
-          onEscapeKeyDown={(e) => { if (!isSwalOpen) e.preventDefault() }}
+          className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto rounded-[28px] border border-white/60 bg-white/95 shadow-[0_25px_70px_rgba(15,23,42,0.2)] backdrop-blur-xl px-0 py-0"
+          onInteractOutside={(e) => {
+            if (!isSwalOpen) e.preventDefault()
+          }}
+          onEscapeKeyDown={(e) => {
+            if (!isSwalOpen) e.preventDefault()
+          }}
         >
-          <DialogHeader>
-            <DialogTitle>Create New User</DialogTitle>
+          <DialogHeader className="px-6 pt-6 pb-3 space-y-1">
+            <DialogTitle className="text-xl font-semibold text-gray-900">Create New User</DialogTitle>
+            <p className="text-sm text-gray-500">
+              Invite a teammate and assign the correct permissions for their role.
+            </p>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 px-6 pb-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">Name *</label>
               <Input
@@ -1076,7 +1184,9 @@ export default function UsersPage() {
                   setValidationErrors({ ...validationErrors, name: validateName(e.target.value) })
                 }}
                 placeholder="Enter full name"
-                className={`h-12 sm:h-10 ${validationErrors.name ? 'border-red-500 focus:border-red-500' : ''}`}
+                className={`h-12 sm:h-10 rounded-xl border bg-white/80 backdrop-blur-sm ${
+                  validationErrors.name ? "border-red-500 focus:border-red-500" : "border-blue-100"
+                }`}
               />
               {validationErrors.name && (
                 <p className="text-xs text-red-500">{validationErrors.name}</p>
@@ -1092,7 +1202,11 @@ export default function UsersPage() {
                   setValidationErrors({ ...validationErrors, email: validateEmail(e.target.value) })
                 }}
                 placeholder="Enter email address"
-                className={`h-12 sm:h-10 ${validationErrors.email ? 'border-red-500 focus:border-red-500' : ''}`}
+                className="h-12 sm:h-10 rounded-xl bg-white/80 backdrop-blur-sm"
+                style={{
+                  border: validationErrors.email ? "1px solid rgb(248, 113, 113)" : "1px solid rgb(191, 219, 254)",
+                  paddingLeft: "1rem",
+                }}
               />
               {validationErrors.email && (
                 <p className="text-xs text-red-500">{validationErrors.email}</p>
@@ -1108,7 +1222,11 @@ export default function UsersPage() {
                   setValidationErrors({ ...validationErrors, phone: validatePhone(e.target.value) })
                 }}
                 placeholder="Enter phone number (e.g., +250700000000)"
-                className={`h-12 sm:h-10 ${validationErrors.phone ? 'border-red-500 focus:border-red-500' : ''}`}
+                className="h-12 sm:h-10 rounded-xl bg-white/80 backdrop-blur-sm"
+                style={{
+                  border: validationErrors.phone ? "1px solid rgb(248, 113, 113)" : "1px solid rgb(191, 219, 254)",
+                  paddingLeft: "1rem",
+                }}
               />
               {validationErrors.phone && (
                 <p className="text-xs text-red-500">{validationErrors.phone}</p>
@@ -1123,7 +1241,11 @@ export default function UsersPage() {
                   setValidationErrors({ ...validationErrors, role: validateRole(value) })
                 }}
               >
-                <SelectTrigger className={`h-12 sm:h-10 ${validationErrors.role ? 'border-red-500 focus:border-red-500' : ''}`}>
+                <SelectTrigger
+                  className={`h-12 sm:h-10 rounded-xl border bg-white/80 backdrop-blur-sm ${
+                    validationErrors.role ? "border-red-500 focus:border-red-500" : "border-blue-100"
+                  }`}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1148,7 +1270,11 @@ export default function UsersPage() {
                   setValidationErrors({ ...validationErrors, password: validatePassword(e.target.value) })
                 }}
                 placeholder="Enter secure password"
-                className={`h-12 sm:h-10 ${validationErrors.password ? 'border-red-500 focus:border-red-500' : ''}`}
+                className="h-12 sm:h-10 rounded-xl bg-white/80 backdrop-blur-sm"
+                style={{
+                  border: validationErrors.password ? "1px solid rgb(248, 113, 113)" : "1px solid rgb(191, 219, 254)",
+                  paddingLeft: "1rem",
+                }}
               />
               {validationErrors.password && (
                 <p className="text-xs text-red-500">{validationErrors.password}</p>
@@ -1158,7 +1284,7 @@ export default function UsersPage() {
               </p>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row justify-end gap-3">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 px-6 pb-6 border-t border-white/60 pt-4">
             <Button
               variant="outline"
               onClick={() => handleDialogClose(false)}
@@ -1187,6 +1313,8 @@ export default function UsersPage() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+    </div>
     </div>
   )
 } 

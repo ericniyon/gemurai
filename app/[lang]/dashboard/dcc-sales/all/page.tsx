@@ -1,5 +1,6 @@
 "use client"
 
+import "./dcc-sales.css"
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -493,7 +494,7 @@ export default function AllDCCSalesPage() {
 
         return (
     <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900">
+      <div className="dcc-sales-page min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900">
         {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full opacity-20 animate-pulse bg-blue-400 dark:bg-blue-500"></div>
@@ -742,12 +743,14 @@ export default function AllDCCSalesPage() {
                           value={filters.startDate}
                           onChange={(e) => handleFilterChange('startDate', e.target.value)}
                           className="bg-white/50 dark:bg-slate-700/50 border-white/30 dark:border-slate-600/30"
+                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
                         />
                         <Input
                           type="date"
                           value={filters.endDate}
                           onChange={(e) => handleFilterChange('endDate', e.target.value)}
                           className="bg-white/50 dark:bg-slate-700/50 border-white/30 dark:border-slate-600/30"
+                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
                         />
                       </div>
                     </div>

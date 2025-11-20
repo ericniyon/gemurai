@@ -18,6 +18,7 @@ import {
   Store,
   Briefcase,
   GraduationCap,
+  Milk,
 } from "lucide-react"
 import styles from "../styles/superadmin.module.scss"
 
@@ -50,21 +51,25 @@ export function Navigation() {
         </div>
       )}
       
-      {navigationItems.filter(item => item.href && item.href.trim() !== "" && item.href.trim() !== "#").map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-3 sm:py-2 text-sm font-medium transition-colors min-h-[44px] sm:min-h-[40px]",
-            pathname === item.href
-              ? "bg-blue-50 text-blue-700 border border-blue-200"
-              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-          )}
-        >
-          <item.icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-          <span className="truncate">{item.name}</span>
-        </Link>
-      ))}
+      {navigationItems.filter(item => item.href && item.href.trim() !== "" && item.href.trim() !== "#").map((item) => {
+        // Check if current path matches the item href (including sub-routes)
+        const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+        
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              styles.navItem,
+              "min-h-[44px] sm:min-h-[40px]",
+              isActive && styles.navItemActive
+            )}
+          >
+            {item.icon && <item.icon className="h-4 w-4 sm:h-4.5 sm:w-4.5 flex-shrink-0" />}
+            <span className="truncate">{item.name}</span>
+          </Link>
+        )
+      })}
     </nav>
   )
 } 

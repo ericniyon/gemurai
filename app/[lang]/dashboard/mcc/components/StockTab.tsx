@@ -247,7 +247,7 @@ export default function StockTab({ mccId }: StockTabProps) {
       case 'EXCELLENT':
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Excellent</Badge>
       case 'GOOD':
-        return <Badge className="bg-blue-100 text-blue-800"><CheckCircle className="h-3 w-3 mr-1" />Good</Badge>
+        return <Badge className="bg-gray-100 text-gray-800"><CheckCircle className="h-3 w-3 mr-1" />Good</Badge>
       case 'FAIR':
         return <Badge className="bg-yellow-100 text-yellow-800"><AlertTriangle className="h-3 w-3 mr-1" />Fair</Badge>
       case 'POOR':
@@ -259,9 +259,9 @@ export default function StockTab({ mccId }: StockTabProps) {
 
   const getProductTypeBadge = (type: string) => {
     const colors = {
-      'RAW_MILK': 'bg-blue-100 text-blue-800',
-      'PROCESSED_MILK': 'bg-green-100 text-green-800',
-      'MILK_PRODUCTS': 'bg-purple-100 text-purple-800',
+      'RAW_MILK': 'bg-gray-100 text-gray-800',
+      'PROCESSED_MILK': 'bg-gray-100 text-gray-800',
+      'MILK_PRODUCTS': 'bg-gray-100 text-gray-800',
       'BYPRODUCTS': 'bg-orange-100 text-orange-800'
     }
     return <Badge className={colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800'}>{type.replace('_', ' ')}</Badge>
@@ -282,7 +282,7 @@ export default function StockTab({ mccId }: StockTabProps) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 text-blue-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="h-8 w-8 text-gray-600 animate-spin mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-700">Loading Stock Data...</h3>
         </div>
       </div>
@@ -290,13 +290,13 @@ export default function StockTab({ mccId }: StockTabProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-50 p-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <div className="flex items-center space-x-3">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+              <div className="p-3 bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl shadow-lg">
                 <Package className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -307,12 +307,12 @@ export default function StockTab({ mccId }: StockTabProps) {
           </div>
           <div className="flex items-center gap-4">
             <div className="relative group">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-gray-700 transition-colors" />
               <Input
                 placeholder="Search stock items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-3 w-80 border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md"
+                className="pl-12 pr-4 py-3 w-80 border-gray-200 focus:border-gray-700 focus:ring-gray-700 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md"
               />
             </div>
             <Button
@@ -331,57 +331,57 @@ export default function StockTab({ mccId }: StockTabProps) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-white to-blue-50 border-blue-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-gray-700">Total Stock Value</CardTitle>
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Droplets className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <Droplets className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-700 mb-1">{(stockSummary.totalValue / 1000000).toFixed(1)}M</div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">{(stockSummary.totalValue / 1000000).toFixed(1)}M</div>
             <p className="text-sm text-gray-600 font-medium">
               {stockSummary.totalProducts} products
             </p>
-            <div className="mt-2 flex items-center text-xs text-blue-600">
+            <div className="mt-2 flex items-center text-xs text-gray-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +5% from last week
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-white to-green-50 border-green-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-gray-700">Raw Milk Stock</CardTitle>
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Package className="h-5 w-5 text-green-600" />
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <Package className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-700 mb-1">{stockSummary.rawMilkStock.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">{stockSummary.rawMilkStock.toLocaleString()}</div>
             <p className="text-sm text-gray-600 font-medium">
               Liters available
             </p>
-            <div className="mt-2 flex items-center text-xs text-green-600">
+            <div className="mt-2 flex items-center text-xs text-gray-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +8% from yesterday
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-white to-purple-50 border-purple-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-gray-700">Processed Products</CardTitle>
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Activity className="h-5 w-5 text-purple-600" />
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <Activity className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-purple-700 mb-1">{stockSummary.processedMilkStock.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">{stockSummary.processedMilkStock.toLocaleString()}</div>
             <p className="text-sm text-gray-600 font-medium">
               Liters processed
             </p>
-            <div className="mt-2 flex items-center text-xs text-purple-600">
+            <div className="mt-2 flex items-center text-xs text-gray-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +12% this week
             </div>
@@ -415,10 +415,10 @@ export default function StockTab({ mccId }: StockTabProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Raw Milk</p>
-                <p className="text-2xl font-bold text-blue-600">{stockSummary.rawMilkStock.toLocaleString()}L</p>
+                <p className="text-2xl font-bold text-gray-800">{stockSummary.rawMilkStock.toLocaleString()}L</p>
               </div>
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Droplets className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Droplets className="h-5 w-5 text-gray-700" />
               </div>
             </div>
           </CardContent>
@@ -429,10 +429,10 @@ export default function StockTab({ mccId }: StockTabProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Processed Milk</p>
-                <p className="text-2xl font-bold text-green-600">{stockSummary.processedMilkStock.toLocaleString()}L</p>
+                <p className="text-2xl font-bold text-gray-800">{stockSummary.processedMilkStock.toLocaleString()}L</p>
               </div>
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Package className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Package className="h-5 w-5 text-gray-700" />
               </div>
             </div>
           </CardContent>
@@ -443,10 +443,10 @@ export default function StockTab({ mccId }: StockTabProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Milk Products</p>
-                <p className="text-2xl font-bold text-purple-600">{stockSummary.milkProductsStock.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-800">{stockSummary.milkProductsStock.toLocaleString()}</p>
               </div>
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Activity className="h-5 w-5 text-purple-600" />
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Activity className="h-5 w-5 text-gray-700" />
               </div>
             </div>
           </CardContent>
@@ -476,7 +476,7 @@ export default function StockTab({ mccId }: StockTabProps) {
               <CardDescription className="text-gray-600 mt-1">Current inventory levels and product details</CardDescription>
             </div>
             <div className="flex items-center space-x-2">
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
                 {filteredStockItems.length} items
               </Badge>
             </div>
@@ -526,19 +526,19 @@ export default function StockTab({ mccId }: StockTabProps) {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-100">
                   {filteredStockItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200 group">
+                    <tr key={item.id} className="hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200 group">
                       <td className="px-6 py-5 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-blue-100 to-blue-200 flex items-center justify-center group-hover:from-blue-200 group-hover:to-blue-300 transition-all duration-200">
-                              <Package className="h-5 w-5 text-blue-600" />
+                            <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 flex items-center justify-center group-hover:from-gray-200 group-hover:to-gray-300 transition-all duration-200">
+                              <Package className="h-5 w-5 text-gray-700" />
                             </div>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-semibold text-gray-900 group-hover:text-blue-900 transition-colors">
+                            <div className="text-sm font-semibold text-gray-900 group-hover:text-gray-900 transition-colors">
                               {item.productName}
                             </div>
-                            <div className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors">
+                            <div className="text-sm text-gray-500 group-hover:text-gray-700 transition-colors">
                               {item.source}
                             </div>
                           </div>
@@ -549,7 +549,7 @@ export default function StockTab({ mccId }: StockTabProps) {
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap text-sm text-gray-900">
                         <div className="flex items-center">
-                          <BarChart3 className="h-4 w-4 text-blue-500 mr-2" />
+                          <BarChart3 className="h-4 w-4 text-gray-600 mr-2" />
                           <span className="font-semibold">{item.currentQuantity.toLocaleString()} {item.unit}</span>
                         </div>
                       </td>
@@ -557,7 +557,7 @@ export default function StockTab({ mccId }: StockTabProps) {
                         <span className="font-medium">{item.unitPrice.toLocaleString()} Frw</span>
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap text-sm text-gray-900">
-                        <div className="font-bold text-green-600 text-lg">
+                        <div className="font-bold text-gray-800 text-lg">
                           {item.totalValue.toLocaleString()} Frw
                         </div>
                       </td>

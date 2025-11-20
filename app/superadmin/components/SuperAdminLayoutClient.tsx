@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { redirect } from "next/navigation"
-import { usePathname } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
+import { useAuthStore } from "@/lib/stores/auth-store"
 import { usePermissionUpdates } from "@/hooks/use-permission-updates"
 import { Navigation } from "./Navigation"
 import { roleSpecificDashboards } from "../config/navigation"
@@ -25,9 +25,11 @@ export function SuperAdminLayoutClient({
 }: {
   children: React.ReactNode
 }) {
-  const { user, isLoading, logout } = useAuth()
+  const router = useRouter()
+  const { user, isLoading, logout, isAuthenticated } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
+  const [hasRedirected, setHasRedirected] = useState(false)
   
   // Listen for permission updates and refresh sidebar automatically
   usePermissionUpdates()
@@ -35,17 +37,39 @@ export function SuperAdminLayoutClient({
   // Check if this is the login page
   const isLoginPage = pathname === "/superadmin/login"
 
+  // Get auth store state to check initialization
+  const authStore = useAuthStore()
+  const isInitialized = authStore.isInitialized
+
   // Handle redirects outside of render cycle (but not for login page)
   useEffect(() => {
-    if (!isLoginPage && !isLoading) {
-      if (!user) {
-        redirect("/superadmin/login")
-      } else if (user.role !== "SUPER_ADMIN") {
-        // Only SUPER_ADMIN can access superadmin routes
-        redirect(roleSpecificDashboards[user.role] || "/")
-      }
+    // Don't redirect if we're on login page or already redirected
+    if (isLoginPage || hasRedirected) {
+      return
     }
-  }, [user, isLoading, isLoginPage])
+
+    // Wait for auth to finish initializing and loading
+    if (!isInitialized || isLoading) {
+      return
+    }
+
+    // Check authentication and role
+    if (!isAuthenticated || !user) {
+      setHasRedirected(true)
+      router.replace("/superadmin/login")
+      return
+    }
+
+    // Only SUPER_ADMIN and ADMIN can access superadmin routes
+    if (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") {
+      setHasRedirected(true)
+      router.replace(roleSpecificDashboards[user.role] || "/")
+      return
+    }
+
+    // Reset redirect flag if user is authenticated and has correct role
+    setHasRedirected(false)
+  }, [user, isLoading, isAuthenticated, isInitialized, isLoginPage, router, hasRedirected])
 
   // For login page, just render children without authentication checks
   if (isLoginPage) {
@@ -57,8 +81,8 @@ export function SuperAdminLayoutClient({
     )
   }
 
-  // Show loading state while checking auth
-  if (isLoading) {
+  // Show loading state while checking auth or initializing
+  if (!isInitialized || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
@@ -67,14 +91,15 @@ export function SuperAdminLayoutClient({
   }
 
   // Don't render anything if user is not authenticated or doesn't have access
-  if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
+  // (This prevents flash of content before redirect)
+  if (!isAuthenticated || !user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
     return null
   }
 
   return (
     <div className={styles.layout}>
       {/* Header */}
-      <header className="fixed top-0 right-0 left-0 lg:left-[256px] bg-white border-b border-gray-200 z-30 px-4 py-3">
+      <header className="fixed top-0 right-0 left-0 lg:left-64 bg-white border-b border-slate-200 shadow-sm z-30 px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between">
           {/* Mobile Sidebar Toggle */}
           <div className="lg:hidden">
@@ -82,7 +107,7 @@ export function SuperAdminLayoutClient({
               variant="outline"
               size="sm"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="bg-white shadow-md"
+              className="bg-white text-slate-600 border-slate-200 hover:bg-slate-100 shadow-sm"
             >
               {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </Button>
@@ -92,19 +117,19 @@ export function SuperAdminLayoutClient({
           <div className="flex items-center gap-4 ml-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full text-slate-600 hover:bg-slate-100">
+                  <Avatar className="h-9 w-9">
                     <AvatarImage src={user?.avatar || undefined} alt={user?.name || user?.email} />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
                       {user?.name ? user.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <div className="flex flex-col space-y-1 p-2">
-                  <p className="text-sm font-medium leading-none">{user?.name || "Super Admin"}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+              <DropdownMenuContent className="w-56 border border-slate-200 shadow-lg" align="end" forceMount>
+                <div className="flex flex-col space-y-1 p-3">
+                  <p className="text-sm font-semibold leading-none text-slate-900">{user?.name || "Super Admin"}</p>
+                  <p className="text-xs leading-none text-slate-500">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600">
@@ -118,7 +143,7 @@ export function SuperAdminLayoutClient({
       </header>
 
       {/* Sidebar */}
-      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
+      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ""}`}>
         <div className={styles.sidebarContent}>
           {/* Mobile Close Button */}
           <div className="lg:hidden flex justify-end mb-4">

@@ -10,15 +10,15 @@ datasource db {
 }
 
 model User {
-  id                           String                  @id @default(cuid())
-  email                        String                  @unique
-  phone                        String?                 @unique
+  id                           String                    @id @default(cuid())
+  email                        String                    @unique
+  phone                        String?                   @unique
   name                         String
   password                     String
   avatar                       String?
-  isActive                     Boolean                 @default(true)
-  createdAt                    DateTime                @default(now())
-  updatedAt                    DateTime                @updatedAt
+  isActive                     Boolean                   @default(true)
+  createdAt                    DateTime                  @default(now())
+  updatedAt                    DateTime                  @updatedAt
   mccId                        String?
   ddin_username                String?
   ddin_password                String?
@@ -30,31 +30,37 @@ model User {
   district                     String?
   pharmacyId                   String?
   evaluations                  ApplicationEvaluation[]
-  managedPharmacy              Pharmacy?               @relation("PharmacyPharmacist")
+  managedPharmacy              Pharmacy?                 @relation("PharmacyPharmacist")
   dispensedPrescriptions       Prescription[]
-  approvedStockOrders          StockOrder[]            @relation("ApprovedStockOrders")
-  completedStockOrders         StockOrder[]            @relation("CompletedStockOrders")
-  requestedStockOrders         StockOrder[]            @relation("RequestedStockOrders")
-  paymentConfirmedStockOrders  StockOrder[]            @relation("PaymentConfirmedStockOrders")
-  rejectedStockOrders          StockOrder[]            @relation("RejectedStockOrders")
-  interviewsConducted          ApplicationInterview[]  @relation("Interviewer")
+  approvedStockOrders          StockOrder[]              @relation("ApprovedStockOrders")
+  completedStockOrders         StockOrder[]              @relation("CompletedStockOrders")
+  requestedStockOrders         StockOrder[]              @relation("RequestedStockOrders")
+  paymentConfirmedStockOrders  StockOrder[]              @relation("PaymentConfirmedStockOrders")
+  rejectedStockOrders          StockOrder[]              @relation("RejectedStockOrders")
+  interviewsConducted          ApplicationInterview[]    @relation("Interviewer")
   applications                 Application[]
-  completedCycleCounts         CycleCount[]            @relation("CompletedCycleCounts")
-  createdCycleCounts           CycleCount[]            @relation("CreatedCycleCounts")
+  completedCycleCounts         CycleCount[]              @relation("CompletedCycleCounts")
+  createdCycleCounts           CycleCount[]              @relation("CreatedCycleCounts")
   dccProfile                   DCCProfile?
   dccStocks                    DCCStock[]
-  approvedInventoryAdjustments InventoryAdjustment[]   @relation("ApprovedInventoryAdjustments")
-  createdInventoryAdjustments  InventoryAdjustment[]   @relation("CreatedInventoryAdjustments")
+  approvedInventoryAdjustments InventoryAdjustment[]     @relation("ApprovedInventoryAdjustments")
+  createdInventoryAdjustments  InventoryAdjustment[]     @relation("CreatedInventoryAdjustments")
   products                     products[]
-  createdStockMoves            StockMove[]             @relation("CreatedStockMoves")
-  processedStockMoves          StockMove[]             @relation("ProcessedStockMoves")
-  roleAssignments              UserRoleAssignment[]    @relation("RoleAssignments")
+  createdStockMoves            StockMove[]               @relation("CreatedStockMoves")
+  processedStockMoves          StockMove[]               @relation("ProcessedStockMoves")
+  roleAssignments              UserRoleAssignment[]      @relation("RoleAssignments")
   userRole                     UserRoleAssignment?
-  mcc                          mccs?                   @relation(fields: [mccId], references: [id])
-  pharmacy                     Pharmacy?               @relation("PharmacyUsers", fields: [pharmacyId], references: [id])
+  mcc                          mccs?                     @relation(fields: [mccId], references: [id])
+  managedMcc                   mccs?                     @relation("MCCManager")
+  pharmacy                     Pharmacy?                 @relation("PharmacyUsers", fields: [pharmacyId], references: [id])
   wallet                       Wallet?
-  processedWithdrawals         WithdrawalRequest[]     @relation("ProcessedWithdrawals")
+  processedWithdrawals         WithdrawalRequest[]       @relation("ProcessedWithdrawals")
   withdrawalRequests           WithdrawalRequest[]
+  milkCollectionsAsAgent       milk_collections[]        @relation("MilkCollectionAgent")
+  staff                        staff?
+  capacityAssessments          capacity_assessments[]    @relation("CapacityAssessor")
+  sales                        sales[]                   @relation("SalesAgent")
+  questionnaireResponses       questionnaire_responses[] @relation("QuestionnaireRespondent")
 
   @@index([mccId])
   @@index([pharmacyId])
@@ -865,23 +871,47 @@ model OTP {
 }
 
 model farmers {
-  id                 String             @id @default(cuid())
-  mccId              String
-  name               String
-  phone              String
-  location           String
-  registrationDate   DateTime           @default(now())
-  isActive           Boolean            @default(true)
-  totalAmountEarned  Float              @default(0)
-  lastCollectionDate DateTime?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  mccs               mccs               @relation(fields: [mccId], references: [id])
-  milk_collections   milk_collections[]
-  mcc_payments       mcc_payments[]
+  id                      String                    @id @default(cuid())
+  mccId                   String
+  farmerCode              String?                   @unique
+  name                    String
+  phone                   String
+  location                String
+  village                 String?
+  registrationDate        DateTime                  @default(now())
+  isActive                Boolean                   @default(true)
+  totalAmountEarned       Float                     @default(0)
+  lastCollectionDate      DateTime?
+  defaultPriceGroup       String?
+  
+  // Enhanced farmer registry fields
+  nfcId                   String?                   @unique // NFC/ID number
+  nationalId              String?                   @unique // National ID number
+  herdSize                Int?                      // Number of cows
+  gpsLatitude             Float?                    // GPS latitude
+  gpsLongitude            Float?                    // GPS longitude
+  creditLimit             Float?                    @default(0) // Credit limit for purchases
+  emergencyContact        String?                   // Emergency contact phone
+  email                   String?                  // Email address
+  address                 String?                  // Detailed address
+  
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  mccs                    mccs                      @relation(fields: [mccId], references: [id])
+  milk_collections        milk_collections[]
+  mcc_payments            mcc_payments[]
+  payments                payments[]                  @relation("FarmerPayments")
+  rentals                 rentals[]
+  sales                   sales[]
+  farmer_account          farmer_accounts?
+  ledger_entries          farmer_ledger[]
+  questionnaire_responses questionnaire_responses[]
 
   @@index([mccId])
   @@index([phone])
+  @@index([farmerCode])
+  @@index([nfcId])
+  @@index([nationalId])
 }
 
 model mcc_periods {
@@ -922,21 +952,21 @@ model mcc_warehouses {
 }
 
 model mcc_sales {
-  id              String        @id @default(cuid())
-  mccId           String
-  litersSold      Float
-  unitPrice       Float
-  totalAmount     Float
-  companyName     String
-  companyContact  String
-  companyAddress  String        @default("")
-  paymentStatus   PaymentStatus @default(pending)
-  saleDate        DateTime
-  notes           String        @default("")
-  recordedBy      String
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  mccs            mccs          @relation(fields: [mccId], references: [id])
+  id             String        @id @default(cuid())
+  mccId          String
+  litersSold     Float
+  unitPrice      Float
+  totalAmount    Float
+  companyName    String
+  companyContact String
+  companyAddress String        @default("")
+  paymentStatus  PaymentStatus @default(pending)
+  saleDate       DateTime
+  notes          String        @default("")
+  recordedBy     String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  mccs           mccs          @relation(fields: [mccId], references: [id])
 
   @@index([mccId])
   @@index([saleDate])
@@ -945,27 +975,45 @@ model mcc_sales {
 }
 
 model mccs {
-  id              String            @id @default(cuid())
-  name            String
-  location        String
-  contactInfo     Json              @default("{}")
-  settings        Json              @default("{}")
-  isActive        Boolean           @default(true)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime
-  farmers         farmers[]
-  mcc_periods     mcc_periods[]
-  mcc_warehouses  mcc_warehouses[]
-  milk_processing milk_processing[]
-  mcc_sales       mcc_sales[]
-  mcc_payments    mcc_payments[]
-  users           User[]
+  id                      String                    @id @default(cuid())
+  code                    String?                   @unique
+  name                    String
+  location                String
+  region                  String?
+  address                 String?
+  contactInfo             Json                      @default("{}")
+  settings                Json                      @default("{}")
+  managerUserId           String?                   @unique
+  isActive                Boolean                   @default(true)
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime
+  farmers                 farmers[]
+  mcc_periods             mcc_periods[]
+  mcc_warehouses          mcc_warehouses[]
+  milk_processing         milk_processing[]
+  mcc_sales               mcc_sales[]
+  mcc_payments            mcc_payments[]
+  users                   User[]
+  milk_collections        milk_collections[]
+  manager                 User?                     @relation("MCCManager", fields: [managerUserId], references: [id])
+  bulk_batches            bulk_batches[]
+  staff                   staff[]
+  power_assets            power_assets[]
+  capacity_assessments    capacity_assessments[]
+  procurements            procurements[]
+  rentals                 rentals[]
+  sales                   sales[]
+  questionnaire_responses questionnaire_responses[]
+
+  @@index([code])
+  @@index([managerUserId])
 }
 
 model milk_collections {
   id              String               @id @default(cuid())
   farmerId        String
   mccPeriodId     String?
+  mccId           String?
   collectionDate  DateTime
   period          Int
   totalLiters     Float
@@ -980,20 +1028,46 @@ model milk_collections {
   totalDeductions Float                @default(0)
   netPayment      Float                @default(0)
   status          MilkCollectionStatus @default(PENDING)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  farmers         farmers              @relation(fields: [farmerId], references: [id])
-  locations       Location?            @relation(fields: [locationId], references: [id])
-  mcc_periods     mcc_periods?         @relation(fields: [mccPeriodId], references: [id])
-  products        products?            @relation(fields: [productId], references: [id])
-  stock_moves     StockMove?           @relation(fields: [stockMoveId], references: [id])
-  warehouses      Warehouse?           @relation(fields: [warehouseId], references: [id])
-  mcc_payments    mcc_payments[]
+
+  // Quality test fields
+  fat                   Float?
+  protein               Float?
+  lactometerReading     Float?
+  antibioticTest        Boolean @default(false)
+  tempCelsius           Float?
+  timeSinceMilkingHours Float?
+  qualityStatus         String  @default("pending") // pending, accepted, rejected
+  qualityNotes          String?
+
+  // Traceability fields
+  sampleTag   String? @unique
+  agentId     String?
+  photoUrl    String?
+  geolocation Json? // { lat, lng } or PostGIS point
+  synced      Boolean @default(false)
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  farmers      farmers        @relation(fields: [farmerId], references: [id])
+  locations    Location?      @relation(fields: [locationId], references: [id])
+  mcc_periods  mcc_periods?   @relation(fields: [mccPeriodId], references: [id])
+  products     products?      @relation(fields: [productId], references: [id])
+  stock_moves  StockMove?     @relation(fields: [stockMoveId], references: [id])
+  warehouses   Warehouse?     @relation(fields: [warehouseId], references: [id])
+  mccs         mccs?          @relation(fields: [mccId], references: [id])
+  agent        User?          @relation("MilkCollectionAgent", fields: [agentId], references: [id])
+  mcc_payments mcc_payments[]
+  batch        bulk_batches?  @relation(fields: [batchId], references: [id])
+  batchId      String?
 
   @@index([collectionDate])
   @@index([farmerId])
   @@index([productId])
   @@index([stockMoveId])
+  @@index([sampleTag])
+  @@index([agentId])
+  @@index([mccId])
+  @@index([qualityStatus])
 }
 
 model milk_processing {
@@ -1110,6 +1184,8 @@ model products {
   serialNumbers                                                SerialNumber[]
   stockMoves                                                   StockMove[]
   stockQuantities                                              StockQuantity[]
+  procurement_items                                            procurement_items[]
+  sale_items                                                   sale_items[]
 
   @@index([mccProductType])
   @@index([mccWarehouseId])
@@ -1242,6 +1318,11 @@ enum UserRole {
   EMPLOYER
   CONSUMER
   AGENT
+  MCC_MANAGER
+  FIELD_AGENT
+  COOP_ADMIN
+  FARMER
+  ACCOUNTANT
 }
 
 enum ApplicationStatus {
@@ -1466,24 +1547,24 @@ enum PaymentStatus {
 }
 
 model mcc_payments {
-  id              String        @id @default(cuid())
-  farmerId        String
-  collectionId    String
-  mccId           String
-  totalAmount     Float
-  deductions      Float         @default(0)
-  advances        Float         @default(0)
-  netPayment      Float
-  paymentMethod   PaymentMethod
-  paymentStatus   PaymentStatus @default(pending)
-  paymentDate     DateTime
-  processedBy     String
-  notes           String        @default("")
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  farmers         farmers       @relation(fields: [farmerId], references: [id])
+  id               String           @id @default(cuid())
+  farmerId         String
+  collectionId     String
+  mccId            String
+  totalAmount      Float
+  deductions       Float            @default(0)
+  advances         Float            @default(0)
+  netPayment       Float
+  paymentMethod    PaymentMethod
+  paymentStatus    PaymentStatus    @default(pending)
+  paymentDate      DateTime
+  processedBy      String
+  notes            String           @default("")
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  farmers          farmers          @relation(fields: [farmerId], references: [id])
   milk_collections milk_collections @relation(fields: [collectionId], references: [id])
-  mccs            mccs          @relation(fields: [mccId], references: [id])
+  mccs             mccs             @relation(fields: [mccId], references: [id])
 
   @@index([farmerId])
   @@index([collectionId])
@@ -1496,4 +1577,273 @@ enum PaymentMethod {
   cash
   mobile_money
   bank_transfer
+}
+
+// Bulk batches for milk bulking operations
+model bulk_batches {
+  id                      String             @id @default(cuid())
+  mccId                   String
+  createdAt               DateTime           @default(now())
+  dispatched              Boolean            @default(false)
+  dispatchedToProcessorId String?
+  totalLiters             Float              @default(0)
+  mccs                    mccs               @relation(fields: [mccId], references: [id])
+  milk_collections        milk_collections[]
+
+  @@index([mccId])
+  @@index([dispatched])
+}
+
+// Staff & contracts (workforce)
+model staff {
+  id             String    @id @default(cuid())
+  userId         String?   @unique
+  mccId          String?
+  position       String?
+  employmentType String? // permanent, contract, seasonal
+  startDate      DateTime?
+  endDate        DateTime?
+  trainingLevel  String?
+  certifications String[]
+  payrollAccount String?
+  createdAt      DateTime  @default(now())
+  user           User?     @relation(fields: [userId], references: [id])
+  mcc            mccs?     @relation(fields: [mccId], references: [id])
+
+  @@index([mccId])
+  @@index([userId])
+}
+
+// Vehicles & Transport
+model vehicles {
+  id              String    @id @default(cuid())
+  regNo           String    @unique
+  vehicleType     String? // pickup, tanker, van
+  capacityLiters  Float?
+  status          String    @default("available") // available, on_route, maintenance
+  lastMaintenance DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([status])
+}
+
+// Generators & Power assets
+model power_assets {
+  id         String    @id @default(cuid())
+  mccId      String
+  name       String?
+  assetType  String? // generator, solar, inverter
+  capacityKw Float?
+  lastTested DateTime?
+  status     String    @default("operational")
+  createdAt  DateTime  @default(now())
+  mcc        mccs      @relation(fields: [mccId], references: [id])
+
+  @@index([mccId])
+  @@index([status])
+}
+
+// Capacity assessments
+model capacity_assessments {
+  id                         String   @id @default(cuid())
+  mccId                      String
+  assessedAt                 DateTime @default(now())
+  assessorUserId             String?
+  staffCount                 Int?
+  trainedStaffCount          Int?
+  coolingCapacityLiters      Float?
+  estimatedDailyDemandLiters Float?
+  transportCapacityLiters    Float?
+  powerOk                    Boolean?
+  notes                      String?
+  mcc                        mccs     @relation(fields: [mccId], references: [id])
+  assessor                   User?    @relation("CapacityAssessor", fields: [assessorUserId], references: [id])
+
+  @@index([mccId, assessedAt(sort: Desc)])
+}
+
+// Suppliers
+model suppliers {
+  id           String         @id @default(cuid())
+  name         String
+  phone        String?
+  email        String?
+  address      String?
+  createdAt    DateTime       @default(now())
+  procurements procurements[]
+}
+
+// Procurements
+model procurements {
+  id          String              @id @default(cuid())
+  supplierId  String
+  mccId       String?
+  procuredAt  DateTime            @default(now())
+  totalAmount Float?
+  status      String              @default("received") // ordered, received, cancelled
+  supplier    suppliers           @relation(fields: [supplierId], references: [id])
+  mcc         mccs?               @relation(fields: [mccId], references: [id])
+  items       procurement_items[]
+
+  @@index([mccId])
+  @@index([supplierId])
+}
+
+// Procurement items
+model procurement_items {
+  id            String       @id @default(cuid())
+  procurementId String
+  productId     String
+  qty           Float
+  unitPrice     Float
+  procurement   procurements @relation(fields: [procurementId], references: [id], onDelete: Cascade)
+  product       products     @relation(fields: [productId], references: [id])
+
+  @@index([procurementId])
+  @@index([productId])
+}
+
+// Assets & Rentals
+model assets {
+  id                String    @id @default(cuid())
+  serial            String    @unique
+  name              String?
+  assetType         String? // tracker, milk_meter, chiller
+  status            String    @default("available") // available, rented, maintenance
+  currentHolderType String? // farmer, mcc, vendor
+  currentHolderId   String?
+  purchasedAt       DateTime?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  rentals           rentals[]
+
+  @@index([status])
+  @@index([assetType])
+}
+
+// Rentals
+model rentals {
+  id            String    @id @default(cuid())
+  assetId       String
+  farmerId      String?
+  mccId         String?
+  rentStart     DateTime?
+  rentEnd       DateTime?
+  rentFeePerDay Float?
+  deposit       Float?
+  returned      Boolean   @default(false)
+  returnedAt    DateTime?
+  contractDoc   String?
+  createdAt     DateTime  @default(now())
+  asset         assets    @relation(fields: [assetId], references: [id])
+  farmer        farmers?  @relation(fields: [farmerId], references: [id])
+  mcc           mccs?     @relation(fields: [mccId], references: [id])
+
+  @@index([assetId])
+  @@index([farmerId])
+  @@index([mccId])
+}
+
+// Farmer accounts & ledgers
+model farmer_accounts {
+  id          String   @id @default(cuid())
+  farmerId    String   @unique
+  balance     Float    @default(0)
+  lastUpdated DateTime @default(now())
+  farmer      farmers  @relation(fields: [farmerId], references: [id])
+}
+
+// Farmer ledger
+model farmer_ledger {
+  id           String   @id @default(cuid())
+  farmerId     String
+  entryAt      DateTime @default(now())
+  type         String? // COLLECTION, SALE, PAYMENT, ADJUSTMENT
+  amount       Float
+  balanceAfter Float
+  refId        String?
+  notes        String?
+  farmer       farmers  @relation(fields: [farmerId], references: [id])
+
+  @@index([farmerId, entryAt(sort: Desc)])
+}
+
+// Sales (product sales)
+model sales {
+  id            String       @id @default(cuid())
+  mccId         String
+  farmerId      String?
+  agentId       String?
+  saleAt        DateTime     @default(now())
+  totalAmount   Float
+  paymentMethod String? // CASH, MOMO, CREDIT
+  paid          Boolean      @default(false)
+  invoiceNo     String?
+  mcc           mccs         @relation(fields: [mccId], references: [id])
+  farmer        farmers?     @relation(fields: [farmerId], references: [id])
+  agent         User?        @relation("SalesAgent", fields: [agentId], references: [id])
+  items         sale_items[]
+
+  @@index([mccId])
+  @@index([farmerId])
+  @@index([saleAt])
+}
+
+// Sale items
+model sale_items {
+  id        String   @id @default(cuid())
+  saleId    String
+  productId String
+  qty       Float
+  unitPrice Float
+  sale      sales    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product   products @relation(fields: [productId], references: [id])
+
+  @@index([saleId])
+  @@index([productId])
+}
+
+// Payments (generic)
+model payments {
+  id        String   @id @default(cuid())
+  farmerId  String
+  amount    Float
+  method    String?  // cash, mobile_money, bank_transfer
+  reference String?
+  paidAt    DateTime @default(now())
+  farmer    farmers  @relation("FarmerPayments", fields: [farmerId], references: [id])
+
+  @@index([farmerId])
+  @@index([paidAt])
+  @@map("payments")
+}
+
+// Questionnaires
+model questionnaires {
+  id        String                    @id @default(cuid())
+  code      String                    @unique
+  title     String?
+  version   Int                       @default(1)
+  schema    Json? // JSON schema to validate responses
+  createdAt DateTime                  @default(now())
+  responses questionnaire_responses[]
+}
+
+// Questionnaire responses
+model questionnaire_responses {
+  id               String         @id @default(cuid())
+  questionnaireId  String
+  mccId            String?
+  farmerId         String?
+  respondentUserId String?
+  response         Json?
+  submittedAt      DateTime       @default(now())
+  questionnaire    questionnaires @relation(fields: [questionnaireId], references: [id])
+  mcc              mccs?          @relation(fields: [mccId], references: [id])
+  farmer           farmers?       @relation(fields: [farmerId], references: [id])
+  respondent       User?          @relation("QuestionnaireRespondent", fields: [respondentUserId], references: [id])
+
+  @@index([questionnaireId])
+  @@index([mccId])
+  @@index([farmerId])
 }

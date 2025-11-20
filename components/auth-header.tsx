@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useParams, usePathname } from "next/navigation"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { layoutTranslations } from "@/app/[lang]/translations/layout"
@@ -11,10 +11,8 @@ import { Menu, X } from "lucide-react"
 export function AuthHeader() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const params = useParams()
-  const pathname = usePathname()
   const lang = ((params || {}) as { lang?: string }).lang || "en"
   const t = layoutTranslations[lang as keyof typeof layoutTranslations] || layoutTranslations.en
-  const isApplicationPage = pathname?.startsWith(`/${lang}/application`) || pathname === "/application"
 
   return (
     <header className="transition-colors duration-300 bg-white relative z-40">
@@ -23,8 +21,8 @@ export function AuthHeader() {
           <Link href={`/${lang}`} className="flex items-center space-x-2">
             <div className="w-[160px] h-[49px] flex items-center justify-center">
               <img
-                src="https://gemura.rw/wp-content/uploads/2023/11/logo-160x49.png"
-                alt="Gemura Logo"
+                src="/yden.png"
+                alt="YDEN Logo"
                 className="w-full h-full object-contain"
               />
             </div>
@@ -54,13 +52,6 @@ export function AuthHeader() {
                 {t.header.auth.login}
               </Button>
             </Link>
-            {!isApplicationPage && (
-              <Link href={`/${lang}/application`}>
-                <Button className="bg-orange-500 hover:bg-orange-600 text-white">
-                  {t.header.auth.getStarted}
-                </Button>
-              </Link>
-            )}
           </div>
         </div>
         {/* Mobile Nav Drawer */}
@@ -78,13 +69,6 @@ export function AuthHeader() {
                     {t.header.auth.login}
                   </Button>
                 </Link>
-                {!isApplicationPage && (
-                  <Link href={`/${lang}/application`} onClick={() => setMobileNavOpen(false)}>
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
-                      {t.header.auth.getStarted}
-                    </Button>
-                  </Link>
-                )}
               </div>
             </nav>
           </div>

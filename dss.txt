@@ -1,0 +1,495 @@
+1 — System design summary (improvements & clarifications)
+Architecture (high-level)
+
+Mobile-first, offline-capable field agents (React Native or PWA + local SQLite/IndexedDB queue).
+
+Backend API: Next.js, Postgres DB, Redis for caching & job queue.
+
+Worker layer: background jobs (Celery/RQ) to process sync batches, run validations, call payment/MOMO APIs, and trigger alerts.
+
+Security: TLS, JWT, RBAC, DB encryption for PII, audit trails for financial ops.
+
+Key modules
+
+MCC management — add MCCs/warehouses/retail points dynamically; settings per MCC (pricing, quality rules, MCC manager).
+
+Collection & QA workflow — capture, immediate validation, accept/reject workflow, sample tagging, chain-of-custody.
+
+Product & Asset commerce — products, inventory, purchases, sales, rentals, vendor management.
+
+Workforce & contracts — staff profile, training, certifications, contract terms, rosters & shifts.
+
+Transport & energy assets — vehicle fleets, capacity, route scheduling, generator & backup power inventory/status.
+
+Capacity assessment engine — scheduled checks (equipment, staff, capacity usage) with thresholds triggering actions (procure, reassign).
+
+Surveys & questionnaires — flexible form builder, versioned questionnaires, offline capture, structured responses.
+
+Payments & reconciliation — payments, credits, mass payouts, Mobile Money integration, ledger + reconciler.
+
+Analytics & AI — ingestion, feature generation, predictive models (production forecasting, spoilage risk, staffing needs).
+
+Notifications & alerts — SMS/USSD/push/email for payments, low stock, asset maintenance, MCC capacity warnings.
+
+Traceability & Data Integrity
+
+Every milk collection has sample_tag, geolocation, agent_id, image(s), and immutable audit events.
+
+Write-once entries for collections; updates create new audit records.
+
+Server-side validation and deduplication (sample_tag + farmer + timestamp) on sync.
+
+2 — Business rules, validations & alerts (concrete)
+Milk acceptance / rejection rules (example)
+
+Reject if antibiotic_test = true.
+
+Reject if lactometer_reading < X (configurable per MCC).
+
+Reject if temperature_at_collection > T°C OR time_since_milking > Y hours (if timestamps available).
+
+Accept with quality multiplier applied: price = base_price * (1 + fat_factor * (fat - baseline_fat)) (configurable).
+
+Validation rules (real-time)
+
+liters > 0 AND liters <= farmer_daily_capacity
+
+price_per_liter ∈ [min_price, max_price] for MCC-specific pricing policy.
+
+No duplicate sample_tag within same date-range (server rejects duplicates).
+
+Alerts & thresholds
+
+Low stock: stock_qty <= reorder_threshold → SMS to MCC manager + procurement queue item.
+
+Low cold storage capacity: bulk_tank_level >= tank_capacity * 0.85 → dispatch transport.
+
+Transport failure: vehicle downtime > 4 hours → escalate to regional manager.
+
+Backup power missing: last generator test older than 30 days → schedule maintenance.
+
+Payment lag: unpaid payouts older than 48 hours → alert accountant & manager.
+
+Capacity sufficiency: projected_daily_volume > (total_chill_capacity - safety_margin) → generate CAPEX recommendation.
+
+KPIs to track
+
+Volumes: daily liters per MCC, per farmer, per region.
+
+Quality: rejection rate (%), antibiotic fail rate, average fat% & protein%.
+
+Financials: farmer payout delay, average margin by product, outstanding farmer credit.
+
+Operational: % collections delivered within SLA, vehicle utilization, generator uptime.
+
+HR: staff training coverage %, contract compliance rate.
+
+3 — Postgres SQL schema (full).
+
+This schema extends previous core tables to include workforce, transport, power, capacity assessments, surveys, and analytics logs.
+
+Note: run inside a Postgres database. I included indexes and FKs. Adjust types (numeric precision) to your needs.
+
+-- Enable PostGIS if using geolocation
+-- CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- 1. MCCs (Milk Collection Centres)
+CREATE TABLE mccs (
+  id SERIAL PRIMARY KEY,
+  code VARCHAR(32) UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  region VARCHAR(100),
+  address TEXT,
+  manager_user_id INT, -- FK to users
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 2. Users (system users: agents, managers, accountants)
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(64) UNIQUE NOT NULL,
+  email VARCHAR(255),
+  phone VARCHAR(32),
+  full_name TEXT,
+  role VARCHAR(32) NOT NULL, -- agent, manager, accountant, admin, etc.
+  active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_users_role ON users(role);
+
+-- 3. Farmers
+CREATE TABLE farmers (
+  id SERIAL PRIMARY KEY,
+  farmer_code VARCHAR(32) UNIQUE,
+  name TEXT NOT NULL,
+  phone VARCHAR(32),
+  village TEXT,
+  coop_id INT,
+  gps_point GEOMETRY(POINT, 4326),
+  default_price_group VARCHAR(32),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_farmers_code ON farmers(farmer_code);
+CREATE INDEX idx_farmers_gps ON farmers USING GIST(gps_point);
+
+-- 4. Staff & contracts (workforce)
+CREATE TABLE staff (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE SET NULL,
+  mcc_id INT REFERENCES mccs(id) ON DELETE SET NULL,
+  position VARCHAR(64),
+  employment_type VARCHAR(32), -- permanent, contract, seasonal
+  start_date DATE,
+  end_date DATE,
+  training_level VARCHAR(64),
+  certifications TEXT[],
+  payroll_account VARCHAR(128),
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_staff_mcc ON staff(mcc_id);
+
+-- 5. Vehicles & Transport
+CREATE TABLE vehicles (
+  id SERIAL PRIMARY KEY,
+  reg_no VARCHAR(32) UNIQUE,
+  vehicle_type VARCHAR(32), -- pickup, tanker, van
+  capacity_liters NUMERIC(12,2),
+  status VARCHAR(32) DEFAULT 'available', -- available, on_route, maintenance
+  last_maintenance TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 6. Generators & Power assets
+CREATE TABLE power_assets (
+  id SERIAL PRIMARY KEY,
+  mcc_id INT REFERENCES mccs(id) ON DELETE CASCADE,
+  name VARCHAR(128),
+  asset_type VARCHAR(64), -- generator, solar, inverter
+  capacity_kw NUMERIC(10,2),
+  last_tested TIMESTAMPTZ,
+  status VARCHAR(32) DEFAULT 'operational',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 7. Capacity assessments (equipment, staff, transport, cold chain)
+CREATE TABLE capacity_assessments (
+  id SERIAL PRIMARY KEY,
+  mcc_id INT REFERENCES mccs(id) ON DELETE CASCADE,
+  assessed_at TIMESTAMPTZ DEFAULT now(),
+  assessor_user_id INT REFERENCES users(id),
+  staff_count INT,
+  trained_staff_count INT,
+  cooling_capacity_liters NUMERIC(12,2),
+  estimated_daily_demand_liters NUMERIC(12,2),
+  transport_capacity_liters NUMERIC(12,2),
+  power_ok BOOLEAN,
+  notes TEXT
+);
+
+CREATE INDEX idx_capacity_mcc_date ON capacity_assessments (mcc_id, assessed_at DESC);
+
+-- 8. Products (inputs, medicines)
+CREATE TABLE products (
+  id SERIAL PRIMARY KEY,
+  sku VARCHAR(64) UNIQUE,
+  name TEXT NOT NULL,
+  category VARCHAR(64),
+  unit VARCHAR(20),
+  sell_price NUMERIC(12,2),
+  purchase_price NUMERIC(12,2),
+  stock_qty NUMERIC(12,2) DEFAULT 0,
+  reorder_threshold NUMERIC(12,2) DEFAULT 0,
+  expiry_date DATE,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_products_sku ON products(sku);
+
+-- 9. Product procurement / suppliers
+CREATE TABLE suppliers (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  phone VARCHAR(32),
+  email VARCHAR(255),
+  address TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE procurements (
+  id SERIAL PRIMARY KEY,
+  supplier_id INT REFERENCES suppliers(id),
+  mcc_id INT REFERENCES mccs(id),
+  procured_at TIMESTAMPTZ DEFAULT now(),
+  total_amount NUMERIC(14,2),
+  status VARCHAR(32) DEFAULT 'received' -- ordered, received, cancelled
+);
+
+CREATE TABLE procurement_items (
+  id SERIAL PRIMARY KEY,
+  procurement_id INT REFERENCES procurements(id) ON DELETE CASCADE,
+  product_id INT REFERENCES products(id),
+  qty NUMERIC(12,2),
+  unit_price NUMERIC(12,2)
+);
+
+-- 10. Assets & Rentals (trackers, meters, chillers)
+CREATE TABLE assets (
+  id SERIAL PRIMARY KEY,
+  serial VARCHAR(64) UNIQUE,
+  name TEXT,
+  asset_type VARCHAR(64), -- tracker, milk_meter, chiller
+  status VARCHAR(32) DEFAULT 'available', -- available, rented, maintenance
+  current_holder_type VARCHAR(32), -- farmer, mcc, vendor
+  current_holder_id INT,
+  purchased_at DATE,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE rentals (
+  id SERIAL PRIMARY KEY,
+  asset_id INT REFERENCES assets(id),
+  farmer_id INT REFERENCES farmers(id),
+  mcc_id INT REFERENCES mccs(id),
+  rent_start TIMESTAMPTZ,
+  rent_end TIMESTAMPTZ,
+  rent_fee_per_day NUMERIC(12,2),
+  deposit NUMERIC(12,2),
+  returned BOOLEAN DEFAULT FALSE,
+  returned_at TIMESTAMPTZ,
+  contract_doc TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_rentals_asset ON rentals(asset_id);
+
+-- 11. Milk collections & bulking
+CREATE TABLE bulk_batches (
+  id SERIAL PRIMARY KEY,
+  mcc_id INT REFERENCES mccs(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  dispatched BOOLEAN DEFAULT FALSE,
+  dispatched_to_processor_id INT,
+  total_liters NUMERIC(14,2) DEFAULT 0
+);
+
+CREATE TABLE milk_collections (
+  id BIGSERIAL PRIMARY KEY,
+  farmer_id INT REFERENCES farmers(id),
+  mcc_id INT REFERENCES mccs(id),
+  agent_id INT REFERENCES users(id),
+  collected_at TIMESTAMPTZ NOT NULL,
+  liters NUMERIC(12,3) NOT NULL,
+  fat NUMERIC(6,3),
+  protein NUMERIC(6,3),
+  lactometer_reading NUMERIC(8,3),
+  antibiotic_test BOOLEAN DEFAULT FALSE,
+  temp_celsius NUMERIC(6,2),
+  time_since_milking_hours NUMERIC(6,2),
+  quality_status VARCHAR(32) DEFAULT 'pending', -- pending, accepted, rejected
+  price_per_liter NUMERIC(12,2),
+  amount_due NUMERIC(14,2),
+  paid BOOLEAN DEFAULT FALSE,
+  payment_id INT,
+  batch_id INT REFERENCES bulk_batches(id),
+  sample_tag VARCHAR(128),
+  photo_url TEXT,
+  synced BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE UNIQUE INDEX uq_milk_sample_tag ON milk_collections(sample_tag) WHERE sample_tag IS NOT NULL;
+CREATE INDEX idx_milk_mcc_date ON milk_collections (mcc_id, collected_at DESC);
+CREATE INDEX idx_milk_farmer ON milk_collections (farmer_id);
+
+-- 12. Sales (product sales)
+CREATE TABLE sales (
+  id BIGSERIAL PRIMARY KEY,
+  mcc_id INT REFERENCES mccs(id),
+  farmer_id INT REFERENCES farmers(id),
+  agent_id INT REFERENCES users(id),
+  sale_at TIMESTAMPTZ DEFAULT now(),
+  total_amount NUMERIC(14,2),
+  payment_method VARCHAR(32), -- CASH, MOMO, CREDIT
+  paid BOOLEAN DEFAULT FALSE,
+  invoice_no VARCHAR(64)
+);
+
+CREATE TABLE sale_items (
+  id BIGSERIAL PRIMARY KEY,
+  sale_id INT REFERENCES sales(id) ON DELETE CASCADE,
+  product_id INT REFERENCES products(id),
+  qty NUMERIC(12,2),
+  unit_price NUMERIC(12,2)
+);
+
+-- 13. Farmer accounts & ledgers
+CREATE TABLE farmer_accounts (
+  id BIGSERIAL PRIMARY KEY,
+  farmer_id INT REFERENCES farmers(id) UNIQUE,
+  balance NUMERIC(14,2) DEFAULT 0,
+  last_updated TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE farmer_ledger (
+  id BIGSERIAL PRIMARY KEY,
+  farmer_id INT REFERENCES farmers(id),
+  entry_at TIMESTAMPTZ DEFAULT now(),
+  type VARCHAR(32), -- COLLECTION, SALE, PAYMENT, ADJUSTMENT
+  amount NUMERIC(14,2),
+  balance_after NUMERIC(14,2),
+  ref_id BIGINT,
+  notes TEXT
+);
+
+CREATE INDEX idx_ledger_farmer ON farmer_ledger (farmer_id, entry_at DESC);
+
+-- 14. Payments
+CREATE TABLE payments (
+  id BIGSERIAL PRIMARY KEY,
+  farmer_id INT REFERENCES farmers(id),
+  mcc_id INT REFERENCES mccs(id),
+  amount NUMERIC(14,2),
+  method VARCHAR(32), -- MOMO, BANK, CASH
+  reference VARCHAR(128),
+  status VARCHAR(32) DEFAULT 'completed', -- pending, completed, failed
+  paid_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 15. Surveys / Questionnaires (flexible builder)
+CREATE TABLE questionnaires (
+  id SERIAL PRIMARY KEY,
+  code VARCHAR(64) UNIQUE,
+  title TEXT,
+  version INT DEFAULT 1,
+  schema JSONB, -- JSON schema to validate responses
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE questionnaire_responses (
+  id BIGSERIAL PRIMARY KEY,
+  questionnaire_id INT REFERENCES questionnaires(id),
+  mcc_id INT REFERENCES mccs(id),
+  farmer_id INT REFERENCES farmers(id),
+  respondent_user_id INT REFERENCES users(id),
+  response JSONB,
+  submitted_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_qresp_qid ON questionnaire_responses(questionnaire_id);
+
+-- 16. Analytics / AI logs (feature extracts & model predictions)
+CREATE TABLE analytics_features (
+  id BIGSERIAL PRIMARY KEY,
+  entity_type VARCHAR(32), -- farmer, mcc, batch
+  entity_id BIGINT,
+  feature_set JSONB,
+  computed_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE model_predictions (
+  id BIGSERIAL PRIMARY KEY,
+  model_name VARCHAR(128),
+  model_version VARCHAR(64),
+  entity_type VARCHAR(32),
+  entity_id BIGINT,
+  prediction JSONB,
+  score NUMERIC(10,6),
+  computed_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_model_entity ON model_predictions(entity_type, entity_id);
+
+-- 17. Audit logs
+CREATE TABLE audit_logs (
+  id BIGSERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id),
+  action VARCHAR(128),
+  resource_type VARCHAR(64),
+  resource_id BIGINT,
+  payload JSONB,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX idx_audit_user ON audit_logs(user_id, created_at DESC);
+
+-- 18. Notifications queue
+CREATE TABLE notifications (
+  id BIGSERIAL PRIMARY KEY,
+  mcc_id INT REFERENCES mccs(id),
+  user_id INT REFERENCES users(id),
+  channel VARCHAR(32), -- SMS, PUSH, EMAIL
+  subject TEXT,
+  body TEXT,
+  status VARCHAR(32) DEFAULT 'pending',
+  scheduled_at TIMESTAMPTZ,
+  sent_at TIMESTAMPTZ
+);
+
+4 — Example triggers & useful queries
+Trigger: auto-calc amount_due on insert of milk_collections
+CREATE FUNCTION calc_amount_due() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.price_per_liter IS NOT NULL THEN
+    NEW.amount_due := NEW.liters * NEW.price_per_liter;
+  ELSE
+    NEW.amount_due := NEW.liters * 0; -- fallback, or raise exception instead
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_calc_amount_due
+BEFORE INSERT ON milk_collections
+FOR EACH ROW EXECUTE FUNCTION calc_amount_due();
+
+Query: daily volumes per MCC and rejection rate
+SELECT mcc_id,
+       SUM(liters) AS total_liters,
+       SUM(CASE WHEN quality_status = 'rejected' THEN liters ELSE 0 END) AS rejected_liters,
+       ROUND(100.0 * SUM(CASE WHEN quality_status = 'rejected' THEN liters ELSE 0 END) / NULLIF(SUM(liters),0),2) AS rejection_pct
+FROM milk_collections
+WHERE collected_at::date = CURRENT_DATE - INTERVAL '1 day'
+GROUP BY mcc_id;
+
+Query: list MCCs with low stock products
+SELECT p.id, p.sku, p.name, p.stock_qty, p.reorder_threshold, m.name AS mcc
+FROM products p
+JOIN procurements pr ON pr.id IS NOT NULL -- placeholder to link to MCC (or maintain product stock per MCC)
+-- If you maintain inventory per MCC, adapt to product_stocks table:
+-- SELECT ps.product_id, p.sku, p.name, ps.stock_qty, p.reorder_threshold, m.name
+-- FROM product_stocks ps JOIN products p ON p.id=ps.product_id JOIN mccs m ON m.id=ps.mcc_id
+WHERE p.stock_qty <= p.reorder_threshold;
+
+
+(You’ll likely want product_stocks per MCC — I omitted to keep schema concise; add if you manage inventory per MCC.)
+
+5 — AI / Analytics suggestions (concrete)
+
+Features to feed models: rolling 7/30/90-day farmer supply (liters), fat & protein trends, rejection frequency, days-since-last-delivery, weather/seasonal signals (if available), feed availability proxies (surveys), asset downtime events, staffing levels.
+
+Models to build:
+
+Production forecasting (per farmer and per MCC) — time-series model (Prophet / LSTM / XGBoost features).
+
+Spoilage/spike risk model — binary classifier (logistic/XGBoost) predicting batch rejection/quality failures.
+
+Capacity & routing optimizer — ILP or heuristic to allocate vehicles to pickups to minimize spoilage & cost.
+
+Staff training ROI model — correlate trained staff coverage vs. rejection/uptime to prioritize training.
+
+Inference modes: nightly batch (forecasts, re-train), and lightweight on-demand API for near-real-time scoring (e.g., give collection a spoilage probability).
+
+MLOps: store features in analytics_features, predictions in model_predictions, version models with MLflow or similar.
+
+6 — Implementation & rollout suggestions
+
+Start with an MVP: Farmers, MCCs, Collections, Payments, Basic Inventory, Farmer Ledger, and Dashboard.
+
+Sprint 2: add workforce model, capacity assessments, basic surveys.
+
+Sprint 3: assets & rentals, transport scheduling, offline sync.
+
+Sprint 4: AI service for forecasts + alerts, Mobile Money integration, and policy for automated payouts.

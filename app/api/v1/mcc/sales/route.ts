@@ -11,18 +11,36 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await verifyAuthToken(authToken)
-    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    }
+    
+    // Check if user has MCC permissions
+    const { checkMCCPermission } = await import("@/lib/mcc-auth")
+    const { authorized } = await checkMCCPermission(authToken, "mcc.sales.create")
+    if (!authorized && user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
     const data = await req.json()
     
+    // If user is MCC_MANAGER, use their MCC ID if not provided
+    let targetMccId = data.mccId
+    if (!targetMccId && user.role === "MCC_MANAGER" && user.mccId) {
+      targetMccId = user.mccId
+    }
+    
     // Validate required fields
-    if (!data.litersSold || !data.unitPrice || !data.companyName || !data.companyContact || !data.mccId) {
+    if (!data.litersSold || !data.unitPrice || !data.companyName || !data.companyContact || !targetMccId) {
       return NextResponse.json(
         { error: "Missing required fields: litersSold, unitPrice, companyName, companyContact, mccId" },
         { status: 400 }
       )
+    }
+    
+    // If user is MCC_MANAGER, verify they own this MCC
+    if (user.role === "MCC_MANAGER" && user.mccId !== targetMccId) {
+      return NextResponse.json({ error: "Unauthorized for this MCC" }, { status: 403 })
     }
 
     // Calculate total amount
@@ -31,7 +49,7 @@ export async function POST(req: NextRequest) {
     // Create the sale record
     const sale = await prisma.mcc_sales.create({
       data: {
-        mccId: data.mccId,
+        mccId: targetMccId,
         litersSold: data.litersSold,
         unitPrice: data.unitPrice,
         totalAmount: totalAmount,
@@ -73,30 +91,69 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const mccId = searchParams.get("mccId")
+    let mccId = searchParams.get("mccId")
     const limit = parseInt(searchParams.get("limit") || "50")
     const page = parseInt(searchParams.get("page") || "1")
     const skip = (page - 1) * limit
 
+    // If user is MCC_MANAGER, get their MCC ID
+    if (!mccId && user.role === "MCC_MANAGER") {
+      // Try to get mccId from user object first
+      if (user.mccId) {
+        mccId = user.mccId
+      } else {
+        // If not in user object, fetch from database
+        try {
+          const mcc = await prisma.mccs.findFirst({
+            where: {
+              managerUserId: user.id
+            },
+            select: {
+              id: true
+            }
+          })
+          if (mcc) {
+            mccId = mcc.id
+          }
+        } catch (error) {
+          console.error("Error fetching MCC for manager:", error)
+        }
+      }
+    }
+
     if (!mccId) {
       return NextResponse.json({ 
         success: false, 
-        error: "MCC ID is required" 
+        error: "MCC ID is required. Please provide mccId parameter or ensure the user is assigned to an MCC." 
       }, { status: 400 })
     }
 
     // Check if user has access to this MCC
     if (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") {
-      // For regular users, check if they belong to this MCC
-      const userMcc = await prisma.users.findFirst({
-        where: {
-          id: user.id,
-          mccId: mccId
+      // If user is MCC_MANAGER, verify they own this MCC
+      if (user.role === "MCC_MANAGER") {
+        // Verify the user is the manager of this MCC
+        const mcc = await prisma.mccs.findFirst({
+          where: {
+            id: mccId,
+            managerUserId: user.id
+          }
+        })
+        if (!mcc) {
+          return NextResponse.json({ error: "Access denied to this MCC" }, { status: 403 })
         }
-      })
+      } else {
+        // For other users, check if they belong to this MCC
+        const userMcc = await prisma.users.findFirst({
+          where: {
+            id: user.id,
+            mccId: mccId
+          }
+        })
 
-      if (!userMcc) {
-        return NextResponse.json({ error: "Access denied to this MCC" }, { status: 403 })
+        if (!userMcc) {
+          return NextResponse.json({ error: "Access denied to this MCC" }, { status: 403 })
+        }
       }
     }
 
@@ -134,5 +191,8 @@ export async function GET(req: NextRequest) {
     )
   }
 }
+
+
+
 
 

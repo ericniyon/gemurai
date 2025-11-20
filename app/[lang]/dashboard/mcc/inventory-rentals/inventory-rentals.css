@@ -1,0 +1,65 @@
+/* Force light-blue borders on all input types for inventory-rentals page */
+.inventory-rentals-page input[type="date"],
+.inventory-rentals-page input[type="number"],
+.inventory-rentals-page input[type="text"],
+.inventory-rentals-page input[type="email"],
+.inventory-rentals-page input[type="tel"],
+.inventory-rentals-page input[type="password"],
+.inventory-rentals-page textarea {
+  border-color: #bfdbfe !important;
+  border-width: 1px !important;
+}
+
+.inventory-rentals-page input[type="date"]:focus,
+.inventory-rentals-page input[type="number"]:focus,
+.inventory-rentals-page input[type="text"]:focus,
+.inventory-rentals-page input[type="email"]:focus,
+.inventory-rentals-page input[type="tel"]:focus,
+.inventory-rentals-page input[type="password"]:focus,
+.inventory-rentals-page textarea:focus {
+  border-color: #60a5fa !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px #cfe0ff !important;
+}
+
+/* Target inputs in dialogs - dialogs are portaled to body */
+[data-radix-portal] input[type="date"],
+[data-radix-portal] input[type="number"],
+[data-radix-portal] input[type="text"],
+[data-radix-portal] input[type="email"],
+[data-radix-portal] input[type="tel"],
+[data-radix-portal] textarea,
+[role="dialog"] input[type="date"],
+[role="dialog"] input[type="number"],
+[role="dialog"] input[type="text"],
+[role="dialog"] input[type="email"],
+[role="dialog"] input[type="tel"],
+[role="dialog"] textarea {
+  border-color: #bfdbfe !important;
+  border-width: 1px !important;
+}
+
+[data-radix-portal] input[type="date"]:focus,
+[data-radix-portal] input[type="number"]:focus,
+[data-radix-portal] input[type="text"]:focus,
+[data-radix-portal] input[type="email"]:focus,
+[data-radix-portal] input[type="tel"]:focus,
+[data-radix-portal] textarea:focus,
+[role="dialog"] input[type="date"]:focus,
+[role="dialog"] input[type="number"]:focus,
+[role="dialog"] input[type="text"]:focus,
+[role="dialog"] input[type="email"]:focus,
+[role="dialog"] input[type="tel"]:focus,
+[role="dialog"] textarea:focus {
+  border-color: #60a5fa !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px #cfe0ff !important;
+}
+
+/* Ensure date picker calendar icon and number spinner don't interfere */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+

@@ -27,6 +27,12 @@ const publicRoutes = [
   "/marketplace",
   "/jobs",
   "/learning",
+  "/programs",
+  "/youth",
+  "/partners",
+  "/resources",
+  "/news",
+  "/contact",
   "/terms",
   "/privacy",
 ]

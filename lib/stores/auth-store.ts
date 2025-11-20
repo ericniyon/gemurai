@@ -17,6 +17,7 @@ interface User {
   rolePermissions?: string[]
   databasePermissions?: string[]
   avatar: string | null
+  mccId?: string | null
 }
 
 interface AuthState {

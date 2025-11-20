@@ -188,8 +188,8 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
         <div className="bg-white border-b border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-5 w-5 text-blue-600" />
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 text-gray-700" />
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-gray-900">MCC Analytics Dashboard</h2>
@@ -245,7 +245,7 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <RefreshCw className="h-8 w-8 text-blue-500 animate-spin mx-auto mb-4" />
+                <RefreshCw className="h-8 w-8 text-gray-600 animate-spin mx-auto mb-4" />
                 <p className="text-gray-600">Loading analytics data...</p>
               </div>
             </div>
@@ -260,14 +260,14 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                       <CardContent className="p-6">
                         <div className="flex items-center">
                           <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <Users className="h-5 w-5 text-blue-600" />
+                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <Users className="h-5 w-5 text-gray-700" />
                             </div>
                           </div>
                           <div className="ml-4">
                             <p className="text-sm font-medium text-gray-500">Total Farmers</p>
                             <p className="text-2xl font-semibold text-gray-900">{analyticsData.overview.totalFarmers}</p>
-                            <p className="text-xs text-green-600">{analyticsData.overview.activeFarmers} active</p>
+                            <p className="text-xs text-gray-600">{analyticsData.overview.activeFarmers} active</p>
                           </div>
                         </div>
                       </CardContent>
@@ -277,8 +277,8 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                       <CardContent className="p-6">
                         <div className="flex items-center">
                           <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                              <Droplets className="h-5 w-5 text-green-600" />
+                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <Droplets className="h-5 w-5 text-gray-700" />
                             </div>
                           </div>
                           <div className="ml-4">
@@ -294,8 +294,8 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                       <CardContent className="p-6">
                         <div className="flex items-center">
                           <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                              <DollarSign className="h-5 w-5 text-purple-600" />
+                            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <DollarSign className="h-5 w-5 text-gray-700" />
                             </div>
                           </div>
                           <div className="ml-4">
@@ -330,7 +330,7 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                     <Card className="bg-white border border-gray-200 shadow-sm">
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                          <Activity className="h-5 w-5 text-green-600" />
+                          <Activity className="h-5 w-5 text-gray-700" />
                           Performance Indicators
                         </CardTitle>
                       </CardHeader>
@@ -339,7 +339,7 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                           <span className="text-sm text-gray-600">Collection Rate</span>
                           <div className="flex items-center gap-2">
                             <div className="w-24 bg-gray-200 rounded-full h-2">
-                              <div className="bg-green-500 h-2 rounded-full" style={{ width: '94%' }}></div>
+                              <div className="bg-gray-600 h-2 rounded-full" style={{ width: '94%' }}></div>
                             </div>
                             <span className="text-sm font-medium">94%</span>
                           </div>
@@ -348,7 +348,7 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                           <span className="text-sm text-gray-600">Payment Accuracy</span>
                           <div className="flex items-center gap-2">
                             <div className="w-24 bg-gray-200 rounded-full h-2">
-                              <div className="bg-blue-500 h-2 rounded-full" style={{ width: '98%' }}></div>
+                              <div className="bg-gray-600 h-2 rounded-full" style={{ width: '98%' }}></div>
                             </div>
                             <span className="text-sm font-medium">98%</span>
                           </div>
@@ -357,7 +357,7 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                           <span className="text-sm text-gray-600">Farmer Satisfaction</span>
                           <div className="flex items-center gap-2">
                             <div className="w-24 bg-gray-200 rounded-full h-2">
-                              <div className="bg-purple-500 h-2 rounded-full" style={{ width: '92%' }}></div>
+                              <div className="bg-gray-600 h-2 rounded-full" style={{ width: '92%' }}></div>
                             </div>
                             <span className="text-sm font-medium">92%</span>
                           </div>
@@ -387,11 +387,11 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                             <p className="text-xs text-yellow-600">Current period ends in 3 days</p>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-3 p-3 rounded-lg bg-green-50 border border-green-200">
-                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        <div className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
+                          <CheckCircle className="h-4 w-4 text-gray-700" />
                           <div>
-                            <p className="text-sm font-medium text-green-900">System Status</p>
-                            <p className="text-xs text-green-600">All systems operational</p>
+                            <p className="text-sm font-medium text-gray-900">System Status</p>
+                            <p className="text-xs text-gray-600">All systems operational</p>
                           </div>
                         </div>
                       </CardContent>
@@ -429,7 +429,7 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                               <p className="text-sm text-gray-500">{farmer.totalAmount.toLocaleString()} Frw</p>
                             </div>
                             <div className="text-right">
-                              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                              <Badge variant="secondary" className="bg-gray-100 text-gray-800">
                                 +{farmer.growth}%
                               </Badge>
                             </div>
@@ -489,7 +489,7 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                   <Card className="bg-white border border-gray-200 shadow-sm">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Users className="h-5 w-5 text-blue-600" />
+                        <Users className="h-5 w-5 text-gray-700" />
                         Performance by District
                       </CardTitle>
                       <CardDescription>MCC performance breakdown by district</CardDescription>
@@ -499,8 +499,8 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                         {analyticsData.districts.map((district, index) => (
                           <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
                             <div className="flex items-center space-x-4">
-                              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <span className="text-sm font-medium text-blue-600">{district.farmers}</span>
+                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <span className="text-sm font-medium text-gray-700">{district.farmers}</span>
                               </div>
                               <div>
                                 <p className="font-medium">{district.name}</p>
@@ -525,7 +525,7 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                   <Card className="bg-white border border-gray-200 shadow-sm">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Calendar className="h-5 w-5 text-green-600" />
+                        <Calendar className="h-5 w-5 text-gray-700" />
                         Monthly Trends
                       </CardTitle>
                       <CardDescription>Monthly performance trends over time</CardDescription>
@@ -535,8 +535,8 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
                         {analyticsData.monthlyTrends.map((month, index) => (
                           <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
                             <div className="flex items-center space-x-4">
-                              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                <span className="text-sm font-medium text-green-600">{month.month}</span>
+                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <span className="text-sm font-medium text-gray-700">{month.month}</span>
                               </div>
                               <div>
                                 <p className="font-medium">{month.month} 2024</p>
@@ -567,6 +567,7 @@ export function ViewAnalytics({ open, onOpenChange, onSuccess }: ViewAnalyticsPr
     </div>
   )
 }
+
 
 
 

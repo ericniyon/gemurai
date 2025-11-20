@@ -335,376 +335,409 @@ function RegisterContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <AuthHeader />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
+      <div className="relative">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-400/10 to-purple-400/10 blur-3xl" />
+          <div className="absolute bottom-[-160px] left-[-160px] h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-400/15 via-sky-400/10 to-blue-400/5 blur-3xl" />
+        </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row gap-y-8">
-        {/* Left Side - Branding & Vision */}
-        <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/10"></div>
-          <div className="relative z-10 flex flex-col justify-center px-12 text-white">
-            <div className="max-w-lg">
-              <h1 className="text-4xl font-bold mb-6">{t.hero.title}</h1>
-              <p className="text-xl mb-8 text-white/90">{t.hero.subtitle}</p>
+        <div className="relative z-10">
+          <AuthHeader />
+        </div>
 
-              {/* Vision & Values */}
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Rocket className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">{t.hero.values.innovation.title}</h3>
-                    <p className="text-white/80">{t.hero.values.innovation.description}</p>
-                  </div>
-                </div>
+        <div className="relative z-10 flex-1 flex flex-col lg:flex-row gap-y-8">
+          {/* Left Side - Branding & Vision */}
+          <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ backgroundColor: '#0249ad' }}>
+            <div className="relative z-10 flex flex-col justify-center px-12 text-white">
+              <div className="max-w-lg">
+                <h1 className="text-4xl font-bold mb-6">{t.hero.title}</h1>
+                <p className="text-xl mb-8 text-white/90">{t.hero.subtitle}</p>
 
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Target className="w-6 h-6" />
+                {/* Vision & Values */}
+                <div className="space-y-6">
+                  <div className="flex items-start space-x-4 group">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-all duration-300 shadow-md">
+                      <Rocket className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">{t.hero.values.innovation.title}</h3>
+                      <p className="text-white/80">{t.hero.values.innovation.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">{t.hero.values.impact.title}</h3>
-                    <p className="text-white/80">{t.hero.values.impact.description}</p>
-                  </div>
-                </div>
 
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Heart className="w-6 h-6" />
+                  <div className="flex items-start space-x-4 group">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-all duration-300 shadow-md">
+                      <Target className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">{t.hero.values.impact.title}</h3>
+                      <p className="text-white/80">{t.hero.values.impact.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">{t.hero.values.inclusion.title}</h3>
-                    <p className="text-white/80">{t.hero.values.inclusion.description}</p>
+
+                  <div className="flex items-start space-x-4 group">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-all duration-300 shadow-md">
+                      <Heart className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">{t.hero.values.inclusion.title}</h3>
+                      <p className="text-white/80">{t.hero.values.inclusion.description}</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Decorative Elements */}
+            <div className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+            <div className="absolute bottom-20 right-32 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
+            <div className="absolute top-1/2 right-10 w-16 h-16 bg-white/10 rounded-full blur-2xl"></div>
           </div>
 
-          {/* Decorative Elements */}
-          <div className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full"></div>
-          <div className="absolute bottom-20 right-32 w-20 h-20 bg-white/10 rounded-full"></div>
-          <div className="absolute top-1/2 right-10 w-16 h-16 bg-white/10 rounded-full"></div>
-        </div>
-
-        {/* Right Side - Registration Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 px-4 pt-8 pb-8 min-h-screen overflow-y-auto">
-          <Card className="w-full max-w-2xl border-gray-300 border-2">
-            <CardHeader>
-              <CardTitle>{t.form.title}</CardTitle>
-              <CardDescription>{t.form.subtitle}</CardDescription>
-              {errorMessage && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-red-800">
-                        Validation Error
-                      </h3>
-                      <div className="mt-2 text-sm text-red-700">
-                        {errorMessage}
+          {/* Right Side - Registration Form */}
+          <div className="w-full lg:w-1/2 flex items-center justify-center p-8 px-4 pt-8 pb-8 min-h-[calc(100vh-80px)] overflow-y-auto">
+            <Card className="w-full max-w-2xl border-2 border-blue-100 rounded-3xl shadow-xl bg-white/90 backdrop-blur-sm">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-2xl font-bold text-gray-900">{t.form.title}</CardTitle>
+                <CardDescription className="text-gray-600 mt-2">{t.form.subtitle}</CardDescription>
+                {errorMessage && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0">
+                        <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="ml-3">
+                        <h3 className="text-sm font-medium text-red-800">
+                          Validation Error
+                        </h3>
+                        <div className="mt-2 text-sm text-red-700">
+                          {errorMessage}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="individual" onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
-                  <TabsTrigger 
-                    value="individual" 
-                    className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-md transition-all duration-200"
-                  >
-                    {t.form.tabs.individual}
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="company" 
-                    className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-md transition-all duration-200"
-                  >
-                    {t.form.tabs.company}
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="individual">
-                  <form onSubmit={handleSubmit} className="space-y-4 [&_input]:border-gray-300 [&_input]:focus:border-gray-400">
-                    <div className="space-y-2">
-                      <Label htmlFor="fullName">{t.form.fullName.label}</Label>
-                      <Input
-                        id="fullName"
-                        name="fullName"
-                        type="text"
-                        placeholder={t.form.fullName.placeholder}
-                        value={formData.fullName}
-                        onChange={handleInputChange}
-                        className="border-gray-300 focus:border-gray-400"
-                      />
-                      {fieldErrors.fullName && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.fullName}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="email">{t.form.email.label}</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder={t.form.email.placeholder}
-                        value={formData.email}
-                        onChange={handleInputChange}
-                      />
-                      {fieldErrors.email && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">{t.form.phone.label}</Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder={t.form.phone.placeholder}
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                      />
-                      {fieldErrors.phone && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="password">{t.form.password.label}</Label>
-                      <div className="relative">
-                        <Input
-                          id="password"
-                          name="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder={t.form.password.placeholder}
-                          value={formData.password}
-                          onChange={handleInputChange}
-                        />
-                        <button
-                          type="button"
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                          onClick={() => setShowPassword(!showPassword)}
-                          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowPassword(!showPassword) }}
-                          tabIndex={-1}
-                          aria-label={showPassword ? "Hide password" : "Show password"}
-                        >
-                          {showPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
-                        </button>
-                      </div>
-                      {fieldErrors.password && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">{t.form.confirmPassword.label}</Label>
-                      <div className="relative">
-                        <Input
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          placeholder={t.form.confirmPassword.placeholder}
-                          value={formData.confirmPassword}
-                          onChange={handleInputChange}
-                        />
-                        <button
-                          type="button"
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowConfirmPassword(!showConfirmPassword) }}
-                          tabIndex={-1}
-                          aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                        >
-                          {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
-                        </button>
-                      </div>
-                      {fieldErrors.confirmPassword && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>
-                      )}
-                    </div>
-
-                    <Button 
-                      type="submit" 
-                      className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border-2 border-blue-600 hover:border-blue-700" 
-                      disabled={isLoading}
+                )}
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="individual" onValueChange={handleTabChange} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-xl">
+                    <TabsTrigger 
+                      value="individual" 
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-lg transition-all duration-200"
                     >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t.form.buttons.registering || "Creating Account..."}
-                        </>
-                      ) : (
-                        t.form.buttons.register || "Create Account"
-                      )}
-                    </Button>
-                  </form>
-                </TabsContent>
-                <TabsContent value="company">
-                  <form onSubmit={handleSubmit} className="space-y-4 [&_input]:border-gray-300 [&_input]:focus:border-gray-400">
-                    <div className="space-y-2">
-                      <Label htmlFor="companyName">{t.form.companyName.label}</Label>
-                      <Input
-                        id="companyName"
-                        name="companyName"
-                        type="text"
-                        placeholder={t.form.companyName.placeholder}
-                        value={formData.companyName}
-                        onChange={handleInputChange}
-                      />
-                      {fieldErrors.companyName && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.companyName}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="contactName">{t.form.contactName.label}</Label>
-                      <Input
-                        id="contactName"
-                        name="contactName"
-                        type="text"
-                        placeholder={t.form.contactName.placeholder}
-                        value={formData.contactName}
-                        onChange={handleInputChange}
-                      />
-                      {fieldErrors.contactName && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.contactName}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="tinNumber">{t.form.tinNumber.label}</Label>
-                      <Input
-                        id="tinNumber"
-                        name="tinNumber"
-                        type="text"
-                        placeholder={t.form.tinNumber.placeholder}
-                        value={formData.tinNumber}
-                        onChange={handleInputChange}
-                        minLength={9}
-                        maxLength={9}
-                      />
-                      {fieldErrors.tinNumber && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.tinNumber}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">{t.form.email.label}</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder={t.form.email.placeholder}
-                        value={formData.email}
-                        onChange={handleInputChange}
-                      />
-                      {fieldErrors.email && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">{t.form.phone.label}</Label>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder={t.form.phone.placeholder}
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                      />
-                      {fieldErrors.phone && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password">{t.form.password.label}</Label>
-                      <div className="relative">
-                        <Input
-                          id="password"
-                          name="password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder={t.form.password.placeholder}
-                          value={formData.password}
-                          onChange={handleInputChange}
-                        />
-                        <button
-                          type="button"
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                          onClick={() => setShowPassword(!showPassword)}
-                          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowPassword(!showPassword) }}
-                          tabIndex={-1}
-                          aria-label={showPassword ? "Hide password" : "Show password"}
-                        >
-                          {showPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
-                        </button>
-                      </div>
-                      {fieldErrors.password && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">{t.form.confirmPassword.label}</Label>
-                      <div className="relative">
-                        <Input
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          placeholder={t.form.confirmPassword.placeholder}
-                          value={formData.confirmPassword}
-                          onChange={handleInputChange}
-                        />
-                        <button
-                          type="button"
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowConfirmPassword(!showConfirmPassword) }}
-                          tabIndex={-1}
-                          aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                        >
-                          {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
-                        </button>
-                      </div>
-                      {fieldErrors.confirmPassword && (
-                        <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>
-                      )}
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border-2 border-blue-600 hover:border-blue-700" 
-                      disabled={isLoading}
+                      {t.form.tabs.individual}
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="company" 
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-lg transition-all duration-200"
                     >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t.form.buttons.registering || "Creating Account..."}
-                        </>
-                      ) : (
-                        t.form.buttons.register || "Create Account"
-                      )}
-                    </Button>
-                  </form>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-            <CardFooter className="flex justify-center">
-              <p className="text-sm text-gray-600">
-                {t.form.login.text}{" "}
-                <Link href={`/${lang}/login`} className="text-primary hover:underline">
-                  {t.form.login.link}
-                </Link>
-              </p>
-            </CardFooter>
-          </Card>
+                      {t.form.tabs.company}
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="individual">
+                    <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="fullName" className="text-sm font-semibold text-gray-700">{t.form.fullName.label}</Label>
+                        <Input
+                          id="fullName"
+                          name="fullName"
+                          type="text"
+                          placeholder={t.form.fullName.placeholder}
+                          value={formData.fullName}
+                          onChange={handleInputChange}
+                          className="h-11 rounded-lg"
+                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                        />
+                        {fieldErrors.fullName && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.fullName}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="text-sm font-semibold text-gray-700">{t.form.email.label}</Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder={t.form.email.placeholder}
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="h-11 rounded-lg"
+                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                        />
+                        {fieldErrors.email && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="text-sm font-semibold text-gray-700">{t.form.phone.label}</Label>
+                        <Input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          placeholder={t.form.phone.placeholder}
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          className="h-11 rounded-lg"
+                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                        />
+                        {fieldErrors.phone && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="password" className="text-sm font-semibold text-gray-700">{t.form.password.label}</Label>
+                        <div className="relative">
+                          <Input
+                            id="password"
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder={t.form.password.placeholder}
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            className="h-11 rounded-lg pr-10"
+                            style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                          />
+                          <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                            onClick={() => setShowPassword(!showPassword)}
+                            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowPassword(!showPassword) }}
+                            tabIndex={-1}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                          </button>
+                        </div>
+                        {fieldErrors.password && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">{t.form.confirmPassword.label}</Label>
+                        <div className="relative">
+                          <Input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder={t.form.confirmPassword.placeholder}
+                            value={formData.confirmPassword}
+                            onChange={handleInputChange}
+                            className="h-11 rounded-lg pr-10"
+                            style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                          />
+                          <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowConfirmPassword(!showConfirmPassword) }}
+                            tabIndex={-1}
+                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                          >
+                            {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                          </button>
+                        </div>
+                        {fieldErrors.confirmPassword && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>
+                        )}
+                      </div>
+
+                      <Button 
+                        type="submit" 
+                        className="w-full mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300" 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t.form.buttons.registering || "Creating Account..."}
+                          </>
+                        ) : (
+                          t.form.buttons.register || "Create Account"
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                  <TabsContent value="company">
+                    <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="companyName" className="text-sm font-semibold text-gray-700">{t.form.companyName.label}</Label>
+                        <Input
+                          id="companyName"
+                          name="companyName"
+                          type="text"
+                          placeholder={t.form.companyName.placeholder}
+                          value={formData.companyName}
+                          onChange={handleInputChange}
+                          className="h-11 rounded-lg"
+                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                        />
+                        {fieldErrors.companyName && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.companyName}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="contactName" className="text-sm font-semibold text-gray-700">{t.form.contactName.label}</Label>
+                        <Input
+                          id="contactName"
+                          name="contactName"
+                          type="text"
+                          placeholder={t.form.contactName.placeholder}
+                          value={formData.contactName}
+                          onChange={handleInputChange}
+                          className="h-11 rounded-lg"
+                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                        />
+                        {fieldErrors.contactName && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.contactName}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="tinNumber" className="text-sm font-semibold text-gray-700">{t.form.tinNumber.label}</Label>
+                        <Input
+                          id="tinNumber"
+                          name="tinNumber"
+                          type="text"
+                          placeholder={t.form.tinNumber.placeholder}
+                          value={formData.tinNumber}
+                          onChange={handleInputChange}
+                          minLength={9}
+                          maxLength={9}
+                          className="h-11 rounded-lg"
+                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                        />
+                        {fieldErrors.tinNumber && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.tinNumber}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="text-sm font-semibold text-gray-700">{t.form.email.label}</Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder={t.form.email.placeholder}
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="h-11 rounded-lg"
+                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                        />
+                        {fieldErrors.email && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="text-sm font-semibold text-gray-700">{t.form.phone.label}</Label>
+                        <Input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          placeholder={t.form.phone.placeholder}
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          className="h-11 rounded-lg"
+                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                        />
+                        {fieldErrors.phone && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="password" className="text-sm font-semibold text-gray-700">{t.form.password.label}</Label>
+                        <div className="relative">
+                          <Input
+                            id="password"
+                            name="password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder={t.form.password.placeholder}
+                            value={formData.password}
+                            onChange={handleInputChange}
+                            className="h-11 rounded-lg pr-10"
+                            style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                          />
+                          <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                            onClick={() => setShowPassword(!showPassword)}
+                            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowPassword(!showPassword) }}
+                            tabIndex={-1}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                          </button>
+                        </div>
+                        {fieldErrors.password && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">{t.form.confirmPassword.label}</Label>
+                        <div className="relative">
+                          <Input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            placeholder={t.form.confirmPassword.placeholder}
+                            value={formData.confirmPassword}
+                            onChange={handleInputChange}
+                            className="h-11 rounded-lg pr-10"
+                            style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
+                          />
+                          <button
+                            type="button"
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowConfirmPassword(!showConfirmPassword) }}
+                            tabIndex={-1}
+                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                          >
+                            {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                          </button>
+                        </div>
+                        {fieldErrors.confirmPassword && (
+                          <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>
+                        )}
+                      </div>
+                      <Button 
+                        type="submit" 
+                        className="w-full mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300" 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t.form.buttons.registering || "Creating Account..."}
+                          </>
+                        ) : (
+                          t.form.buttons.register || "Create Account"
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+              <CardFooter className="flex justify-center pt-6">
+                <p className="text-sm text-gray-600">
+                  {t.form.login.text}{" "}
+                  <Link href={`/${lang}/login`} className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
+                    {t.form.login.link}
+                  </Link>
+                </p>
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
+
+        <div className="relative z-10">
+          <AuthFooter />
         </div>
       </div>
-
-      <AuthFooter />
     </div>
   )
 }

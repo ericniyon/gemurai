@@ -38,17 +38,18 @@ export function WalletBalance({ variant = "nav", lang }: WalletBalanceProps) {
   if (variant === "nav") {
     return (
       <Link href={`/${lang}/dashboard/wallet`}>
-        <Button variant="ghost" className="gap-2 text-white hover:bg-white/10">
-          <div className="flex items-center gap-2">
-            <Wallet className="h-5 w-5" />
-            <div className="hidden sm:block text-left">
-              <div className="text-xs text-white/70">Available Balance</div>
-              <div className="text-sm font-medium">
-                {wallet ? formatCurrency(wallet.balance) : "Loading..."}
-              </div>
-            </div>
+        <div className="dashboard-topbar__wallet-card">
+          <div className="dashboard-topbar__wallet-badge">
+            <Wallet className="dashboard-topbar__wallet-badge-icon" />
           </div>
-        </Button>
+          <div className="dashboard-topbar__wallet-meta">
+            <span className="dashboard-topbar__wallet-label">Available Balance</span>
+            <span className="dashboard-topbar__wallet-value">
+              {wallet ? formatCurrency(wallet.balance) : "Loading..."}
+            </span>
+          </div>
+          <div className="dashboard-topbar__wallet-cta">View</div>
+        </div>
       </Link>
     )
   }

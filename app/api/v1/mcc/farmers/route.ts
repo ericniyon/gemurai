@@ -65,13 +65,45 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const mccId = searchParams.get("mccId")
+    let mccId = searchParams.get("mccId")
+
+    // If user is MCC_MANAGER, get their MCC ID
+    if (!mccId && user.role === "MCC_MANAGER") {
+      // Try to get mccId from user object first
+      if (user.mccId) {
+        mccId = user.mccId
+      } else {
+        // If not in user object, fetch from database
+        try {
+          const { prisma } = await import("@/lib/prisma")
+          const mcc = await prisma.mccs.findFirst({
+            where: {
+              managerUserId: user.id
+            },
+            select: {
+              id: true
+            }
+          })
+          if (mcc) {
+            mccId = mcc.id
+          }
+        } catch (error) {
+          console.error("Error fetching MCC for manager:", error)
+        }
+      }
+    }
 
     let farmers;
     if (mccId) {
       farmers = await MCCInventoryService.getMCCFarmers(mccId)
     } else {
-      // Get all farmers if no mccId specified
+      // Get all farmers if no mccId specified (only for admins)
+      if (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") {
+        return NextResponse.json(
+          { error: "MCC ID is required. Please provide mccId parameter or ensure the user is assigned to an MCC." },
+          { status: 400 }
+        )
+      }
       farmers = await MCCInventoryService.getAllFarmers()
     }
 
@@ -82,7 +114,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Get farmers error:", error)
     return NextResponse.json(
-      { error: "Failed to get farmers" },
+      { error: "Failed to get farmers", details: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
     )
   }

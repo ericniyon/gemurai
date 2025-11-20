@@ -996,7 +996,7 @@ export default function ModernApplicationsDashboard() {
                                         <button
                                           type="button"
                                           onClick={() => window.location.href = `/${lang}/dashboard/applications/${application.id}`}
-                                          className="text-sm font-medium text-blue-600 hover:underline text-left"
+                                          className="text-sm font-medium text-blue-600 hover:text-blue-700 text-left transition-colors"
                                         >
                                           {getApplicantName(application)}
                                         </button>
@@ -1173,7 +1173,7 @@ export default function ModernApplicationsDashboard() {
                                   <button
                                     type="button"
                                     onClick={() => window.location.href = `/${lang}/dashboard/applications/${application.id}`}
-                                    className="text-sm font-medium text-blue-600 hover:underline text-left"
+                                    className="text-sm font-medium text-blue-600 hover:text-blue-700 text-left transition-colors"
                                   >
                                     {getApplicantName(application)}
                                   </button>

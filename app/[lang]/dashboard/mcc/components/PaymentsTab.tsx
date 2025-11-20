@@ -458,11 +458,11 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
   const getPaymentStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Completed</Badge>
+        return <Badge className="bg-gray-100 text-gray-800"><CheckCircle className="h-3 w-3 mr-1" />Completed</Badge>
       case 'pending':
         return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
       case 'processing':
-        return <Badge className="bg-blue-100 text-blue-800"><Loader2 className="h-3 w-3 mr-1" />Processing</Badge>
+        return <Badge className="bg-gray-100 text-gray-800"><Loader2 className="h-3 w-3 mr-1" />Processing</Badge>
       case 'failed':
         return <Badge className="bg-red-100 text-red-800"><AlertTriangle className="h-3 w-3 mr-1" />Failed</Badge>
       default:
@@ -473,11 +473,11 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
   const getPaymentMethodBadge = (method: string) => {
     switch (method) {
       case 'mobile_money':
-        return <Badge className="bg-purple-100 text-purple-800"><CreditCard className="h-3 w-3 mr-1" />Mobile Money</Badge>
+        return <Badge className="bg-gray-100 text-gray-800"><CreditCard className="h-3 w-3 mr-1" />Mobile Money</Badge>
       case 'cash':
-        return <Badge className="bg-green-100 text-green-800"><Banknote className="h-3 w-3 mr-1" />Cash</Badge>
+        return <Badge className="bg-gray-100 text-gray-800"><Banknote className="h-3 w-3 mr-1" />Cash</Badge>
       case 'bank_transfer':
-        return <Badge className="bg-blue-100 text-blue-800"><CreditCard className="h-3 w-3 mr-1" />Bank Transfer</Badge>
+        return <Badge className="bg-gray-100 text-gray-800"><CreditCard className="h-3 w-3 mr-1" />Bank Transfer</Badge>
       default:
         return <Badge variant="secondary">{method}</Badge>
     }
@@ -528,7 +528,7 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 text-purple-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="h-8 w-8 text-gray-600 animate-spin mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-700">Loading Payments Data...</h3>
         </div>
       </div>
@@ -553,12 +553,12 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
           </div>
           <div className="flex items-center gap-4">
             <div className="relative group">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-gray-700 transition-colors" />
               <Input
                 placeholder="Search payments..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-3 w-80 border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md"
+                className="pl-12 pr-4 py-3 w-80 border-gray-200 focus:border-gray-700 focus:ring-gray-700 rounded-xl shadow-sm transition-all duration-200 hover:shadow-md"
               />
               {searchQuery && (
                 <Button
@@ -594,19 +594,19 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-white to-purple-50 border-purple-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-gray-700">Total Payments</CardTitle>
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-purple-600" />
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <DollarSign className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-purple-700 mb-1">{(totalPaymentsValue / 1000000).toFixed(1)}M</div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">{(totalPaymentsValue / 1000000).toFixed(1)}M</div>
             <p className="text-sm text-gray-600 font-medium">
               {payments.length} payments processed
             </p>
-            <div className="mt-2 flex items-center text-xs text-purple-600">
+            <div className="mt-2 flex items-center text-xs text-gray-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +15% from last month
             </div>
@@ -632,38 +632,38 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-white to-blue-50 border-blue-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-gray-700">Processing</CardTitle>
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Loader2 className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <Loader2 className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-700 mb-1">{processingPayments}</div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">{processingPayments}</div>
             <p className="text-sm text-gray-600 font-medium">
               In progress
             </p>
-            <div className="mt-2 flex items-center text-xs text-blue-600">
+            <div className="mt-2 flex items-center text-xs text-gray-600">
               <Clock className="h-3 w-3 mr-1" />
               Being processed
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-white to-green-50 border-green-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-gray-700">Completed</CardTitle>
-            <div className="p-2 bg-green-100 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-green-600" />
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-700 mb-1">{completedPayments}</div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">{completedPayments}</div>
             <p className="text-sm text-gray-600 font-medium">
               Successfully processed
             </p>
-            <div className="mt-2 flex items-center text-xs text-green-600">
+            <div className="mt-2 flex items-center text-xs text-gray-600">
               <CheckCircle className="h-3 w-3 mr-1" />
               All completed
             </div>
@@ -680,7 +680,7 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
               <CardDescription className="text-gray-600 mt-1">All processed farmer payments</CardDescription>
             </div>
             <div className="flex items-center space-x-2">
-              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+              <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
                 {filteredPayments.length} records
               </Badge>
             </div>
@@ -742,14 +742,14 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
                             <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-purple-100 to-purple-200 flex items-center justify-center group-hover:from-purple-200 group-hover:to-purple-300 transition-all duration-200">
-                              <Users className="h-5 w-5 text-purple-600" />
+                              <Users className="h-5 w-5 text-gray-700" />
                             </div>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-semibold text-gray-900 group-hover:text-purple-900 transition-colors">
+                            <div className="text-sm font-semibold text-gray-900 group-hover:text-gray-900 transition-colors">
                               {payment.farmerName}
                             </div>
-                            <div className="text-sm text-gray-500 group-hover:text-purple-600 transition-colors">
+                            <div className="text-sm text-gray-500 group-hover:text-gray-700 transition-colors">
                               {payment.farmerContact}
                             </div>
                           </div>
@@ -765,7 +765,7 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
                         <span className="font-medium">{payment.totalAmount.toLocaleString()} Frw</span>
                       </td>
                       <td className="px-6 py-5 whitespace-nowrap text-sm text-gray-900">
-                        <div className="font-bold text-green-600 text-lg">
+                        <div className="font-bold text-gray-800 text-lg">
                           {payment.netPayment.toLocaleString()} Frw
                         </div>
                       </td>
@@ -780,7 +780,7 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-purple-600 hover:text-purple-900 hover:bg-purple-50 border-purple-200 rounded-lg transition-all duration-200"
+                            className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 border-gray-200 rounded-lg transition-all duration-200"
                             onClick={() => {/* View payment details */}}
                           >
                             <Edit className="h-3 w-3 mr-1" />
@@ -832,7 +832,7 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
                           disabled={paymentsLoading}
                           className={
                             pageNum === currentPage
-                              ? "bg-purple-600 text-white hover:bg-purple-700"
+                              ? "bg-gray-700 text-white hover:bg-gray-800"
                               : "border-gray-300 text-gray-700 hover:bg-gray-50"
                           }
                         >
@@ -901,7 +901,7 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
                       key={collection.id} 
                       className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                         selectedCollection?.id === collection.id 
-                          ? 'ring-2 ring-purple-500 bg-purple-50' 
+                          ? 'ring-2 ring-gray-500 bg-gray-50' 
                           : 'hover:bg-gray-50'
                       }`}
                       onClick={() => setSelectedCollection(collection)}
@@ -909,8 +909,8 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-4">
-                            <div className="p-2 bg-purple-100 rounded-lg">
-                              <Users className="h-5 w-5 text-purple-600" />
+                            <div className="p-2 bg-gray-100 rounded-lg">
+                              <Users className="h-5 w-5 text-gray-700" />
                             </div>
                             <div>
                               <div className="font-semibold text-gray-900">{collection.farmerName}</div>
@@ -935,7 +935,7 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
             {/* Payment Details */}
             {selectedCollection && (
               <div className="space-y-4">
-                <div className="p-6 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border border-purple-200">
+                <div className="p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Details</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -952,7 +952,7 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
                     </div>
                     <div>
                       <Label className="text-sm text-gray-600">Net Payment</Label>
-                      <div className="font-bold text-green-600 text-lg">{selectedCollection.netPayment.toLocaleString()} Frw</div>
+                      <div className="font-bold text-gray-800 text-lg">{selectedCollection.netPayment.toLocaleString()} Frw</div>
                     </div>
                   </div>
                 </div>
@@ -961,7 +961,7 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
                   <div className="space-y-3">
                     <Label htmlFor="paymentMethod" className="text-sm font-semibold text-gray-700">Payment Method *</Label>
                     <Select value={formData.paymentMethod} onValueChange={(value: 'cash' | 'mobile_money' | 'bank_transfer') => setFormData({ ...formData, paymentMethod: value })}>
-                      <SelectTrigger className="border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl">
+                      <SelectTrigger className="border-gray-200 focus:border-gray-700 focus:ring-gray-700 rounded-xl">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -979,7 +979,7 @@ export default function PaymentsTab({ mccId }: PaymentsTabProps) {
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       placeholder="Additional payment notes"
                       rows={3}
-                      className="border-gray-200 focus:border-purple-500 focus:ring-purple-500 rounded-xl"
+                      className="border-gray-200 focus:border-gray-700 focus:ring-gray-700 rounded-xl"
                     />
                   </div>
                 </div>

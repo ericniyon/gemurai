@@ -230,8 +230,20 @@ export async function POST(request: Request) {
         console.log(`🔄 Mapped CUSTOMER to CONSUMER for database compatibility`);
       }
       
-      // Validate role is one of the allowed values
-      const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'EMPLOYER', 'DCC', 'CONSUMER', 'AGENT'];
+      // Validate role is one of the allowed values (including MCC roles)
+      const allowedRoles = [
+        'SUPER_ADMIN', 
+        'ADMIN', 
+        'EMPLOYER', 
+        'DCC', 
+        'CONSUMER', 
+        'AGENT',
+        'MCC_MANAGER',
+        'FIELD_AGENT',
+        'COOP_ADMIN',
+        'FARMER',
+        'ACCOUNTANT'
+      ];
       if (!allowedRoles.includes(roleName)) {
         console.error(`❌ Invalid role name "${roleName}". Allowed roles:`, allowedRoles);
         return NextResponse.json(

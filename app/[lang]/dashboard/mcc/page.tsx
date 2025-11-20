@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams, useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -57,7 +58,36 @@ export default function MCCDashboard() {
   const [loading, setLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const { user } = useAuth()
-  const [tab, setTab] = useState("overview")
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const params = useParams()
+  const lang = (params?.lang as string) || "en"
+  
+  // Get tab from URL search params
+  const initialTab = searchParams?.get('tab') || "overview"
+  const [tab, setTab] = useState(initialTab)
+  
+  // Update tab when URL changes
+  useEffect(() => {
+    const tabParam = searchParams?.get('tab')
+    const validTabs = ['overview', 'farmers', 'collections', 'stock', 'sales', 'payments', 'reports', 'settings', 'customers', 'ikofi']
+    if (tabParam && validTabs.includes(tabParam)) {
+      // Map customers and ikofi to existing tabs
+      if (tabParam === 'customers') {
+        setTab('sales') // Customers view uses sales tab
+      } else if (tabParam === 'ikofi') {
+        setTab('payments') // Ikofi uses payments tab
+      } else {
+        setTab(tabParam)
+      }
+    }
+  }, [searchParams])
+  
+  // Handle tab change and update URL
+  const handleTabChange = (newTab: string) => {
+    setTab(newTab)
+    router.push(`/${lang}/dashboard/mcc?tab=${newTab}`)
+  }
   const [searchQuery, setSearchQuery] = useState("")
   const [farmers, setFarmers] = useState<Farmer[]>([])
   const [collections, setCollections] = useState<MilkCollection[]>([])
@@ -407,7 +437,7 @@ export default function MCCDashboard() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 text-blue-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="h-12 w-12 text-gray-600 animate-spin mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-700">Loading MCC Dashboard...</h2>
           <p className="text-gray-500">Please wait while we fetch your data.</p>
         </div>
@@ -424,7 +454,7 @@ export default function MCCDashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center">
                     <Droplets className="h-6 w-6 text-white" />
                   </div>
                 </div>
@@ -440,7 +470,7 @@ export default function MCCDashboard() {
                     placeholder="Search farmers..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 w-64 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                    className="pl-10 w-64 border-gray-300 focus:border-gray-700 focus:ring-gray-700"
                   />
                 </div>
                 <Button
@@ -453,7 +483,7 @@ export default function MCCDashboard() {
                   <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                   Refresh
                 </Button>
-                <Button onClick={handleAddFarmer} className="bg-green-600 hover:bg-green-700 text-white">
+                <Button onClick={handleAddFarmer} className="bg-gray-700 hover:bg-gray-800 text-white">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Farmer
                 </Button>
@@ -467,14 +497,14 @@ export default function MCCDashboard() {
             <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Users className="h-5 w-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Users className="h-5 w-5 text-gray-700" />
                   </div>
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Farmers</p>
                   <p className="text-2xl font-semibold text-gray-900">{stats.totalFarmers}</p>
-                  <p className="text-xs text-green-600">{stats.activeFarmers} active</p>
+                  <p className="text-xs text-gray-700">{stats.activeFarmers} active</p>
                 </div>
               </div>
             </div>
@@ -483,8 +513,8 @@ export default function MCCDashboard() {
             <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <Droplets className="h-5 w-5 text-green-600" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Droplets className="h-5 w-5 text-gray-700" />
                   </div>
                 </div>
                 <div className="ml-4">
@@ -499,8 +529,8 @@ export default function MCCDashboard() {
             <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <DollarSign className="h-5 w-5 text-purple-600" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <DollarSign className="h-5 w-5 text-gray-700" />
                   </div>
                 </div>
                 <div className="ml-4">
@@ -531,8 +561,8 @@ export default function MCCDashboard() {
             <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <Calendar className="h-5 w-5 text-indigo-600" />
+                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <Calendar className="h-5 w-5 text-gray-700" />
                   </div>
                 </div>
                 <div className="ml-4">
@@ -564,62 +594,62 @@ export default function MCCDashboard() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={tab} onValueChange={setTab} className="space-y-6">
+        <Tabs value={tab} onValueChange={handleTabChange} className="space-y-6">
           {/* Tab Navigation */}
           <div className="bg-white rounded-lg border border-gray-200 p-1">
             <TabsList className="grid w-full grid-cols-8 bg-transparent h-auto p-0">
               <TabsTrigger
                 value="overview"
-                className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200 py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-50"
+                className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-100"
               >
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline font-medium">Overview</span>
               </TabsTrigger>
               <TabsTrigger
                 value="farmers"
-                className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200 py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-50"
+                className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-100"
               >
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline font-medium">Farmers</span>
               </TabsTrigger>
               <TabsTrigger
                 value="collections"
-                className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200 py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-50"
+                className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-100"
               >
                 <Droplets className="h-4 w-4" />
                 <span className="hidden sm:inline font-medium">Collections</span>
               </TabsTrigger>
               <TabsTrigger
                 value="stock"
-                className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200 py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-50"
+                className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-100"
               >
                 <Package className="h-4 w-4" />
                 <span className="hidden sm:inline font-medium">Stock</span>
               </TabsTrigger>
               <TabsTrigger
                 value="sales"
-                className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200 py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-50"
+                className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-100"
               >
                 <DollarSign className="h-4 w-4" />
                 <span className="hidden sm:inline font-medium">Sales</span>
               </TabsTrigger>
               <TabsTrigger
                 value="payments"
-                className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200 py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-50"
+                className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-100"
               >
                 <DollarSign className="h-4 w-4" />
                 <span className="hidden sm:inline font-medium">Payments</span>
               </TabsTrigger>
               <TabsTrigger
                 value="reports"
-                className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200 py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-50"
+                className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-100"
               >
                 <FileText className="h-4 w-4" />
                 <span className="hidden sm:inline font-medium">Reports</span>
               </TabsTrigger>
               <TabsTrigger
                 value="settings"
-                className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700 data-[state=active]:border-green-200 py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-50"
+                className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white py-3 px-4 rounded-md transition-all duration-200 hover:bg-gray-100"
               >
                 <Settings className="h-4 w-4" />
                 <span className="hidden sm:inline font-medium">Settings</span>
@@ -637,15 +667,15 @@ export default function MCCDashboard() {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                       <div className="grid grid-cols-2 gap-4">
-                        <Button onClick={handleAddFarmer} className="h-20 flex flex-col items-center justify-center space-y-2 bg-green-600 hover:bg-green-700 text-white">
+                        <Button onClick={handleAddFarmer} className="h-20 flex flex-col items-center justify-center space-y-2 bg-gray-700 hover:bg-gray-800 text-white">
                           <Users className="h-6 w-6" />
                           <span className="text-sm font-medium">Add Farmer</span>
                         </Button>
-                        <Button onClick={handleAddCollection} className="h-20 flex flex-col items-center justify-center space-y-2 bg-blue-600 hover:bg-blue-700 text-white">
+                        <Button onClick={handleAddCollection} className="h-20 flex flex-col items-center justify-center space-y-2 bg-gray-700 hover:bg-gray-800 text-white">
                           <Droplets className="h-6 w-6" />
                           <span className="text-sm font-medium">Add Collection</span>
                         </Button>
-                        <Button onClick={handleGenerateReport} className="h-20 flex flex-col items-center justify-center space-y-2 bg-purple-600 hover:bg-purple-700 text-white">
+                        <Button onClick={handleGenerateReport} className="h-20 flex flex-col items-center justify-center space-y-2 bg-gray-700 hover:bg-gray-800 text-white">
                           <FileText className="h-6 w-6" />
                           <span className="text-sm font-medium">Generate Report</span>
                         </Button>
@@ -664,14 +694,14 @@ export default function MCCDashboard() {
                       <div className="space-y-3">
                         {[1, 2, 3, 4, 5].map((item) => (
                           <div key={item} className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                            <div className="p-2 bg-green-100 rounded-full">
-                              <Droplets className="h-4 w-4 text-green-600" />
+                            <div className="p-2 bg-gray-100 rounded-full">
+                              <Droplets className="h-4 w-4 text-gray-700" />
                             </div>
                             <div className="flex-1">
                               <p className="text-sm font-medium text-gray-900">Milk collection recorded</p>
                               <p className="text-xs text-gray-500">2 minutes ago</p>
                             </div>
-                            <Badge variant="secondary" className="bg-green-100 text-green-800">New</Badge>
+                            <Badge variant="secondary" className="bg-gray-100 text-gray-800">New</Badge>
                           </div>
                         ))}
                       </div>
@@ -683,15 +713,15 @@ export default function MCCDashboard() {
                 <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <TrendingUp className="h-5 w-5 text-green-600 mr-2" />
+                      <TrendingUp className="h-5 w-5 text-gray-700 mr-2" />
                       Top Performers
                     </h3>
                     <div className="space-y-3">
                       {farmers.slice(0, 3).map((farmer, index) => (
                         <div key={farmer.id} className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                              <span className="text-sm font-medium text-green-600">{index + 1}</span>
+                            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-medium text-gray-700">{index + 1}</span>
                             </div>
                             <div>
                               <p className="text-sm font-medium">{farmer.name}</p>
@@ -700,7 +730,7 @@ export default function MCCDashboard() {
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-medium">{farmer.totalAmountEarned.toLocaleString()} Frw</p>
-                            <p className="text-xs text-green-600">+{Math.floor(Math.random() * 20) + 5}%</p>
+                            <p className="text-xs text-gray-700">+{Math.floor(Math.random() * 20) + 5}%</p>
                           </div>
                         </div>
                       ))}
@@ -732,7 +762,7 @@ export default function MCCDashboard() {
 
                   <div className="bg-white border border-gray-200 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <BarChart3 className="h-5 w-5 text-blue-600 mr-2" />
+                      <BarChart3 className="h-5 w-5 text-gray-700 mr-2" />
                       Performance Metrics
                     </h3>
                     <div className="space-y-4">
@@ -741,14 +771,14 @@ export default function MCCDashboard() {
                         <span className="text-sm font-medium">94%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: '94%' }}></div>
+                        <div className="bg-gray-600 h-2 rounded-full" style={{ width: '94%' }}></div>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Payment Accuracy</span>
                         <span className="text-sm font-medium">98%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: '98%' }}></div>
+                        <div className="bg-gray-600 h-2 rounded-full" style={{ width: '98%' }}></div>
                       </div>
                     </div>
                   </div>
@@ -761,7 +791,7 @@ export default function MCCDashboard() {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-gray-900">Farmers Management</h2>
                   <div className="flex space-x-2">
-                    <Button onClick={handleAddFarmer} className="bg-green-600 hover:bg-green-700 text-white">
+                    <Button onClick={handleAddFarmer} className="bg-gray-700 hover:bg-gray-800 text-white">
                       <Plus className="h-4 w-4 mr-2" />
                       Add Farmer
                     </Button>
@@ -803,8 +833,8 @@ export default function MCCDashboard() {
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
                                   <div className="flex-shrink-0 h-10 w-10">
-                                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                                      <Users className="h-5 w-5 text-green-600" />
+                                    <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                                      <Users className="h-5 w-5 text-gray-700" />
                                     </div>
                                   </div>
                                   <div className="ml-4">
@@ -827,7 +857,7 @@ export default function MCCDashboard() {
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                   farmer.isActive 
-                                    ? 'bg-green-100 text-green-800' 
+                                    ? 'bg-gray-100 text-gray-800' 
                                     : 'bg-red-100 text-red-800'
                                 }`}>
                                   {farmer.isActive ? 'Active' : 'Inactive'}
@@ -838,7 +868,7 @@ export default function MCCDashboard() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-blue-600 hover:text-blue-900"
+                                    className="text-gray-700 hover:text-gray-900"
                                     onClick={() => openViewFarmer(farmer)}
                                   >
                                     View
@@ -846,7 +876,7 @@ export default function MCCDashboard() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="text-green-600 hover:text-green-900"
+                                    className="text-gray-700 hover:text-gray-900"
                                     onClick={() => openEditFarmer(farmer)}
                                   >
                                     Edit
@@ -871,7 +901,7 @@ export default function MCCDashboard() {
                       <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-gray-900 mb-2">No Farmers Found</h3>
                       <p className="text-gray-500 mb-4">Start by adding your first farmer to the system</p>
-                      <Button onClick={handleAddFarmer} className="bg-green-600 hover:bg-green-700 text-white">
+                      <Button onClick={handleAddFarmer} className="bg-gray-700 hover:bg-gray-800 text-white">
                         <Plus className="h-4 w-4 mr-2" />
                         Add First Farmer
                       </Button>
@@ -892,7 +922,7 @@ export default function MCCDashboard() {
                         placeholder="Search collections..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 pr-10 w-64 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        className="pl-10 pr-10 w-64 border-gray-300 focus:border-gray-700 focus:ring-gray-700"
                       />
                       {searchQuery && (
                         <button
@@ -912,7 +942,7 @@ export default function MCCDashboard() {
                       <RefreshCw className={`h-4 w-4 mr-2 ${collectionsLoading ? 'animate-spin' : ''}`} />
                       Refresh
                     </Button>
-                    <Button onClick={handleAddCollection} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button onClick={handleAddCollection} className="bg-gray-700 hover:bg-gray-800 text-white">
                       <Droplets className="h-4 w-4 mr-2" />
                       Add Collection
                     </Button>
@@ -921,7 +951,7 @@ export default function MCCDashboard() {
 
                 {collectionsLoading ? (
                   <div className="text-center py-12">
-                    <Loader2 className="h-12 w-12 text-blue-500 animate-spin mx-auto mb-4" />
+                    <Loader2 className="h-12 w-12 text-gray-600 animate-spin mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">Loading Collections...</h3>
                     <p className="text-gray-500">Please wait while we fetch your data</p>
                   </div>
@@ -938,7 +968,7 @@ export default function MCCDashboard() {
                       }
                     </p>
                     {!searchQuery && (
-                      <Button onClick={handleAddCollection} className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <Button onClick={handleAddCollection} className="bg-gray-700 hover:bg-gray-800 text-white">
                         <Droplets className="h-4 w-4 mr-2" />
                         Record First Collection
                       </Button>
@@ -986,8 +1016,8 @@ export default function MCCDashboard() {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                   <div className="flex items-center">
                                     <div className="flex-shrink-0 h-8 w-8">
-                                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                        <Users className="h-4 w-4 text-blue-600" />
+                                      <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                                        <Users className="h-4 w-4 text-gray-700" />
                                       </div>
                                     </div>
                                     <div className="ml-3">
@@ -1010,7 +1040,7 @@ export default function MCCDashboard() {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                   <div className="flex items-center">
-                                    <Droplets className="h-4 w-4 text-blue-500 mr-1" />
+                                    <Droplets className="h-4 w-4 text-gray-600 mr-1" />
                                     {collection.totalLiters?.toLocaleString() || '0'} L
                                   </div>
                                 </td>
@@ -1018,7 +1048,7 @@ export default function MCCDashboard() {
                                   {collection.unitPrice?.toLocaleString() || '0'} Frw
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  <div className="font-medium text-green-600">
+                                  <div className="font-medium text-gray-700">
                                     {collection.totalAmount?.toLocaleString() || '0'} Frw
                                   </div>
                                 </td>
@@ -1028,7 +1058,7 @@ export default function MCCDashboard() {
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  <div className="font-medium text-blue-600">
+                                  <div className="font-medium text-gray-700">
                                     {collection.netPayment?.toLocaleString() || '0'} Frw
                                   </div>
                                 </td>
@@ -1085,7 +1115,7 @@ export default function MCCDashboard() {
                                   disabled={collectionsLoading}
                                   className={
                                     pageNum === currentPage
-                                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                                      ? "bg-gray-700 text-white hover:bg-gray-800"
                                       : "border-gray-300 text-gray-700 hover:bg-gray-50"
                                   }
                                 >
@@ -1245,7 +1275,7 @@ export default function MCCDashboard() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditFarmerOpen(false)}>Cancel</Button>
-            <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={submitEditFarmer}>Save Changes</Button>
+            <Button className="bg-gray-700 hover:bg-gray-800 text-white" onClick={submitEditFarmer}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

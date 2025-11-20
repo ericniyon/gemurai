@@ -1,8 +1,12 @@
 -- Migration: Add MCC Payments Table
 -- This migration adds the mcc_payments table to track farmer payments
 
--- CreateEnum: PaymentMethod
-CREATE TYPE "PaymentMethod" AS ENUM ('cash', 'mobile_money', 'bank_transfer');
+-- CreateEnum: PaymentMethod (only if it doesn't exist)
+DO $$ BEGIN
+    CREATE TYPE "PaymentMethod" AS ENUM ('cash', 'mobile_money', 'bank_transfer');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- CreateTable: MCC Payments
 CREATE TABLE "mcc_payments" (

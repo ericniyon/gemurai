@@ -1,6 +1,6 @@
 "use client"
 
-import type { ReactNode } from "react"
+import type { ReactNode, CSSProperties } from "react"
 import { useEffect, useState } from "react"
 import { useRouter, usePathname, useParams } from "next/navigation"
 import Link from "next/link"
@@ -45,12 +45,15 @@ import {
   Tv,
   Activity,
   Droplets,
-  Pill
+  Pill,
+  Lock,
+  ChevronsLeft,
+  ChevronsRight,
+  ClipboardList
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { usePermissionUpdates } from "@/hooks/use-permission-updates"
 import { cn, formatCurrency } from "@/lib/utils"
-import Image from "next/image"
 import { ClientOnly } from "@/components/client-only"
 import { AlertCircle } from "lucide-react"
 import { WalletBalance } from "./components/wallet-balance"
@@ -89,6 +92,56 @@ const getAllNavigationItems = (lang: string): NavigationItem[] => [
       { name: "Milk Inventory", href: `/${lang}/dashboard/mcc`, icon: Droplets, requiredPermissions: [] },
       { name: "Pharmacy Inventory", href: `/${lang}/dashboard/pharmacy`, icon: Pill, requiredPermissions: [] }
     ]
+  },
+  // MCC Manager specific menu items
+  { 
+    name: "Customers", 
+    href: `/${lang}/dashboard/mcc/customers`, 
+    icon: Users, 
+    requiredPermissions: [],
+    roles: ["MCC_MANAGER"]
+  },
+  { 
+    name: "Suppliers", 
+    href: `/${lang}/dashboard/mcc/suppliers`, 
+    icon: Package, 
+    requiredPermissions: [],
+    roles: ["MCC_MANAGER"]
+  },
+  { 
+    name: "Collections", 
+    href: `/${lang}/dashboard/mcc/collections`, 
+    icon: Droplets, 
+    requiredPermissions: [],
+    roles: ["MCC_MANAGER"]
+  },
+  { 
+    name: "Sales", 
+    href: `/${lang}/dashboard/mcc/sales`, 
+    icon: ShoppingCart, 
+    requiredPermissions: [],
+    roles: ["MCC_MANAGER"]
+  },
+  { 
+    name: "Inventory & Rentals", 
+    href: `/${lang}/dashboard/mcc/inventory-rentals`, 
+    icon: ClipboardList, 
+    requiredPermissions: [],
+    roles: ["MCC_MANAGER"]
+  },
+  { 
+    name: "Ikofi", 
+    href: `/${lang}/dashboard/mcc/ikofi`, 
+    icon: Wallet, 
+    requiredPermissions: [],
+    roles: ["MCC_MANAGER"]
+  },
+  { 
+    name: "Payments", 
+    href: `/${lang}/dashboard/mcc/payments`, 
+    icon: CreditCard, 
+    requiredPermissions: [],
+    roles: ["MCC_MANAGER"]
   },
 ]
 
@@ -130,6 +183,11 @@ const getNavigationItems = (user: any, lang: string): NavigationItem[] => {
   // Special handling for DCC users - ensure they can see stock management
   if (user.role === "DCC") {
     console.log('🎯 DCC User detected, ensuring stock management access')
+  }
+  
+  // Special handling for MCC_MANAGER users - ensure they can see MCC management
+  if (user.role === "MCC_MANAGER") {
+    console.log('🎯 MCC_MANAGER User detected, ensuring MCC management access')
   }
   
   const filteredItems = allItems.filter(item => 
@@ -177,6 +235,7 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<any[]>([])
   const [hasNewNotifications, setHasNewNotifications] = useState(false)
   const [selectedNotificationId, setSelectedNotificationId] = useState<string | null>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   
   // Listen for permission updates and refresh sidebar automatically
   usePermissionUpdates()
@@ -341,7 +400,16 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
 
   // Only generate navigation items if user is authenticated
   const navigation = isAuthenticated ? getNavigationItems(user, lang) : []
-
+  const displayName = user?.name || user?.email || "User"
+  const displayRole = user?.role ? user.role.replace(/_/g, " ").toUpperCase() : "USER"
+  const sidebarDesktopWidth = sidebarCollapsed ? "5.5rem" : "18.5rem"
+  const layoutStyle = { "--sidebar-width": sidebarDesktopWidth } as CSSProperties
+  const isActiveLink = (targetHref: string) => {
+    if (!targetHref) return false
+    const baseHref = targetHref.split("#")[0]
+    return pathname === baseHref || pathname.startsWith(`${baseHref}/`)
+  }
+  
   // Debug logging to check user role
   if (process.env.NODE_ENV === 'development') {
     console.log('🔍 Dashboard Layout Debug:', {
@@ -370,6 +438,24 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
       setIsLoggingOut(false)
     }
   }
+
+  const handleSidebarCollapseToggle = () => {
+    setSidebarCollapsed((prev) => !prev)
+  }
+
+  useEffect(() => {
+    if (sidebarCollapsed) {
+      setExpandedItems([])
+    }
+  }, [sidebarCollapsed])
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      // setCurrentTime(new Date()) // Removed as per edit hint
+    }, 1000)
+
+    return () => clearInterval(intervalId)
+  }, [])
 
   const toggleExpanded = (href: string) => {
     console.log('🔄 Toggle expanded clicked for:', href)
@@ -455,60 +541,68 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen bg-slate-50"
+      style={layoutStyle}
+      data-sidebar-collapsed={sidebarCollapsed}
+    >
       {/* Top Navigation Bar */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-blue-600 z-30 px-4">
-        <div className="flex h-full items-center justify-between">
-          {/* Left side - Logo only */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-16 h-16 flex items-center justify-center">
-              <img
-                src="/KoraLink.png"
-                alt="KoraLink Logo"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <span className="font-bold text-xl text-white">KoraLink</span>
-          </Link>
+      <header className="dashboard-topbar">
+        <div className="dashboard-topbar__content">
+          <div className="dashboard-topbar__left">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="dashboard-topbar__toggle"
+              onClick={handleSidebarCollapseToggle}
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-pressed={sidebarCollapsed}
+            >
+              {sidebarCollapsed ? (
+                <ChevronsRight className="dashboard-topbar__toggle-icon" />
+              ) : (
+                <ChevronsLeft className="dashboard-topbar__toggle-icon" />
+              )}
+            </Button>
+          </div>
 
-          {/* Right Side Actions */}
-          <div className="flex items-center gap-2">
-            {/* Language Switcher */}
+          <div className="dashboard-topbar__actions">
             <LanguageSwitcher variant="nav" />
-
-            {/* Wallet Balance */}
-            <WalletBalance variant="nav" lang={lang} />
 
             {/* Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/20">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="dashboard-topbar__icon-button"
+                >
                   <Bell className="h-5 w-5" />
                   {hasNewNotifications && (
-                    <span className="absolute -top-0.5 -right-0.5 inline-flex h-2.5 w-2.5 rounded-full bg-red-500"></span>
+                    <span className="dashboard-topbar__notification-dot" />
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-72 bg-white border border-gray-200 shadow-lg">
-                <DropdownMenuLabel className="font-semibold text-gray-900">Notifications</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="dashboard-topbar__dropdown">
+                <DropdownMenuLabel className="dashboard-topbar__dropdown-label">Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {notifications.length === 0 ? (
-                  <div className="px-3 py-6 text-sm text-gray-500 text-center">No new notifications</div>
+                  <div className="dashboard-topbar__dropdown-empty">No new notifications</div>
                 ) : (
-                  <div className="max-h-80 overflow-auto">
+                  <div className="max-h-80 overflow-auto divide-y divide-slate-100">
                     {notifications.map((n) => (
-                      <div 
-                        key={n.id} 
-                        className="px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                      <div
+                        key={n.id}
+                        className="dashboard-topbar__dropdown-item"
                         onClick={() => {
                           setSelectedNotificationId(n.id)
-                          // Mark as read locally but keep it in the list until paid
                           setHasNewNotifications(false)
                           router.push(`/${lang}/dashboard/notifications/${String(n.id)}`)
                         }}
                       >
-                        <div className="text-sm text-gray-900">{n.title}</div>
-                        <div className="text-xs text-gray-500">Time remaining: {n.timeRemaining}</div>
+                        <div className="text-sm text-slate-900">{n.title}</div>
+                        <div className="text-xs text-slate-500">Time remaining: {n.timeRemaining}</div>
                       </div>
                     ))}
                   </div>
@@ -523,35 +617,37 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="gap-2 text-white hover:bg-white/20">
-                  <Avatar className="h-6 w-6">
+                <Button
+                  variant="ghost"
+                  className="dashboard-topbar__profile-button"
+                >
+                  <Avatar className="dashboard-topbar__profile-avatar">
                     {user?.avatar ? <AvatarImage src={user.avatar} /> : null}
-                    <AvatarFallback className="bg-white text-blue-600 font-semibold">
-                      {user?.name?.slice(0, 2).toUpperCase()}
+                    <AvatarFallback className="dashboard-topbar__profile-fallback">
+                      {user?.name?.slice(0, 2).toUpperCase() || displayName.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium hidden sm:inline">{user?.name}</span>
-                  <ChevronDown className="h-4 w-4 text-white" />
+                  <ChevronDown className="dashboard-topbar__chevron" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-white border border-gray-200 shadow-lg">
-                <DropdownMenuLabel className="font-semibold text-gray-900">My Account</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="dashboard-topbar__dropdown dashboard-topbar__dropdown--profile">
+                <DropdownMenuLabel className="dashboard-topbar__dropdown-label">My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <Link href={`/${lang}/dashboard/profile`}>
-                  <DropdownMenuItem className="hover:bg-gray-50 cursor-pointer">
-                    <User className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem className="dashboard-topbar__dropdown-link">
+                    <User className="mr-2 h-4 w-4 text-slate-500" />
                     Profile
                   </DropdownMenuItem>
                 </Link>
                 <Link href={`/${lang}/dashboard/settings`}>
-                  <DropdownMenuItem className="hover:bg-gray-50 cursor-pointer">
-                    <Settings className="mr-2 h-4 w-4" />
+                  <DropdownMenuItem className="dashboard-topbar__dropdown-link">
+                    <Settings className="mr-2 h-4 w-4 text-slate-500" />
                     Settings
                   </DropdownMenuItem>
                 </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="text-red-600 focus:text-red-600 hover:bg-red-50 disabled:opacity-50 cursor-pointer"
+                  className="dashboard-topbar__dropdown-logout"
                   onClick={handleLogout}
                   disabled={isLoggingOut}
                 >
@@ -562,31 +658,43 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
             </DropdownMenu>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Mobile Menu Trigger */}
       <Button
         variant="ghost"
-        className="lg:hidden fixed left-4 top-4 z-40 text-white"
+        className="lg:hidden fixed left-4 top-4 z-40 text-slate-600 hover:bg-slate-100"
         onClick={() => document.getElementById('mobile-menu')?.click()}
       >
         <Menu className="h-6 w-6" />
       </Button>
 
       {/* Side Navigation */}
-      <div className="sidebar-container">
+      <div className={cn("sidebar-container", sidebarCollapsed && "sidebar-collapsed")}>
         <nav className="h-full flex flex-col">
           {/* Sidebar Header */}
           <div className="sidebar-header">
-            <Link href={`/${lang}/dashboard`} className="sidebar-logo">
+            <Link href={`/${lang}/dashboard`} className="sidebar-logo" aria-label="Gemura dashboard home">
               <div className="sidebar-logo-icon">
-                <LayoutDashboard className="h-5 w-5" />
+                <span className="text-lg font-semibold tracking-tight">G</span>
               </div>
-              <span>Dashboard</span>
+              <div>
+                <span className="sidebar-brand-title">Gemura</span>
+                <span className="sidebar-brand-subtitle">Dashboard</span>
+              </div>
             </Link>
           </div>
 
-          
+          <div className="sidebar-profile">
+            <div className="sidebar-profile-avatar">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div className="sidebar-profile-name">{displayName}</div>
+              <div className="sidebar-profile-role">{displayRole}</div>
+            </div>
+          </div>
+
           {/* Desktop Navigation */}
           <div className="sidebar-nav">
             {navigation.length === 0 ? (
@@ -596,8 +704,8 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                 <p className="text-xs mt-1">Check your role and permissions</p>
               </div>
             ) : (
-              navigation.map((item: NavigationItem) => (
-                <div key={item.href}>
+              navigation.map((item: NavigationItem, index: number) => (
+                <div key={`${item.href}-${item.name}-${index}`}>
                   {item.children ? (
                     <div className="sidebar-expandable">
                       <button
@@ -606,12 +714,13 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                           pathname.startsWith(item.href) ? "active" : ""
                         )}
                         onClick={() => toggleExpanded(item.href)}
+                        title={item.name}
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="sidebar-item-content">
                           {createElement(item.icon, {
                             className: "sidebar-nav-item-icon"
                           })}
-                          {item.name}
+                          <span className="sidebar-item-label">{item.name}</span>
                         </div>
                         <ChevronDown className={cn(
                           "sidebar-expandable-chevron",
@@ -630,13 +739,14 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                                 href={child.href.trim()}
                                 className={cn(
                                   "sidebar-submenu-item",
-                                  pathname === child.href ? "active" : ""
+                                  isActiveLink(child.href) ? "active" : ""
                                 )}
+                                title={child.name}
                               >
                                 {createElement(child.icon, {
                                   className: "sidebar-nav-item-icon"
                                 })}
-                                {child.name}
+                                <span className="sidebar-item-label">{child.name}</span>
                               </Link>
                             ) : null
                           ))}
@@ -649,36 +759,20 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                         href={item.href.trim()}
                         className={cn(
                           "sidebar-nav-item",
-                          pathname === item.href ? "active" : ""
+                          isActiveLink(item.href) ? "active" : ""
                         )}
+                        title={item.name}
                       >
                         {createElement(item.icon, {
                           className: "sidebar-nav-item-icon"
                         })}
-                        {item.name}
+                        <span className="sidebar-item-label">{item.name}</span>
                       </Link>
                     ) : null
                   )}
                 </div>
               ))
             )}
-          </div>
-
-          {/* Sidebar Footer */}
-          <div className="sidebar-footer">
-            <div className="sidebar-user-info">
-              <div className="sidebar-user-avatar">
-                {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-              </div>
-              <div className="sidebar-user-details">
-                <div className="sidebar-user-name">
-                  {user?.name || 'User'}
-                </div>
-                <div className="sidebar-user-role">
-                  {user?.role || 'Unknown Role'}
-                </div>
-              </div>
-            </div>
           </div>
         </nav>
       </div>
@@ -735,7 +829,7 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                                   href={child.href.trim()}
                                   className={cn(
                                     "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 sidebar-nav-item",
-                                    pathname === child.href
+                                    isActiveLink(child.href)
                                       ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm active"
                                       : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                                   )}
@@ -743,7 +837,7 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                                   {createElement(child.icon, {
                                     className: cn(
                                       "h-4 w-4",
-                                      pathname === child.href ? "text-sidebar-primary-foreground" : "text-sidebar-foreground"
+                                      isActiveLink(child.href) ? "text-sidebar-primary-foreground" : "text-sidebar-foreground"
                                     )
                                   })}
                                   {child.name}
@@ -757,15 +851,15 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                       item.href && item.href.trim() !== "" && item.href.trim() !== "#" && item.href.trim() !== "/" ? (
                         <Link
                           href={item.href.trim()}
-                          className={cn(
-                            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 sidebar-nav-item",
-                            pathname === item.href
-                              ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm active"
-                              : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                          )}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 sidebar-nav-item",
+                          isActiveLink(item.href)
+                            ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm active"
+                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        )}
                         >
                           {createElement(item.icon, {
-                            className: cn("h-5 w-5", pathname === item.href ? "text-sidebar-primary-foreground" : "text-sidebar-foreground")
+                          className: cn("h-5 w-5", isActiveLink(item.href) ? "text-sidebar-primary-foreground" : "text-sidebar-foreground")
                           })}
                           {item.name}
                         </Link>
@@ -780,8 +874,8 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
       </Sheet>
 
       {/* Main Content */}
-      <main className="lg:pl-[280px] pt-16">
-        <div className="p-8">
+      <main className="dashboard-main">
+        <div className="px-4 sm:px-6 lg:px-10 pb-10">
           {children}
         </div>
       </main>

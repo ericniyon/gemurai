@@ -117,14 +117,14 @@ function DashboardHeaderContent() {
             <Link href="/" className="flex items-center space-x-3">
               <div className="w-[160px] h-[49px] flex items-center justify-center">
                 <img
-                  src="https://gemura.rw/wp-content/uploads/2023/11/logo-160x49.png"
-                  alt="Gemura Logo"
+                  src="/yden.png"
+                  alt="YDEN Logo"
                   className="w-full h-full object-contain"
                 />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white">Gemura</h1>
-                <p className="text-xs text-navy-200">Milk Collection Platform</p>
+                <h1 className="text-lg font-bold text-white">YDEN</h1>
+                <p className="text-xs text-navy-200">Young Dairy Entrepreneurs Network</p>
               </div>
             </Link>
           </div>

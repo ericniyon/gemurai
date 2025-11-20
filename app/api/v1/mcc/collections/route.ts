@@ -1,146 +1,328 @@
 import { NextRequest, NextResponse } from "next/server"
-import { MCCInventoryService } from "@/lib/services/MCCInventoryService"
-import { verifyAuthToken } from "@/lib/api-auth"
+import { MilkCollectionService } from "@/lib/services/MilkCollectionService"
+import { checkMCCPermission } from "@/lib/mcc-auth"
 import { prisma } from "@/lib/prisma"
 
-// POST /api/v1/mcc/collections - Record milk collection
+// POST /api/v1/mcc/collections - Record milk collection with quality tests
 export async function POST(req: NextRequest) {
   try {
     const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
-    console.log('Auth token received:', authToken ? 'Present' : 'Missing')
-    console.log('Auth token value:', authToken)
-    
-    if (!authToken) {
-      return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
-    }
+    const { authorized, user, error } = await checkMCCPermission(
+      authToken,
+      "mcc.collections.create"
+    )
 
-    const user = await verifyAuthToken(authToken)
-    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    if (!authorized || !user) {
+      return NextResponse.json({ error: error || "Unauthorized" }, { status: 401 })
     }
 
     const data = await req.json()
     
     // Validate required fields
-    if (!data.farmerId || !data.totalLiters || !data.unitPrice) {
+    if (!data.farmerId || !data.totalLiters) {
       return NextResponse.json(
-        { error: "Missing required fields: farmerId, totalLiters, unitPrice" },
+        { error: "Missing required fields: farmerId, totalLiters" },
         { status: 400 }
       )
     }
 
-    // Add collectedBy field
-    const collectionData = {
-      ...data,
-      collectionDate: data.collectionDate ? new Date(data.collectionDate) : new Date()
+    // Set agent ID from authenticated user if not provided
+    if (!data.agentId && user.id) {
+      data.agentId = user.id
     }
 
-    console.log('About to call MCCInventoryService.recordMilkCollection with:', collectionData)
-    
+    // Set collection date if not provided
+    if (!data.collectionDate) {
+      data.collectionDate = new Date()
+    } else {
+      data.collectionDate = new Date(data.collectionDate)
+    }
+
     try {
-      const result = await MCCInventoryService.recordMilkCollection(collectionData)
-      console.log('MCCInventoryService.recordMilkCollection result:', result)
+      const result = await MilkCollectionService.recordCollection(data)
       
       return NextResponse.json({
         success: true,
-        message: "Milk collection recorded successfully",
-        data: result
+        message: result.qualityResult.rejected
+          ? "Milk collection recorded but rejected due to quality issues"
+          : "Milk collection recorded successfully",
+        data: {
+          collection: result.collection,
+          qualityResult: result.qualityResult,
+          payment: result.payment,
+        },
       })
-    } catch (serviceError) {
-      console.error('MCCInventoryService error:', serviceError)
+    } catch (serviceError: any) {
+      console.error("MilkCollectionService error:", serviceError)
+      
+      // Handle duplicate sample tag
+      if (serviceError.message?.includes("Sample tag")) {
+        return NextResponse.json(
+          { error: serviceError.message },
+          { status: 409 }
+        )
+      }
+      
       throw serviceError
     }
   } catch (error) {
     console.error("Milk collection error:", error)
-    console.error("Error details:", {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    })
     return NextResponse.json(
       { 
         error: "Failed to record milk collection",
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : "Unknown error"
       },
       { status: 500 }
     )
   }
 }
 
+
 // GET /api/v1/mcc/collections - Get milk collections
 export async function GET(req: NextRequest) {
   try {
     const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
-    if (!authToken) {
-      return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
-    }
+    const { authorized, user, error } = await checkMCCPermission(
+      authToken,
+      "mcc.collections.view"
+    )
 
-    const user = await verifyAuthToken(authToken)
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    if (!authorized || !user) {
+      return NextResponse.json({ error: error || "Unauthorized" }, { status: 401 })
     }
 
     const { searchParams } = new URL(req.url)
     const farmerId = searchParams.get("farmerId")
+    const mccId = searchParams.get("mccId")
+    const qualityStatus = searchParams.get("qualityStatus")
     const limit = parseInt(searchParams.get("limit") || "10")
-
-    if (farmerId) {
-      const collections = await MCCInventoryService.getFarmerCollectionHistory(farmerId, limit)
-      return NextResponse.json({
-        success: true,
-        data: collections
-      })
-    }
-
-    // If no farmerId, return all collections (admin only)
-    if (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
-    }
-
-    // Get all collections with pagination
     const page = parseInt(searchParams.get("page") || "1")
     const skip = (page - 1) * limit
 
-    console.log("Attempting to query milk_collections table...")
-    
-    // First, let's check if the table exists and has any data
-    const tableExists = await prisma.$queryRaw`SELECT COUNT(*) as count FROM milk_collections LIMIT 1`
-    console.log("Table check result:", tableExists)
+    // If user is MCC_MANAGER, filter by their MCC
+    let targetMccId = mccId
+    if (!targetMccId && user.role === "MCC_MANAGER" && user.mccId) {
+      targetMccId = user.mccId
+    }
 
-    const collections = await prisma.milk_collections.findMany({
-      include: {
-        farmers: true,
-        products: true,
-        warehouses: true,
-        locations: true,
-        stock_moves: true
-      },
-      orderBy: { collectionDate: 'desc' },
-      skip,
-      take: limit
-    })
+    // If user is FARMER, only show their own collections
+    if (user.role === "FARMER" && user.id) {
+      try {
+        const farmer = await prisma.farmers.findFirst({
+          where: { phone: user.phone || "" },
+          select: { id: true },
+        })
+        if (farmer) {
+          let collections: any[] = []
+          try {
+            collections = await prisma.milk_collections.findMany({
+              where: { farmerId: farmer.id },
+              orderBy: { collectionDate: "desc" },
+              skip,
+              take: limit,
+            })
+          } catch (error) {
+            console.error("Error fetching farmer collections:", error)
+            collections = []
+          }
 
-    console.log("Collections found:", collections.length)
+          // Fetch related data separately
+          const collectionsWithRelations = await Promise.all(
+            collections.map(async (collection) => {
+              const result: any = { ...collection }
 
-    const total = await prisma.milk_collections.count()
+              // Fetch farmer
+              try {
+                result.farmers = await prisma.farmers.findUnique({
+                  where: { id: collection.farmerId },
+                })
+              } catch (error) {
+                result.farmers = null
+              }
+
+              // Fetch agent
+              if (collection.agentId) {
+                try {
+                  result.agent = await prisma.users.findUnique({
+                    where: { id: collection.agentId },
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  })
+                } catch (error) {
+                  result.agent = null
+                }
+              }
+
+              // Fetch MCC
+              if (collection.mccId) {
+                try {
+                  result.mccs = await prisma.mccs.findUnique({
+                    where: { id: collection.mccId },
+                    select: {
+                      id: true,
+                      name: true,
+                      code: true,
+                    },
+                  })
+                } catch (error) {
+                  result.mccs = null
+                }
+              }
+
+              return result
+            })
+          )
+
+          let total = 0
+          try {
+            total = await prisma.milk_collections.count({
+              where: { farmerId: farmer.id },
+            })
+          } catch (error) {
+            console.warn("Could not count farmer collections:", error)
+          }
+
+          return NextResponse.json({
+            success: true,
+            data: collectionsWithRelations,
+            meta: {
+              page,
+              limit,
+              total,
+              totalPages: Math.ceil(total / limit),
+            },
+          })
+        }
+      } catch (error) {
+        console.error("Error fetching farmer:", error)
+        // Continue to regular flow if farmer lookup fails
+      }
+    }
+
+    // Build where clause
+    const where: any = {}
+    if (farmerId) where.farmerId = farmerId
+    if (targetMccId) where.mccId = targetMccId
+    if (qualityStatus) where.qualityStatus = qualityStatus
+
+    // Try to fetch collections with error handling
+    let collections: any[] = []
+    try {
+      collections = await prisma.milk_collections.findMany({
+        where,
+        orderBy: { collectionDate: "desc" },
+        skip,
+        take: limit,
+      })
+    } catch (error) {
+      console.error("Error fetching collections:", error)
+      return NextResponse.json({
+        success: true,
+        data: [],
+        meta: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+        },
+      })
+    }
+
+    // Fetch related data separately to avoid relation issues
+    const collectionsWithRelations = await Promise.all(
+      collections.map(async (collection) => {
+        const result: any = { ...collection }
+
+        // Fetch farmer
+        if (collection.farmerId) {
+          try {
+            const farmer = await prisma.farmers.findUnique({
+              where: { id: collection.farmerId },
+              select: {
+                id: true,
+                name: true,
+                farmerCode: true,
+                phone: true,
+              },
+            })
+            result.farmers = farmer
+          } catch (error) {
+            console.warn(`Could not fetch farmer for collection ${collection.id}:`, error)
+            result.farmers = null
+          }
+        }
+
+        // Fetch agent
+        if (collection.agentId) {
+          try {
+            const agent = await prisma.users.findUnique({
+              where: { id: collection.agentId },
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            })
+            result.agent = agent
+          } catch (error) {
+            console.warn(`Could not fetch agent for collection ${collection.id}:`, error)
+            result.agent = null
+          }
+        }
+
+        // Fetch MCC
+        if (collection.mccId) {
+          try {
+            const mcc = await prisma.mccs.findUnique({
+              where: { id: collection.mccId },
+              select: {
+                id: true,
+                name: true,
+                code: true,
+              },
+            })
+            result.mccs = mcc
+          } catch (error) {
+            console.warn(`Could not fetch MCC for collection ${collection.id}:`, error)
+            result.mccs = null
+          }
+        }
+
+        return result
+      })
+    )
+
+    // Get total count
+    let total = 0
+    try {
+      total = await prisma.milk_collections.count({ where })
+    } catch (error) {
+      console.warn("Could not count collections:", error)
+    }
 
     return NextResponse.json({
       success: true,
-      data: collections,
+      data: collectionsWithRelations,
       meta: {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     })
   } catch (error) {
     console.error("Get collections error:", error)
     console.error("Error details:", {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
     })
     return NextResponse.json(
-      { error: "Failed to get collections" },
+      { 
+        error: "Failed to get collections",
+        details: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     )
   }

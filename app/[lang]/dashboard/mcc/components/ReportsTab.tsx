@@ -195,7 +195,7 @@ export default function ReportsTab({ mccId }: ReportsTabProps) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 text-blue-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="h-8 w-8 text-gray-600 animate-spin mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-700">Loading Report Data...</h3>
         </div>
       </div>
@@ -242,57 +242,57 @@ export default function ReportsTab({ mccId }: ReportsTabProps) {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-white to-blue-50 border-blue-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-gray-700">Total Collections</CardTitle>
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Droplets className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <Droplets className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-700 mb-1">{reportSummary?.totalCollections.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">{reportSummary?.totalCollections.toLocaleString()}</div>
             <p className="text-sm text-gray-600 font-medium">
               Milk collections recorded
             </p>
-            <div className="mt-2 flex items-center text-xs text-blue-600">
+            <div className="mt-2 flex items-center text-xs text-gray-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +15% from last month
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-white to-green-50 border-green-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-gray-700">Total Liters</CardTitle>
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Droplets className="h-5 w-5 text-green-600" />
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <Droplets className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-700 mb-1">{reportSummary?.totalLiters.toLocaleString()}L</div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">{reportSummary?.totalLiters.toLocaleString()}L</div>
             <p className="text-sm text-gray-600 font-medium">
               Milk volume collected
             </p>
-            <div className="mt-2 flex items-center text-xs text-green-600">
+            <div className="mt-2 flex items-center text-xs text-gray-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +12% from last month
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-white to-purple-50 border-purple-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-semibold text-gray-700">Total Revenue</CardTitle>
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <DollarSign className="h-5 w-5 text-purple-600" />
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <DollarSign className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-purple-700 mb-1">{(reportSummary?.totalAmount / 1000000).toFixed(1)}M</div>
+            <div className="text-3xl font-bold text-gray-800 mb-1">{(reportSummary?.totalAmount / 1000000).toFixed(1)}M</div>
             <p className="text-sm text-gray-600 font-medium">
               Total amount generated
             </p>
-            <div className="mt-2 flex items-center text-xs text-purple-600">
+            <div className="mt-2 flex items-center text-xs text-gray-600">
               <TrendingUp className="h-3 w-3 mr-1" />
               +18% from last month
             </div>
@@ -329,8 +329,8 @@ export default function ReportsTab({ mccId }: ReportsTabProps) {
                 <CardTitle className="text-xl font-bold text-gray-900">Top Performing Farmers</CardTitle>
                 <CardDescription className="text-gray-600 mt-1">Highest milk collection contributors</CardDescription>
               </div>
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Users className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Users className="h-5 w-5 text-gray-700" />
               </div>
             </div>
           </CardHeader>
@@ -348,7 +348,7 @@ export default function ReportsTab({ mccId }: ReportsTabProps) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-green-600">{farmer.amount.toLocaleString()} Frw</div>
+                    <div className="font-bold text-gray-800">{farmer.amount.toLocaleString()} Frw</div>
                     <div className="text-xs text-gray-500">Total amount</div>
                   </div>
                 </div>
@@ -365,8 +365,8 @@ export default function ReportsTab({ mccId }: ReportsTabProps) {
                 <CardTitle className="text-xl font-bold text-gray-900">Monthly Trend</CardTitle>
                 <CardDescription className="text-gray-600 mt-1">Last 6 months performance</CardDescription>
               </div>
-              <div className="p-2 bg-green-100 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-gray-700" />
               </div>
             </div>
           </CardHeader>
@@ -384,7 +384,7 @@ export default function ReportsTab({ mccId }: ReportsTabProps) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-green-600">{month.liters.toLocaleString()}L</div>
+                    <div className="font-bold text-gray-800">{month.liters.toLocaleString()}L</div>
                     <div className="text-xs text-gray-500">{month.amount.toLocaleString()} Frw</div>
                   </div>
                 </div>
@@ -402,8 +402,8 @@ export default function ReportsTab({ mccId }: ReportsTabProps) {
               <CardTitle className="text-xl font-bold text-gray-900">Quick Actions</CardTitle>
               <CardDescription className="text-gray-600 mt-1">Generate specific reports and exports</CardDescription>
             </div>
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <FileText className="h-5 w-5 text-purple-600" />
+            <div className="p-2 bg-gray-100 rounded-lg">
+              <FileText className="h-5 w-5 text-gray-700" />
             </div>
           </div>
         </CardHeader>
@@ -411,7 +411,7 @@ export default function ReportsTab({ mccId }: ReportsTabProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button
               variant="outline"
-              className="h-20 flex flex-col items-center justify-center space-y-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+              className="h-20 flex flex-col items-center justify-center space-y-2 border-gray-200 text-gray-700 hover:bg-gray-50"
               onClick={handleGenerateReport}
             >
               <BarChart3 className="h-6 w-6" />
@@ -420,7 +420,7 @@ export default function ReportsTab({ mccId }: ReportsTabProps) {
             
             <Button
               variant="outline"
-              className="h-20 flex flex-col items-center justify-center space-y-2 border-green-200 text-green-700 hover:bg-green-50"
+              className="h-20 flex flex-col items-center justify-center space-y-2 border-gray-200 text-gray-700 hover:bg-gray-50"
               onClick={handleGenerateReport}
             >
               <Users className="h-6 w-6" />
@@ -429,7 +429,7 @@ export default function ReportsTab({ mccId }: ReportsTabProps) {
             
             <Button
               variant="outline"
-              className="h-20 flex flex-col items-center justify-center space-y-2 border-purple-200 text-purple-700 hover:bg-purple-50"
+              className="h-20 flex flex-col items-center justify-center space-y-2 border-gray-200 text-gray-700 hover:bg-gray-50"
               onClick={handleGenerateReport}
             >
               <DollarSign className="h-6 w-6" />

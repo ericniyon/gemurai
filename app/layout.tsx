@@ -1,12 +1,8 @@
 import { Metadata, Viewport } from "next"
-import { Inter } from "next/font/google"
 import "./globals.css"
-import "../stl.css"
 
 import { Providers } from "./providers"
 import { PerformanceMonitor } from "@/components/performance-monitor"
-
-const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: {
@@ -63,9 +59,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Preload critical resources */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//www.Gemurai.rw" />
         
         {/* Performance optimization meta tags */}
@@ -75,7 +68,7 @@ export default function RootLayout({
         {/* Resource hints for faster loading */}
         <link rel="preload" href="/api/health" as="fetch" crossOrigin="anonymous" />
       </head>
-      <body className={`min-h-screen bg-background font-sans antialiased ${inter.className}`} suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-sans antialiased" suppressHydrationWarning>
         <Providers>
           {children}
           {/* Performance monitor - only in development */}

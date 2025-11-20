@@ -13,6 +13,7 @@ export type User = {
   role: string
   permissions: string[]
   name?: string
+  mccId?: string | null
 }
 
 export function useAuth() {

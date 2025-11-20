@@ -281,130 +281,138 @@ function ForgotPasswordContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <AuthHeader />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
+      <div className="relative">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-400/10 to-purple-400/10 blur-3xl" />
+          <div className="absolute bottom-[-160px] left-[-160px] h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-400/15 via-sky-400/10 to-blue-400/5 blur-3xl" />
+        </div>
 
-      <div className="flex-1 flex flex-col lg:flex-row gap-y-8">
-        {/* Left Side - Security & Trust */}
-        <div className="hidden lg:flex lg:w-1/2 bg-blue-600 relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/10"></div>
-          <div className="relative z-10 flex flex-col justify-center px-12 text-white">
-            <div className="max-w-lg">
-              <h1 className="text-4xl font-bold mb-6">{t.hero.title}</h1>
-              <p className="text-xl mb-8 text-white/90">{t.hero.subtitle}</p>
+        <div className="relative z-10">
+          <AuthHeader />
+        </div>
 
-              {/* Security Features */}
-              <div className="space-y-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Shield className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">{t.hero.features.secure.title}</h3>
-                    <p className="text-white/80">{t.hero.features.secure.description}</p>
-                  </div>
-                </div>
+        <div className="relative z-10 flex-1 flex flex-col lg:flex-row gap-y-8">
+          {/* Left Side - Security & Trust */}
+          <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ backgroundColor: '#0249ad' }}>
+            <div className="relative z-10 flex flex-col justify-center px-12 text-white">
+              <div className="max-w-lg">
+                <h1 className="text-4xl font-bold mb-6">{t.hero.title}</h1>
+                <p className="text-xl mb-8 text-white/90">{t.hero.subtitle}</p>
 
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Lock className="w-6 h-6" />
+                {/* Security Features */}
+                <div className="space-y-6">
+                  <div className="flex items-start space-x-4 group">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-all duration-300 shadow-md">
+                      <Shield className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">{t.hero.features.secure.title}</h3>
+                      <p className="text-white/80">{t.hero.features.secure.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">{t.hero.features.protection.title}</h3>
-                    <p className="text-white/80">{t.hero.features.protection.description}</p>
-                  </div>
-                </div>
 
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Smartphone className="w-6 h-6" />
+                  <div className="flex items-start space-x-4 group">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-all duration-300 shadow-md">
+                      <Lock className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">{t.hero.features.protection.title}</h3>
+                      <p className="text-white/80">{t.hero.features.protection.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-2">{t.hero.features.support.title}</h3>
-                    <p className="text-white/80">{t.hero.features.support.description}</p>
-                  </div>
-                </div>
 
-                <div className="bg-white/10 rounded-lg p-6 mt-8">
-                  <h4 className="font-semibold text-lg mb-3">{t.hero.help.title}</h4>
-                  <p className="text-white/80 mb-4">{t.hero.help.description}</p>
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Smartphone className="w-4 h-4" />
-                    <span>{t.hero.help.phone}</span>
+                  <div className="flex items-start space-x-4 group">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-all duration-300 shadow-md">
+                      <Smartphone className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-lg mb-2">{t.hero.features.support.title}</h3>
+                      <p className="text-white/80">{t.hero.features.support.description}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mt-8 border border-white/20 shadow-lg">
+                    <h4 className="font-semibold text-lg mb-3">{t.hero.help.title}</h4>
+                    <p className="text-white/80 mb-4">{t.hero.help.description}</p>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Smartphone className="w-4 h-4" />
+                      <span>{t.hero.help.phone}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Decorative Elements */}
+            <div className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+            <div className="absolute bottom-20 right-32 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
+            <div className="absolute top-1/2 right-10 w-16 h-16 bg-white/10 rounded-full blur-2xl"></div>
           </div>
 
-          {/* Decorative Elements */}
-          <div className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full"></div>
-          <div className="absolute bottom-20 right-32 w-20 h-20 bg-white/10 rounded-full"></div>
-          <div className="absolute top-1/2 right-10 w-16 h-16 bg-white/10 rounded-full"></div>
-        </div>
-
-        {/* Right Side - Reset Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8 px-4 pt-8 pb-8 min-h-screen overflow-y-auto">
-          <div className="w-full max-w-md">
-            <Card className="border-gray-300 border-2 rounded-2xl">
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-3xl font-bold text-primary mb-2">
-                  {step === "phone" ? t.form.phone.title : 
-                   step === "sent" ? t.form.sent.title : 
-                   t.form.verify.title}
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                  {step === "phone" ? t.form.phone.subtitle : 
-                   step === "sent" ? t.form.sent.subtitle : 
-                   t.form.verify.subtitle}
-                </CardDescription>
-                {error && (
-                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div className="ml-3">
-                        <h3 className="text-sm font-medium text-red-800">
-                          Invalid Reset Link
-                        </h3>
-                        <div className="mt-2 text-sm text-red-700">
-                          {error}
+          {/* Right Side - Reset Form */}
+          <div className="w-full lg:w-1/2 flex items-center justify-center p-8 px-4 pt-8 pb-8 min-h-[calc(100vh-80px)] overflow-y-auto">
+            <div className="w-full max-w-md">
+              <Card className="border-2 border-blue-100 rounded-3xl shadow-xl bg-white/90 backdrop-blur-sm">
+                <CardHeader className="text-center pb-6">
+                  <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
+                    {step === "phone" ? t.form.phone.title : 
+                     step === "sent" ? t.form.sent.title : 
+                     t.form.verify.title}
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 mt-2">
+                    {step === "phone" ? t.form.phone.subtitle : 
+                     step === "sent" ? t.form.sent.subtitle : 
+                     t.form.verify.subtitle}
+                  </CardDescription>
+                  {error && (
+                    <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="text-sm font-medium text-red-800">
+                            Invalid Reset Link
+                          </h3>
+                          <div className="mt-2 text-sm text-red-700">
+                            {error}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </CardHeader>
+                  )}
+                </CardHeader>
 
-              <CardContent className="space-y-8 text-base">
-                {step === "phone" ? (
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-3">
-                      <Label htmlFor="phone" className="text-gray-700 font-medium">
-                        {t.form.phone.field.label}
-                      </Label>
-                      <p className="text-sm text-gray-500 mb-2">
-                        Enter your phone number to receive a reset code
-                      </p>
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        placeholder={t.form.phone.field.placeholder}
-                        value={phone}
-                        onChange={(e) => {
-                          setPhone(e.target.value)
-                          validatePhoneInput(e.target.value)
-                        }}
-                        className={`h-12 border-gray-300 focus:border-primary text-base ${
-                          phoneError ? 'border-red-500 focus:border-red-500' : 
-                          isPhoneValid ? 'border-green-500 focus:border-green-500' : ''
-                        }`}
-                        required
-                      />
+                <CardContent className="space-y-6">
+                  {step === "phone" ? (
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="text-sm font-semibold text-gray-700">
+                          {t.form.phone.field.label}
+                        </Label>
+                        <p className="text-sm text-gray-500 mb-2">
+                          Enter your phone number to receive a reset code
+                        </p>
+                        <Input
+                          id="phone"
+                          name="phone"
+                          type="tel"
+                          placeholder={t.form.phone.field.placeholder}
+                          value={phone}
+                          onChange={(e) => {
+                            setPhone(e.target.value)
+                            validatePhoneInput(e.target.value)
+                          }}
+                          className={`h-11 rounded-lg text-base ${
+                            phoneError ? 'border-red-500 focus:border-red-500' : 
+                            isPhoneValid ? 'border-green-500 focus:border-green-500' : ''
+                          }`}
+                          style={!phoneError && !isPhoneValid ? { border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' } : undefined}
+                          required
+                        />
                       {phoneError && (
                         <div className="text-red-500 text-sm mt-1 flex items-center">
                           <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -423,67 +431,70 @@ function ForgotPasswordContent() {
                       )}
                     </div>
 
-                    <Button
-                      type="submit"
-                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg rounded-lg shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
-                      disabled={isLoading || !isPhoneValid}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          {t.form.phone.buttons.submitting}
-                        </>
-                      ) : (
-                        t.form.phone.buttons.submit
-                      )}
-                    </Button>
-                  </form>
-                ) : step === "sent" ? (
-                  <div className="text-center space-y-6">
-                    <Smartphone className="w-16 h-16 mx-auto text-primary" />
-                    <p className="text-gray-600">
-                      {t.form.sent.message.replace("{phone}", phone)}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {t.form.sent.smsNote}
-                    </p>
-                    <Button
-                      onClick={() => setStep("verify")}
-                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg rounded-lg shadow-sm"
-                    >
-                      {t.form.sent.verifyButton}
-                    </Button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleVerifyOTP} className="space-y-6">
-                    <div className="space-y-3">
-                      <Label htmlFor="otp" className="text-gray-700 font-medium">
-                        {t.form.verify.field.label}
-                      </Label>
-                      <p className="text-sm text-gray-500 mb-2">
-                        Enter the 4-digit code sent to your phone number
+                      <Button
+                        type="submit"
+                        className="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={isLoading || !isPhoneValid}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t.form.phone.buttons.submitting}
+                          </>
+                        ) : (
+                          t.form.phone.buttons.submit
+                        )}
+                      </Button>
+                    </form>
+                  ) : step === "sent" ? (
+                    <div className="text-center space-y-6">
+                      <div className="w-16 h-16 mx-auto bg-blue-50 rounded-full flex items-center justify-center">
+                        <Smartphone className="w-8 h-8 text-blue-600" />
+                      </div>
+                      <p className="text-gray-700 font-medium">
+                        {t.form.sent.message.replace("{phone}", phone)}
                       </p>
-                      <Input
-                        id="otp"
-                        name="otp"
-                        type="text"
-                        placeholder={t.form.verify.field.placeholder}
-                        value={otp}
-                        onChange={(e) => {
-                          // Only allow numeric input and limit to 4 digits
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 4);
-                          setOtp(value);
-                          validateOtpInput(value);
-                        }}
-                        className={`h-12 border-gray-300 focus:border-primary text-base text-center text-lg tracking-widest ${
-                          otpError ? 'border-red-500 focus:border-red-500' : 
-                          isOtpValid ? 'border-green-500 focus:border-green-500' : ''
-                        }`}
-                        maxLength={4}
-                        pattern="[0-9]{4}"
-                        inputMode="numeric"
-                        required
-                      />
+                      <p className="text-sm text-gray-500">
+                        {t.form.sent.smsNote}
+                      </p>
+                      <Button
+                        onClick={() => setStep("verify")}
+                        className="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300"
+                      >
+                        {t.form.sent.verifyButton}
+                      </Button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleVerifyOTP} className="space-y-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="otp" className="text-sm font-semibold text-gray-700">
+                          {t.form.verify.field.label}
+                        </Label>
+                        <p className="text-sm text-gray-500 mb-2">
+                          Enter the 4-digit code sent to your phone number
+                        </p>
+                        <Input
+                          id="otp"
+                          name="otp"
+                          type="text"
+                          placeholder={t.form.verify.field.placeholder}
+                          value={otp}
+                          onChange={(e) => {
+                            // Only allow numeric input and limit to 4 digits
+                            const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                            setOtp(value);
+                            validateOtpInput(value);
+                          }}
+                          className={`h-11 rounded-lg text-base text-center text-lg tracking-widest ${
+                            otpError ? 'border-red-500 focus:border-red-500' : 
+                            isOtpValid ? 'border-green-500 focus:border-green-500' : ''
+                          }`}
+                          style={!otpError && !isOtpValid ? { border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' } : undefined}
+                          maxLength={4}
+                          pattern="[0-9]{4}"
+                          inputMode="numeric"
+                          required
+                        />
                       {otpError && (
                         <div className="text-red-500 text-sm mt-1 flex items-center">
                           <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -507,71 +518,74 @@ function ForgotPasswordContent() {
                       )}
                     </div>
 
-                    <Button
-                      type="submit"
-                      className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-lg rounded-lg shadow-sm"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          {t.form.verify.buttons.submitting}
-                        </>
-                      ) : (
-                        t.form.verify.buttons.submit
-                      )}
-                    </Button>
-                  </form>
-                )}
-              </CardContent>
+                      <Button
+                        type="submit"
+                        className="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t.form.verify.buttons.submitting}
+                          </>
+                        ) : (
+                          t.form.verify.buttons.submit
+                        )}
+                      </Button>
+                    </form>
+                  )}
+                </CardContent>
 
-              <CardFooter className="text-center pb-10">
-                <div className="w-full space-y-6">
-                  <div className="text-sm text-gray-600">
-                    {t.form.login.text}{" "}
-                    <Link href={`/${lang}/login`} className="text-primary hover:underline font-medium">
-                      {t.form.login.link}
-                    </Link>
+                <CardFooter className="text-center pb-6 pt-6">
+                  <div className="w-full space-y-4">
+                    <div className="text-sm text-gray-600">
+                      {t.form.login.text}{" "}
+                      <Link href={`/${lang}/login`} className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
+                        {t.form.login.link}
+                      </Link>
+                    </div>
+                    {step === "sent" && (
+                      <Button
+                        variant="outline"
+                        className="w-full h-10 rounded-xl border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-300"
+                        onClick={() => {
+                          setStep("phone")
+                          setPhone("")
+                          setOtp("")
+                          setOtpError(null)
+                          setIsOtpValid(false)
+                          setPhoneError(null)
+                          setIsPhoneValid(false)
+                        }}
+                      >
+                        {t.form.sent.tryDifferent}
+                      </Button>
+                    )}
+                    {step === "verify" && (
+                      <Button
+                        variant="outline"
+                        className="w-full h-10 rounded-xl border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-300"
+                        onClick={() => {
+                          setStep("sent")
+                          setOtp("")
+                          setOtpError(null)
+                          setIsOtpValid(false)
+                        }}
+                      >
+                        {t.form.verify.backToSent}
+                      </Button>
+                    )}
                   </div>
-                  {step === "sent" && (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => {
-                        setStep("phone")
-                        setPhone("")
-                        setOtp("")
-                        setOtpError(null)
-                        setIsOtpValid(false)
-                        setPhoneError(null)
-                        setIsPhoneValid(false)
-                      }}
-                    >
-                      {t.form.sent.tryDifferent}
-                    </Button>
-                  )}
-                  {step === "verify" && (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => {
-                        setStep("sent")
-                        setOtp("")
-                        setOtpError(null)
-                        setIsOtpValid(false)
-                      }}
-                    >
-                      {t.form.verify.backToSent}
-                    </Button>
-                  )}
-                </div>
-              </CardFooter>
-            </Card>
+                </CardFooter>
+              </Card>
+            </div>
           </div>
         </div>
-      </div>
 
-      <AuthFooter />
+        <div className="relative z-10">
+          <AuthFooter />
+        </div>
+      </div>
     </div>
   )
 }

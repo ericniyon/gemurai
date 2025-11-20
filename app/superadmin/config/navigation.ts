@@ -1,19 +1,9 @@
 import {
   LayoutDashboard,
   Users,
-  FileText,
-  Store,
-  Briefcase,
-  GraduationCap,
   Settings,
   Shield,
-  Wallet,
-  BookOpen,
-  Building2,
-  FormInput,
-  ShoppingCart,
-  ClipboardList,
-  Package,
+  Milk,
 } from "lucide-react"
 
 export type NavigationItem = {
@@ -32,6 +22,13 @@ export const navigationConfig: NavigationItem[] = [
     requiredPermissions: [], // No permissions required - every user should have access to Dashboard
   },
   {
+    name: "MCCs",
+    href: "/superadmin/mccs",
+    icon: Milk,
+    requiredPermissions: ["mcc.view"],
+    roles: ["SUPER_ADMIN", "ADMIN"],
+  },
+  {
     name: "Users",
     href: "/superadmin/users",
     icon: Users,
@@ -46,64 +43,6 @@ export const navigationConfig: NavigationItem[] = [
     roles: ["SUPER_ADMIN"],
   },
   {
-    name: "Applications",
-    href: "/superadmin/applications",
-    icon: FileText,
-    requiredPermissions: ["applications.view"],
-  },
-  {
-    name: "Forms",
-    href: "/superadmin/forms",
-    icon: FormInput,
-    requiredPermissions: ["admin.forms"],
-    roles: ["SUPER_ADMIN", "ADMIN"],
-  },
-  {
-    name: "DCCs",
-    href: "/superadmin/dccs",
-    icon: Store,
-    requiredPermissions: ["admin.users"],
-    roles: ["SUPER_ADMIN", "ADMIN"],
-  },
-  {
-    name: "Employers",
-    href: "/superadmin/employers",
-    icon: Briefcase,
-    requiredPermissions: ["admin.users"],
-    roles: ["SUPER_ADMIN", "ADMIN"],
-  },
-  {
-    name: "Courses",
-    href: "/superadmin/courses",
-    icon: GraduationCap,
-    requiredPermissions: ["learning.manage"],
-  },
-  {
-    name: "Products",
-    href: "/superadmin/products",
-    icon: Store,
-    requiredPermissions: ["products.view"],
-  },
-  {
-    name: "Jobs",
-    href: "/superadmin/jobs",
-    icon: Briefcase,
-    requiredPermissions: ["jobs.view"],
-  },
-  {
-    name: "Finance",
-    href: "/superadmin/finance",
-    icon: Wallet,
-    requiredPermissions: ["finance.view"],
-  },
-  {
-    name: "Reports",
-    href: "/superadmin/reports",
-    icon: FileText,
-    requiredPermissions: ["admin.reports"],
-    roles: ["SUPER_ADMIN", "ADMIN"],
-  },
-  {
     name: "Settings",
     href: "/superadmin/settings",
     icon: Settings,
@@ -111,60 +50,10 @@ export const navigationConfig: NavigationItem[] = [
     roles: ["SUPER_ADMIN", "ADMIN"],
   },
   {
-    name: "Inventory",
-    href: "/superadmin/inventory",
-    icon: Building2,
-    requiredPermissions: ["products.manage"],
-    roles: ["SUPER_ADMIN", "ADMIN"],
-  },
-  {
-    name: "Notifications",
-    href: "/superadmin/notifications",
-    icon: FileText,
-    requiredPermissions: ["admin.system"],
-    roles: ["SUPER_ADMIN", "ADMIN"],
-  },
-  // SUPER_ADMIN specific items
-  {
     name: "System Administration",
     href: "/superadmin/system",
     icon: Shield,
     requiredPermissions: ["admin.system"],
-    roles: ["SUPER_ADMIN"],
-  },
-  {
-    name: "Database Management",
-    href: "/superadmin/database",
-    icon: Settings,
-    requiredPermissions: ["admin.system"],
-    roles: ["SUPER_ADMIN"],
-  },
-  {
-    name: "API Management",
-    href: "/superadmin/api",
-    icon: Settings,
-    requiredPermissions: ["admin.system"],
-    roles: ["SUPER_ADMIN"],
-  },
-  {
-    name: "Security Settings",
-    href: "/superadmin/security",
-    icon: Shield,
-    requiredPermissions: ["admin.system"],
-    roles: ["SUPER_ADMIN"],
-  },
-  {
-    name: "Test Role Editing",
-    href: "/superadmin/test-role-editing",
-    icon: Shield,
-    requiredPermissions: ["admin.users"],
-    roles: ["SUPER_ADMIN"],
-  },
-  {
-    name: "Interview Criteria",
-    href: "/superadmin/interview-criteria",
-    icon: ClipboardList,
-    requiredPermissions: ["applications.manage"],
     roles: ["SUPER_ADMIN"],
   },
 ]
@@ -225,37 +114,6 @@ export function getAuthorizedNavigation(
       hasRequiredRole(userRole, item.roles),
   )
   
-  // Add role-specific navigation items
-  if (userRole === "DCC") {
-    // Add DCC-specific navigation items
-    const dccItems: NavigationItem[] = [
-      {
-        name: "Products",
-        href: "/dashboard/dcc",
-        icon: Package,
-        requiredPermissions: [],
-      },
-      {
-        name: "Stock Management",
-        href: "/superadmin/inventory",
-        icon: Building2,
-        requiredPermissions: ["stock.create"],
-      },
-      {
-        name: "Sales",
-        href: "/superadmin/sales",
-        icon: ShoppingCart,
-        requiredPermissions: ["sales.view"],
-      },
-    ]
-    
-    // Add DCC items that user has permissions for
-    dccItems.forEach(item => {
-      if (hasRequiredPermissions(permissionsToUse, item.requiredPermissions, userRole)) {
-        filteredItems.push(item)
-      }
-    })
-  }
   
   // Debug logging (remove in production)
   if (process.env.NODE_ENV === "development") {
