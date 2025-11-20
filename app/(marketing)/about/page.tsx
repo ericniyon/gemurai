@@ -1,170 +1,141 @@
-import { Section } from "@/components/yden/section"
-import { LogoBadge } from "@/components/yden/logo-badge"
-import { Compass, HeartHandshake, Layers3, Map, Rocket } from "lucide-react"
+"use client"
 
-const modelSteps = [
-  "Identify youth in rural and peri-urban areas interested in dairy.",
-  "Train them in technical dairy skills and business fundamentals.",
-  "Equip them with tools, technologies, and advisory support.",
-  "Connect them to Gemura, MoHarvest, cooperatives, processors, and off-takers.",
-  "Support with mentorship, peer networks, and financing pathways.",
-]
-
-const partners = [
-  {
-    name: "Gemura Milk Collection",
-    role: "Quality milk aggregation and farmer linkages.",
-  },
-  {
-    name: "MoHarvest",
-    role: "Cold chain and post-harvest infrastructure for dairy and other value chains.",
-  },
-  {
-    name: "Strategic Allies",
-    role: "RAB, district governments, financial partners, technology providers, and development partners.",
-  },
-]
-
-const values = [
-  {
-    title: "Youth-first design",
-    description: "Programs co-created with youth advisory councils in every district.",
-    icon: Compass,
-  },
-  {
-    title: "Market reality",
-    description: "Every training module links directly to an offtake, service, or data contract.",
-    icon: Layers3,
-  },
-  {
-    title: "Trusted partnerships",
-    description: "We sit inside cooperative, processor, and finance workflows—not on the sidelines.",
-    icon: HeartHandshake,
-  },
-]
-
-const timeline = [
-  { year: "2022", note: "Concepted inside Gemura’s milk ecosystem after pilot youth bootcamps." },
-  { year: "2023", note: "Launched official YDEN cohorts with MoHarvest cold chain deployments." },
-  { year: "2024", note: "Scaled to 5 districts and debuted youth-owned aggregation pods." },
-  { year: "2025", note: "Added fintech partners and data agents to reach national coverage." },
-]
+import { Target, Eye, History, Share2 } from "lucide-react"
+import ScrollReveal from "@/components/yden/ui/scroll-reveal"
 
 export default function AboutPage() {
   return (
-    <div className="space-y-0">
-      <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-sky-900 text-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-24 sm:px-6 lg:flex-row lg:items-center lg:px-8">
-          <div className="max-w-2xl">
-            <LogoBadge className="mb-6" />
-            <h1 className="mt-6 text-4xl font-bold sm:text-5xl">YDEN exists to make dairy entrepreneurship a viable and attractive path for young people in Rwanda.</h1>
-            <p className="mt-6 text-lg text-slate-100">
-              Through immersive programs, strong partnerships, and real market access, we enable youth to lead in production, aggregation, processing, logistics, and innovation.
-            </p>
-          </div>
-          <div className="relative w-full max-w-lg">
-            <div className="absolute inset-0 -z-10 rounded-[36px] bg-white/10 blur-3xl" />
-            <div className="grid gap-4 rounded-[32px] border border-white/15 bg-white/5 p-6 backdrop-blur-lg sm:grid-cols-2">
-              {values.map((value) => (
-                <div key={value.title} className="rounded-[24px] border border-white/10 bg-white/5 p-4 text-left shadow-lg shadow-slate-950/20 transition duration-300 hover:-translate-y-1 hover:bg-white/10">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-emerald-100">
-                    <value.icon className="h-5 w-5" />
-                  </span>
-                  <p className="mt-4 text-sm font-semibold uppercase tracking-[0.3em] text-white/70">{value.title}</p>
-                  <p className="mt-2 text-sm text-slate-100">{value.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+    <div className="pt-16 min-h-screen bg-white">
+      {/* Hero */}
+      <div className="relative bg-slate-900 py-24 border-b border-slate-200 overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <img
+            src="https://images.unsplash.com/photo-1527153818091-1a9638521e2a?q=80&w=2000&auto=format&fit=crop"
+            className="w-full h-full object-cover"
+            alt="Dairy Processing"
+          />
         </div>
-      </section>
-
-      <Section eyebrow="Our mission" title="Our mission">
-        <p className="text-lg text-slate-600">
-          To build a new generation of skilled, profitable, and climate-smart dairy entrepreneurs who power Rwanda’s dairy industry through innovation, technology, and strong market linkages.
-        </p>
-      </Section>
-
-      <Section eyebrow="Our vision" title="Our vision" className="bg-white">
-        <p className="text-lg text-slate-600">
-          A vibrant dairy economy where young people lead in production, aggregation, processing, and innovation – creating jobs, raising incomes, and improving nutrition across Rwanda.
-        </p>
-      </Section>
-
-      <Section
-        eyebrow="Our story"
-        title="Born out of Rwanda’s dairy value chain"
-        description="YDEN emerged from practical work across Gemura’s milk collection centers and MoHarvest’s cold chain solutions."
-      >
-        <div className="grid gap-10 lg:grid-cols-2">
-          <p className="text-lg text-slate-600">
-            We saw youth active on farms but rarely leading viable dairy businesses. YDEN bridges that gap by combining technical training, entrepreneurship, and market linkages into a dedicated youth network.
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center animate-fade-in-up relative z-10">
+          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-8 tracking-tight">
+            About Young Dairy Entrepreneurs Network
+          </h1>
+          <p className="text-xl md:text-2xl text-slate-200 max-w-3xl mx-auto font-light leading-relaxed">
+            YDEN exists to make dairy entrepreneurship a viable and attractive path for young people in Rwanda.
           </p>
-          <div className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-lg shadow-slate-900/5">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-600">What makes us different</p>
-            <p className="mt-4 text-slate-600">
-              Everything we offer is tied to real partners and real demand. Youth don’t just learn—they launch businesses inside existing supply chains.
-            </p>
-          </div>
         </div>
-      </Section>
+      </div>
 
-      <Section
-        id="model"
-        eyebrow="Our model"
-        title="From skills to market"
-        description="A repeatable approach that turns interested youth into reliable dairy entrepreneurs."
-        className="bg-gradient-to-br from-sky-50 to-emerald-50"
-      >
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {modelSteps.map((step, index) => (
-            <div key={step} className="rounded-[28px] border border-white/60 bg-white/90 p-6 shadow-sm">
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-500">Step {index + 1}</p>
-              <p className="mt-3 text-slate-700">{step}</p>
+      {/* Mission & Vision */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="grid md:grid-cols-2 gap-12">
+          <ScrollReveal delay={100}>
+            <div className="bg-white p-10 rounded-3xl shadow-xl shadow-blue-900/5 border border-blue-50 hover:-translate-y-1 transition-transform duration-300 h-full">
+              <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-8">
+                <Target size={28} />
+                </div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-6">Our Mission</h2>
+              <p className="text-slate-600 text-lg leading-relaxed">
+                To build a new generation of skilled, profitable, and climate-smart dairy entrepreneurs who power
+                Rwanda&apos;s dairy industry through innovation, technology, and strong market linkages.
+              </p>
             </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section
-        eyebrow="Core partners"
-        title="Built on strong partnerships"
-        description="Our collaboration network keeps youth connected to markets, finance, technology, and policy support."
-      >
-        <div className="grid gap-6 md:grid-cols-3">
-          {partners.map((partner) => (
-            <div key={partner.name} className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-sm">
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-600">{partner.name}</p>
-              <p className="mt-4 text-slate-600">{partner.role}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section
-        eyebrow="Growth timeline"
-        title="Momentum we are carrying forward"
-        description="Steady expansion driven by youth demand and partner confidence."
-        className="bg-gradient-to-br from-emerald-50 via-white to-sky-50"
-      >
-        <div className="rounded-[32px] border border-emerald-100 bg-white/80 p-8 shadow-lg shadow-emerald-100/50">
-          <div className="flex items-center gap-3 text-emerald-700">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50">
-              <Rocket className="h-5 w-5" />
-            </span>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em]">Trail highlights</p>
-          </div>
-          <div className="mt-8 space-y-6">
-            {timeline.map((item) => (
-              <div key={item.year} className="flex flex-col gap-3 rounded-[24px] border border-emerald-100 bg-emerald-50/50 p-4 transition hover:-translate-y-1 hover:border-emerald-200">
-                <p className="text-sm font-semibold uppercase tracking-[0.4em] text-emerald-600">{item.year}</p>
-                <p className="text-slate-700">{item.note}</p>
+          </ScrollReveal>
+          <ScrollReveal delay={200}>
+            <div className="bg-white p-10 rounded-3xl shadow-xl shadow-green-900/5 border border-green-50 hover:-translate-y-1 transition-transform duration-300 h-full">
+              <div className="w-14 h-14 bg-green-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-8">
+                <Eye size={28} />
               </div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-6">Our Vision</h2>
+              <p className="text-slate-600 text-lg leading-relaxed">
+                A vibrant dairy economy where young people lead in production, aggregation, processing, and innovation –
+                creating jobs, raising incomes, and improving nutrition across Rwanda.
+              </p>
+          </div>
+          </ScrollReveal>
+        </div>
+      </div>
+
+      {/* Story */}
+      <div className="bg-slate-50 py-24">
+        <ScrollReveal className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center justify-center p-4 bg-white rounded-full shadow-sm mb-8">
+            <History className="w-8 h-8 text-blue-600" />
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">Our story</h2>
+          <p className="text-xl text-slate-600 leading-relaxed">
+            YDEN was born out of practical work in Rwanda&apos;s dairy value chain. Through{" "}
+            <strong className="text-blue-600 font-semibold">Gemura&apos;s milk collection centers</strong> and{" "}
+            <strong className="text-blue-600 font-semibold">MoHarvest&apos;s post-harvest and cold chain solutions</strong>, we saw a
+            clear gap: <strong className="text-slate-900">young people</strong> were present on farms but rarely leading viable dairy businesses. We created YDEN to
+            bridge that gap – combining technical training, entrepreneurship, and concrete market linkages into a
+            single, youth-focused network.
+          </p>
+        </ScrollReveal>
+      </div>
+
+      {/* Model */}
+      <div id="model" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ScrollReveal className="text-center mb-20">
+          <span className="text-emerald-600 font-bold tracking-wider uppercase text-sm">The Framework</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-4">Our Model: From Skills to Market</h2>
+        </ScrollReveal>
+
+        <div className="relative">
+          {/* Connecting Line for Desktop */}
+          <div className="hidden md:block absolute top-8 left-0 w-full h-1 bg-slate-100 z-0 rounded-full">
+            <div className="h-full w-full bg-gradient-to-r from-blue-100 via-green-100 to-blue-100"></div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 relative z-10">
+            {[
+              "Identify youth in rural and peri-urban areas interested in dairy.",
+              "Train them in technical dairy skills and business fundamentals.",
+              "Equip them with tools, technologies, and advisory support.",
+              "Connect them to Gemura, MoHarvest, cooperatives, processors, and off-takers.",
+              "Support through mentorship, peer networks, and financing pathways.",
+            ].map((step, i) => (
+              <ScrollReveal key={i} delay={i * 150}>
+                <div className="bg-white p-8 rounded-2xl shadow-lg shadow-slate-200/50 border border-slate-100 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform duration-500 h-full">
+                  <div className="w-16 h-16 rounded-2xl bg-white text-blue-600 text-xl font-bold flex items-center justify-center mb-6 shadow-lg border border-slate-50 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300 relative">
+                    {i + 1}
+        </div>
+                  <p className="text-slate-600 leading-relaxed">{step}</p>
+            </div>
+              </ScrollReveal>
+          ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Core Partners List */}
+      <div className="bg-white py-24 border-t border-slate-100">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal className="text-center mb-16">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Share2 className="w-10 h-10 text-emerald-600" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Built on Strong Partnerships</h2>
+          </ScrollReveal>
+          <div className="grid md:grid-cols-2 gap-8">
+            {[
+              { name: "Gemura Milk Collection", role: "Quality milk aggregation and farmer linkages." },
+              { name: "MoHarvest", role: "Cold chain and post-harvest infrastructure." },
+              { name: "RAB & Districts", role: "Government partnership and regulatory alignment." },
+              { name: "Development Partners", role: "Financial and technical support for scaling impact." },
+            ].map((partner, idx) => (
+              <ScrollReveal key={idx} delay={idx * 100}>
+                <div className="flex items-center p-8 bg-slate-50 rounded-2xl border border-slate-100 hover:shadow-lg transition-shadow">
+                  <div className="w-1.5 h-16 bg-blue-600 rounded-full mr-6 self-center"></div>
+                  <div>
+                    <h3 className="font-bold text-xl text-slate-900 mb-2">{partner.name}</h3>
+                    <p className="text-slate-600 text-sm">{partner.role}</p>
+        </div>
+          </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>
-      </Section>
+      </div>
     </div>
   )
 }
-

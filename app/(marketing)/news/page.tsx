@@ -1,79 +1,70 @@
-import Link from "next/link"
-import { Section } from "@/components/yden/section"
-import { LogoBadge } from "@/components/yden/logo-badge"
-import { CalendarDays, Megaphone, Sparkles } from "lucide-react"
+"use client"
 
-const newsItems = [
-  {
-    title: "Cohort 04 Applications Open",
-    date: "Nov 1, 2025",
-    summary: "Recruiting 40 youth across Kayonza, Rwamagana, and Nyagatare for dairy bootcamps.",
-  },
-  {
-    title: "Training Schedule: Cold Chain Agents",
-    date: "Oct 20, 2025",
-    summary: "Week-long intensive focused on milk testing, chilling protocols, and data capture.",
-  },
-  {
-    title: "Field Day with Kivu Cold Group",
-    date: "Oct 10, 2025",
-    summary: "Youth visited the latest cold room deployment to learn about aggregation economics.",
-  },
-  {
-    title: "New Partnership: Impact Bank Rwanda",
-    date: "Sep 28, 2025",
-    summary: "Blended finance facility launched for feed entrepreneurs and aggregation agents.",
-  },
-]
+import { Calendar } from "lucide-react"
+import ScrollReveal from "@/components/yden/ui/scroll-reveal"
+import Image from "next/image"
 
 export default function NewsPage() {
-  return (
-    <div className="space-y-0">
-      <section className="bg-gradient-to-br from-slate-950 to-slate-800 text-white">
-        <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:px-8">
-          <LogoBadge className="mb-6" />
-          <h1 className="mt-6 text-4xl font-bold sm:text-5xl">Latest updates, schedules, and announcements</h1>
-          <p className="mt-6 max-w-3xl text-lg text-slate-100">
-            Track cohort announcements, training schedules, field days, and new partnerships. Each update links to a dedicated detail page.
-          </p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-[28px] border border-white/10 bg-white/5 p-4">
-              <CalendarDays className="h-5 w-5 text-emerald-200" />
-              <p className="mt-2 text-3xl font-bold">Weekly</p>
-              <p className="text-xs uppercase tracking-[0.3em] text-white/70"> cadence</p>
-            </div>
-            <div className="rounded-[28px] border border-white/10 bg-white/5 p-4">
-              <Megaphone className="h-5 w-5 text-emerald-200" />
-              <p className="mt-2 text-3xl font-bold">Multi-channel</p>
-              <p className="text-xs uppercase tracking-[0.3em] text-white/70"> email • sms • social</p>
-            </div>
-            <div className="rounded-[28px] border border-white/10 bg-white/5 p-4">
-              <Sparkles className="h-5 w-5 text-emerald-200" />
-              <p className="mt-2 text-3xl font-bold">Real-time</p>
-              <p className="text-xs uppercase tracking-[0.3em] text-white/70"> field signals</p>
-            </div>
-          </div>
-        </div>
-      </section>
+  const newsItems = [
+    {
+      title: "Cohort 4 Applications Now Open",
+      date: "October 15, 2023",
+      category: "Announcements",
+      image: "https://images.unsplash.com/photo-1576505123548-d31e8a621033?q=80&w=800&auto=format&fit=crop",
+      summary:
+        "We are calling all aspiring dairy entrepreneurs in the Eastern Province to apply for our upcoming specialized bootcamp focusing on youngstock.",
+    },
+    {
+      title: "YDEN Partners with Kivu Cold Group",
+      date: "September 28, 2023",
+      category: "Partnerships",
+      image: "https://images.unsplash.com/photo-1635361653830-114df8294a30?q=80&w=800&auto=format&fit=crop",
+      summary:
+        "A strategic alliance to bring affordable cold chain technology to youth aggregators in remote districts, reducing milk spoilage.",
+    },
+    {
+      title: "Field Day: Nyagatare Dairy Tour",
+      date: "September 10, 2023",
+      category: "Events",
+      image: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=800&auto=format&fit=crop",
+      summary:
+        "Join us for a practical learning visit to one of Rwanda's leading model dairy farms. Learn best practices in feeding and hygiene.",
+    },
+  ]
 
-      <Section className="bg-white" title="Blog-style listing">
-        <div className="space-y-6">
-          {newsItems.map((item) => (
-            <article key={item.title} className="group relative overflow-hidden rounded-[28px] border border-slate-100 bg-slate-50/80 p-6">
-              <div className="absolute left-0 top-0 h-full w-1 rounded-full bg-gradient-to-b from-sky-500 to-emerald-500 opacity-60" />
-              <div className="pl-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-600">{item.date}</p>
-                <h2 className="mt-3 text-2xl font-semibold text-slate-900">{item.title}</h2>
-                <p className="mt-4 text-slate-600">{item.summary}</p>
-                <Link href="/news" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-sky-700">
-                  Read more <Sparkles className="h-4 w-4" />
-                </Link>
+  return (
+    <div className="pt-16 min-h-screen bg-slate-50">
+      <div className="bg-white py-12 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
+          <h1 className="text-3xl font-bold text-slate-900">News & Events</h1>
+          <p className="text-slate-600 mt-2">Latest updates from the network and the dairy sector.</p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid md:grid-cols-3 gap-8">
+          {newsItems.map((item, idx) => (
+            <ScrollReveal key={idx} delay={idx * 100}>
+              <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-lg transition-shadow h-full">
+                <div className="h-48 overflow-hidden relative">
+                  <Image src={item.image} alt={item.title} fill className="object-cover hover:scale-105 transition-transform duration-500" />
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-between text-xs text-slate-500 mb-3">
+                    <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-md font-medium">{item.category}</span>
+                    <span className="flex items-center">
+                      <Calendar size={14} className="mr-1" /> {item.date}
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2 hover:text-blue-600 cursor-pointer">{item.title}</h3>
+                  <p className="text-slate-600 text-sm line-clamp-3">{item.summary}</p>
+                  <button className="mt-4 text-sm font-semibold text-blue-600 hover:underline">Read full story</button>
+                </div>
               </div>
-            </article>
+            </ScrollReveal>
           ))}
         </div>
-      </Section>
+      </div>
     </div>
   )
 }
-

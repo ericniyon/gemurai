@@ -1,116 +1,116 @@
-import { Section } from "@/components/yden/section"
-import { LogoBadge } from "@/components/yden/logo-badge"
-import { Linkedin, Mail, MapPin, Phone, Send, Sparkles } from "lucide-react"
+"use client"
 
-const fields = [
-  { label: "Name", type: "text", required: true },
-  { label: "Email", type: "email", required: true },
-  { label: "Phone (optional)", type: "tel", required: false },
-]
-
-const categories = ["Youth", "Partner", "Media", "Other"]
-
-const quickContacts = [
-  { label: "Email", value: "info@yden.rw", icon: Mail, href: "mailto:info@yden.rw" },
-  { label: "Phone", value: "+250 XXX XXX XXX", icon: Phone, href: "tel:+250000000000" },
-  { label: "Location", value: "Kigali, Rwanda – YDEN Hub", icon: MapPin },
-]
-
-const socialLinks = [
-  { label: "LinkedIn", href: "#", icon: Linkedin },
-  { label: "X", href: "#", icon: Send },
-  { label: "Instagram", href: "#", icon: Sparkles },
-]
+import { Mail, Phone, MapPin, Send } from "lucide-react"
+import Button from "@/components/yden/ui/button"
+import ScrollReveal from "@/components/yden/ui/scroll-reveal"
 
 export default function ContactPage() {
+  const inputClasses =
+    "w-full px-4 py-3 rounded-lg border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 bg-white hover:border-slate-400"
+  const labelClasses = "block text-sm font-semibold text-slate-700 mb-2"
+
   return (
-    <div className="space-y-0">
-      <section className="bg-gradient-to-br from-sky-950 to-slate-950 text-white">
-        <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:px-8">
-          <LogoBadge className="mb-6" />
-          <h1 className="mt-6 text-4xl font-bold sm:text-5xl">Get in touch</h1>
-          <p className="mt-6 max-w-3xl text-lg text-slate-100">
-            Reach the YDEN team for partnerships, media, or application support. We respond within 3 working days.
-          </p>
+    <div className="pt-16 min-h-screen bg-white">
+      <div className="bg-blue-600 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 text-center animate-fade-in-up">
+          <h1 className="text-3xl font-bold">Get in touch</h1>
+          <p className="text-blue-200 mt-2">We&apos;d love to hear from you.</p>
         </div>
-      </section>
+      </div>
 
-      <Section className="bg-white" title="Send us a message">
-        <div className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr]">
-          <form className="space-y-6">
-            {fields.map((field) => (
-              <div key={field.label} className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">
-                  {field.label} {field.required && <span className="text-emerald-600">*</span>}
-                </label>
-                <input
-                  type={field.type}
-                  required={field.required}
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                />
-              </div>
-            ))}
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">I am a</label>
-              <select className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
-                {categories.map((category) => (
-                  <option key={category}>{category}</option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Subject</label>
-              <input
-                type="text"
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Message</label>
-              <textarea
-                rows={5}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
-              />
-            </div>
-            <button type="submit" className="rounded-full bg-gradient-to-r from-sky-600 to-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30">
-              Send message
-            </button>
-          </form>
-
-          <div className="rounded-[32px] border border-slate-100 bg-slate-50/80 p-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-600">Reach us directly</p>
-            <div className="mt-4 space-y-4 text-sm text-slate-600">
-              {quickContacts.map((contact) => (
-                <div key={contact.label} className="flex items-center gap-3 rounded-2xl border border-white/60 bg-white/80 p-3">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900/5 text-slate-900">
-                    <contact.icon className="h-5 w-5" />
-                  </span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 mb-20">
+        <ScrollReveal delay={200}>
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden flex flex-col md:flex-row">
+            {/* Info Side */}
+            <div className="bg-slate-50 p-10 md:w-1/3 border-r border-slate-100">
+              <h3 className="text-xl font-bold text-slate-900 mb-8">Contact Information</h3>
+              <div className="space-y-6">
+                <div className="flex items-start">
+                  <Mail className="w-6 h-6 text-blue-600 mt-1 mr-4" />
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">{contact.label}</p>
-                    {contact.href ? (
-                      <a href={contact.href} className="text-sm font-semibold text-slate-900">
-                        {contact.value}
-                      </a>
-                    ) : (
-                      <p className="text-sm font-semibold text-slate-900">{contact.value}</p>
-                    )}
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Email</p>
+                    <p className="text-slate-700">info@yden.rw</p>
                   </div>
                 </div>
-              ))}
+                <div className="flex items-start">
+                  <Phone className="w-6 h-6 text-blue-600 mt-1 mr-4" />
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Phone</p>
+                    <p className="text-slate-700">+250 XXX XXX XXX</p>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <MapPin className="w-6 h-6 text-blue-600 mt-1 mr-4" />
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Office</p>
+                    <p className="text-slate-700">Kigali, Rwanda</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-12">
+                <h4 className="font-bold text-slate-900 mb-4">Social Media</h4>
+                <div className="flex space-x-4">
+                  {/* Social Icons placeholder */}
+                  <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-blue-50 cursor-pointer text-slate-600">
+                    X
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-blue-50 cursor-pointer text-slate-600">
+                    In
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-blue-50 cursor-pointer text-slate-600">
+                    Fb
+                  </div>
             </div>
-            <div className="mt-6 space-y-3 text-sm text-slate-600">
-              <p className="font-semibold text-slate-900">Social media</p>
-              {socialLinks.map((social) => (
-                <a key={social.label} href={social.href} className="flex items-center gap-2 text-sky-700">
-                  <social.icon className="h-4 w-4" />
-                  {social.label}
-                </a>
-              ))}
+            </div>
+            </div>
+
+            {/* Form Side */}
+            <div className="p-10 md:w-2/3">
+              <form className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className={labelClasses}>Name</label>
+                    <input type="text" className={inputClasses} placeholder="Your full name" />
+                  </div>
+                  <div>
+                    <label className={labelClasses}>Phone (Optional)</label>
+                    <input type="tel" className={inputClasses} placeholder="+250..." />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className={labelClasses}>Email</label>
+                    <input type="email" className={inputClasses} placeholder="you@example.com" />
+                  </div>
+                  <div>
+                    <label className={labelClasses}>I am a...</label>
+                    <select className={inputClasses}>
+                      <option>Youth</option>
+                      <option>Partner</option>
+                      <option>Media</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClasses}>Subject</label>
+                  <input type="text" className={inputClasses} placeholder="What is this regarding?" />
+                </div>
+                <div>
+                  <label className={labelClasses}>Message</label>
+                  <textarea rows={4} className={inputClasses} placeholder="How can we help you?"></textarea>
+                </div>
+                <div>
+                  <Button type="submit" className="w-full md:w-auto flex items-center justify-center gap-2 text-lg px-8">
+                    Send Message <Send size={18} />
+                  </Button>
+            </div>
+              </form>
             </div>
           </div>
+        </ScrollReveal>
         </div>
-      </Section>
     </div>
   )
 }
-

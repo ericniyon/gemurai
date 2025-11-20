@@ -1,44 +1,84 @@
+"use client"
+
 import Link from "next/link"
-import { Section } from "@/components/yden/section"
+import { Milk, Lock } from "lucide-react"
+import Button from "@/components/yden/ui/button"
 
 export default function PortalPage() {
   return (
-    <div className="space-y-0">
-      <section className="bg-gradient-to-br from-slate-900 to-sky-900 text-white">
-        <div className="mx-auto max-w-4xl px-4 py-24 text-center sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-200">Member portal</p>
-          <h1 className="mt-6 text-4xl font-bold sm:text-5xl">Access your YDEN dashboard</h1>
-          <p className="mt-6 text-lg text-slate-100">
-            Registered members can log in to manage program tasks, submit reports, track payments, and chat with mentors.
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <Link href="/en/login" className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900">
-              Member Login
-            </Link>
-            <Link href="/youth#apply" className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white">
-              Request access
-            </Link>
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl">
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center text-white">
+            <Milk size={24} />
           </div>
+          <h2 className="mt-6 text-3xl font-extrabold text-slate-900">Member Portal</h2>
+          <p className="mt-2 text-sm text-slate-600">Sign in to access resources, training materials, and mentorship.</p>
         </div>
-      </section>
+        <form className="mt-8 space-y-6" action="#" method="POST">
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="email-address" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="email-address"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-slate-300 placeholder-slate-500 text-slate-900 rounded-t-md focus:outline-none focus:ring-blue-600 focus:border-blue-600 focus:z-10 sm:text-sm"
+                placeholder="Email address"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-slate-300 placeholder-slate-500 text-slate-900 rounded-b-md focus:outline-none focus:ring-blue-600 focus:border-blue-600 focus:z-10 sm:text-sm"
+                placeholder="Password"
+              />
+            </div>
+          </div>
 
-      <Section className="bg-white" title="Inside the portal">
-        <ul className="grid gap-4 md:grid-cols-2">
-          <li className="rounded-2xl border border-slate-100 bg-slate-50/80 px-5 py-4 text-sm font-semibold text-slate-700">
-            Track training schedules and assignments
-          </li>
-          <li className="rounded-2xl border border-slate-100 bg-slate-50/80 px-5 py-4 text-sm font-semibold text-slate-700">
-            Upload field reports and business metrics
-          </li>
-          <li className="rounded-2xl border border-slate-100 bg-slate-50/80 px-5 py-4 text-sm font-semibold text-slate-700">
-            Chat with mentors and cohort peers
-          </li>
-          <li className="rounded-2xl border border-slate-100 bg-slate-50/80 px-5 py-4 text-sm font-semibold text-slate-700">
-            Access contracts, payments, and support tickets
-          </li>
-        </ul>
-      </Section>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-600 border-slate-300 rounded"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-900">
+                Remember me
+              </label>
+            </div>
+
+            <div className="text-sm">
+              <a href="#" className="font-medium text-blue-600 hover:text-blue-700">
+                Forgot your password?
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <Button className="w-full justify-center flex items-center gap-2">
+              <Lock size={16} /> Sign in
+            </Button>
+          </div>
+        </form>
+        <div className="text-center mt-4">
+          <Link href="/" className="text-sm text-slate-500 hover:text-slate-800">
+            Back to Home
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }
-

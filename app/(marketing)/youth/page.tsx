@@ -1,122 +1,156 @@
-import Link from "next/link"
-import { Section } from "@/components/yden/section"
-import { LogoBadge } from "@/components/yden/logo-badge"
-import { BadgeCheck, CalendarClock, Compass, Sparkles, Target } from "lucide-react"
+"use client"
 
-const eligibility = [
-  { label: "Age 18–35", icon: BadgeCheck },
-  { label: "Based anywhere in Rwanda", icon: Compass },
-  { label: "Excited about dairy, logistics, feed, or data", icon: Target },
-  { label: "Ready to commit to hands-on work", icon: Sparkles },
-]
-
-const benefits = [
-  { title: "Deep training", detail: "Technical + business bootcamps with coaches." },
-  { title: "Real assignments", detail: "Access calves, aggregation routes, feed contracts, or data gigs." },
-  { title: "Market linkages", detail: "Guaranteed introductions to buyers and offtakers." },
-  { title: "Mentorship", detail: "Paired with experienced dairy operators and agribiz mentors." },
-  { title: "National network", detail: "Join a peer community across all pilot districts." },
-]
-
-const steps = [
-  { title: "Apply online", detail: "Fill in the youth application form with your focus area." },
-  { title: "Shortlist & interview", detail: "We review motivation, availability, and district readiness." },
-  { title: "Join a track", detail: "Bootcamps plus practical modules tailored to your pathway." },
-  { title: "Launch & grow", detail: "Get matched with verified opportunities and support coaches." },
-]
+import { CheckCircle } from "lucide-react"
+import Button from "@/components/yden/ui/button"
+import ScrollReveal from "@/components/yden/ui/scroll-reveal"
+import Image from "next/image"
 
 export default function YouthPage() {
   return (
-    <div className="space-y-0">
-      <section className="bg-gradient-to-br from-sky-950 to-emerald-700 text-white">
-        <div className="mx-auto grid max-w-6xl gap-12 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:px-8">
-          <div>
-            <LogoBadge className="mb-6" />
-            <h1 className="mt-6 text-4xl font-bold sm:text-5xl">Are you ready to build your dairy business?</h1>
-            <p className="mt-6 text-lg text-slate-100">
-              YDEN helps you start and grow as a young dairy entrepreneur – even if you don’t own cows yet. We connect you to assets, mentors, markets, and finance.
+    <div className="pt-16 min-h-screen bg-white">
+      {/* Hero */}
+      <div className="bg-slate-900 text-white py-20 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-30">
+          <Image
+            src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?q=80&w=2000&auto=format&fit=crop"
+            alt="Youth in Field"
+            fill
+            className="object-cover"
+          />
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center relative z-10">
+          <div className="animate-fade-in-up">
+            <span className="text-green-400 font-bold uppercase tracking-wider text-sm mb-2 block">
+              For Aspiring Agripreneurs
+            </span>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+              Are you ready to build your <span className="text-blue-400">dairy business</span>?
+            </h1>
+            <p className="text-xl text-slate-200 mb-8">
+              YDEN helps you start and grow as a young dairy entrepreneur – even if you don&apos;t own cows yet. We
+              provide the skills, the tech, and the market.
             </p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link href="/youth#apply" className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg">
-                Apply to Join YDEN
-              </Link>
-              <Link href="/contact" className="rounded-full border border-white/50 px-6 py-3 text-sm font-semibold">
-                Talk to our team
-              </Link>
-            </div>
+            <Button
+              variant="secondary"
+              onClick={() => document.getElementById("apply")?.scrollIntoView({ behavior: "smooth" })}
+            >
+              Start Your Application
+            </Button>
           </div>
-          <div className="relative rounded-[32px] border border-white/15 bg-white/5 p-6 backdrop-blur">
-            <div className="absolute inset-0 -z-10 rounded-[32px] bg-white/10 blur-3xl" />
-            <div className="space-y-4">
-              {benefits.slice(0, 3).map((benefit) => (
-                <div key={benefit.title} className="flex items-start gap-4 rounded-[24px] border border-white/10 bg-white/5 p-4 shadow-lg shadow-slate-950/30">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-emerald-100">
-                    <Sparkles className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">{benefit.title}</p>
-                    <p className="text-sm text-slate-100">{benefit.detail}</p>
-                  </div>
-                </div>
+          <div className="hidden md:block rounded-2xl overflow-hidden shadow-2xl border-4 border-slate-700 transform rotate-2 hover:rotate-0 transition-transform duration-500 animate-fade-in-up delay-200">
+            <Image
+              src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?q=80&w=1000&auto=format&fit=crop"
+              alt="Farming Logistics"
+              fill
+              className="object-cover"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Content Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="grid md:grid-cols-2 gap-16">
+          {/* Requirements */}
+          <ScrollReveal>
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">Who can join?</h2>
+            <ul className="space-y-4">
+              {[
+                "Age 18–35",
+                "Living in Rwanda",
+                "Interested in dairy production, aggregation, processing, logistics, feed, or digital services",
+                "Willing to commit time and effort to training and implementation",
+              ].map((req, i) => (
+                <li key={i} className="flex items-center text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <CheckCircle className="w-5 h-5 text-emerald-600 mr-3 flex-shrink-0" />
+                  {req}
+                </li>
               ))}
-              <div className="rounded-[24px] border border-white/10 bg-gradient-to-br from-white/20 to-transparent p-5 text-sm text-white">
-                <p className="font-semibold uppercase tracking-[0.4em] text-emerald-200">Now onboarding</p>
-                <p className="mt-2 text-lg font-semibold">Cohort 04 • Kayonza & Nyagatare</p>
-                <p className="mt-2 flex items-center gap-2 text-sm text-slate-100">
-                  <CalendarClock className="h-4 w-4" /> Applications close 15 Dec 2025
-                </p>
+            </ul>
+          </ScrollReveal>
+
+          {/* Benefits */}
+          <ScrollReveal delay={200}>
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">What you get</h2>
+            <div className="space-y-6">
+              <div className="flex">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                  1
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-slate-900">Training and coaching</h3>
+                  <p className="mt-1 text-slate-600">in technical and business skills</p>
+                </div>
+              </div>
+              <div className="flex">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                  2
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-slate-900">Access to practical opportunities</h3>
+                  <p className="mt-1 text-slate-600">(calves, aggregation routes, feed contracts, etc.)</p>
+                </div>
+              </div>
+              <div className="flex">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                  3
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-slate-900">Linkages to buyers and off-takers</h3>
+                </div>
+              </div>
+              <div className="flex">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                  4
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-slate-900">Mentorship</h3>
+                  <p className="mt-1 text-slate-600">from experienced farmers and agribusiness experts</p>
+                </div>
+              </div>
+              <div className="flex">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                  5
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-slate-900">Inclusion in a national youth network</h3>
+                </div>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
-      </section>
+      </div>
 
-      <Section title="Who can join?" className="bg-white">
-        <ul className="grid gap-4 md:grid-cols-2">
-          {eligibility.map((item) => (
-            <li key={item.label} className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50/80 px-5 py-4">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                <item.icon className="h-5 w-5" />
-              </span>
-              <p className="text-sm font-semibold text-slate-700">{item.label}</p>
-            </li>
-          ))}
-        </ul>
-      </Section>
-
-      <Section title="What you get">
-        <div className="grid gap-6 md:grid-cols-2">
-          {benefits.map((benefit) => (
-            <div key={benefit.title} className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-sm shadow-slate-900/5 transition hover:-translate-y-1">
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-600">{benefit.title}</p>
-              <p className="mt-3 text-slate-700">{benefit.detail}</p>
+      {/* How to Apply */}
+      <div id="apply" className="bg-slate-50 py-20 border-t border-slate-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <ScrollReveal>
+            <h2 className="text-3xl font-bold text-slate-900 mb-12">How to Apply</h2>
+            <div className="grid md:grid-cols-4 gap-6 text-left">
+              {[
+                "Fill in the online application form.",
+                "Shortlisting & interviews for each cohort.",
+                "Successful applicants join a bootcamp or program track.",
+                "After training, youth are matched with real opportunities.",
+              ].map((step, i) => (
+                <div key={i} className="relative bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                  <span className="absolute top-4 right-4 text-4xl font-bold text-slate-100 -z-10">{i + 1}</span>
+                  <p className="font-medium text-slate-800">{step}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </Section>
+          </ScrollReveal>
 
-      <Section id="apply" title="How to apply" className="bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-        <ol className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {steps.map((step, index) => (
-            <li key={step.title} className="group rounded-[28px] border border-white/20 bg-white/5 p-6 transition hover:-translate-y-1">
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-lg font-semibold">
-                {index + 1}
-              </span>
-              <p className="mt-4 text-sm font-semibold uppercase tracking-[0.4em] text-emerald-200">{step.title}</p>
-              <p className="mt-3 text-slate-100">{step.detail}</p>
-            </li>
-          ))}
-        </ol>
-        <div className="mt-10 flex flex-wrap items-center gap-4">
-          <Link href="/youth#apply" className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900">
-            Apply to Join YDEN
-          </Link>
-          <p className="flex items-center gap-2 text-sm text-slate-200">
-            <CalendarClock className="h-4 w-4" /> Limited internet? Visit your nearest partner hub and we’ll help you apply.
-          </p>
+          <ScrollReveal delay={200} className="mt-12 space-y-4">
+            <Button to="/en/login" className="text-lg px-12 py-4 shadow-xl transform hover:-translate-y-1 transition-all">
+              Apply to Join YDEN
+            </Button>
+            <p className="text-sm text-slate-500">
+              If you have limited internet access, contact us through your local partner hub or cooperative.
+            </p>
+          </ScrollReveal>
         </div>
-      </Section>
+      </div>
     </div>
   )
 }
-

@@ -99,6 +99,8 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "yden-blue": "#2563eb",
+        "yden-green": "#10b981",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -138,6 +140,14 @@ const config = {
           from: { width: "0%" },
           to: { width: "100%" },
         },
+        "slow-zoom": {
+          "0%": { transform: "scale(1)" },
+          "100%": { transform: "scale(1.1)" },
+        },
+        "fade-in-up": {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -145,8 +155,10 @@ const config = {
         float: "float 6s ease-in-out infinite",
         "float-slow": "float-slow 10s ease-in-out infinite",
         "fade-in": "fade-in 1s ease-out",
+        "fade-in-up": "fade-in-up 0.6s ease-out",
         "scale-in": "scale-in 0.5s ease-out",
         "expand-width": "expand-width 3s ease-out forwards",
+        "slow-zoom": "slow-zoom 20s ease-in-out infinite alternate",
       },
     },
   },
