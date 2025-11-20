@@ -8,10 +8,10 @@ export default function PartnersPage() {
   return (
     <div className="pt-16 min-h-screen bg-white">
       {/* Hero */}
-      <div className="bg-blue-600 py-20">
+      <div className="py-20" style={{ backgroundColor: '#0099f2' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center animate-fade-in-up">
           <h1 className="text-4xl font-bold text-white mb-4">Work with YDEN to power your dairy value chain</h1>
-          <p className="text-xl text-blue-200 max-w-3xl mx-auto">
+          <p className="text-xl max-w-3xl mx-auto" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
             We co-design youth pipelines that serve your business, cooperative, or development program.
           </p>
         </div>
@@ -32,7 +32,7 @@ export default function PartnersPage() {
           ].map((item, idx) => (
             <ScrollReveal key={idx} delay={idx * 100}>
               <div className="flex flex-col items-center text-center p-6 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors h-full">
-                <div className="text-blue-600 mb-4">{item.icon}</div>
+                <div className="mb-4" style={{ color: '#0099f2' }}>{item.icon}</div>
                 <h3 className="font-semibold text-slate-800">{item.label}</h3>
               </div>
             </ScrollReveal>
@@ -66,7 +66,7 @@ export default function PartnersPage() {
           ].map((model, idx) => (
             <ScrollReveal key={idx} delay={idx * 100}>
               <div className="flex p-6 border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow h-full">
-                <div className="mr-4 mt-1 text-emerald-600 flex-shrink-0">
+                <div className="mr-4 mt-1 flex-shrink-0" style={{ color: '#016629' }}>
                   <ChevronRight />
                 </div>
                 <div>

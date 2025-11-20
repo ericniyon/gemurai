@@ -40,7 +40,7 @@ export default function ResourcesPage() {
                 onClick={() => setActiveTab(tab.id as TabType)}
                 className={`px-6 py-2 rounded-full text-sm font-medium transition-colors ${
                   activeTab === tab.id
-                    ? "bg-blue-600 text-white"
+                    ? "text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
@@ -59,8 +59,9 @@ export default function ResourcesPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div
                     className={`p-3 rounded-lg ${
-                      item.type === "stories" ? "bg-green-50 text-emerald-600" : "bg-blue-50 text-blue-600"
+                      item.type === "stories" ? "" : ""
                     }`}
+                    style={item.type === "stories" ? { backgroundColor: 'rgba(1, 102, 41, 0.1)', color: '#016629' } : { backgroundColor: 'rgba(0, 153, 242, 0.1)', color: '#0099f2' }}
                   >
                     {item.type === "toolkits" && <Book size={24} />}
                     {item.type === "stories" && <FileText size={24} />}
@@ -68,12 +69,12 @@ export default function ResourcesPage() {
                   </div>
                   <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">{item.format}</span>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 mb-2 transition-colors group-hover:[color:#0099f2]">
                   {item.title}
                 </h3>
                 <div className="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
                   <span className="text-sm text-slate-500">{item.size}</span>
-                  <button className="text-blue-600 hover:text-blue-700">
+                  <button className="hover:[color:#0080d1]" style={{ color: '#0099f2' }}>
                     <ChevronRight size={20} />
                   </button>
                 </div>

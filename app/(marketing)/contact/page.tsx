@@ -6,15 +6,15 @@ import ScrollReveal from "@/components/yden/ui/scroll-reveal"
 
 export default function ContactPage() {
   const inputClasses =
-    "w-full px-4 py-3 rounded-lg border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all duration-200 bg-white hover:border-slate-400"
+    "w-full px-4 py-3 rounded-lg border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 bg-white hover:border-slate-400"
   const labelClasses = "block text-sm font-semibold text-slate-700 mb-2"
 
   return (
     <div className="pt-16 min-h-screen bg-white">
-      <div className="bg-blue-600 text-white py-16">
+      <div className="text-white py-16" style={{ backgroundColor: '#0099f2' }}>
         <div className="max-w-7xl mx-auto px-4 text-center animate-fade-in-up">
           <h1 className="text-3xl font-bold">Get in touch</h1>
-          <p className="text-blue-200 mt-2">We&apos;d love to hear from you.</p>
+          <p className="mt-2" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>We&apos;d love to hear from you.</p>
         </div>
       </div>
 
@@ -26,21 +26,21 @@ export default function ContactPage() {
               <h3 className="text-xl font-bold text-slate-900 mb-8">Contact Information</h3>
               <div className="space-y-6">
                 <div className="flex items-start">
-                  <Mail className="w-6 h-6 text-blue-600 mt-1 mr-4" />
+                  <Mail className="w-6 h-6 mt-1 mr-4" style={{ color: '#0099f2' }} />
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Email</p>
                     <p className="text-slate-700">info@yden.rw</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <Phone className="w-6 h-6 text-blue-600 mt-1 mr-4" />
+                  <Phone className="w-6 h-6 mt-1 mr-4" style={{ color: '#0099f2' }} />
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Phone</p>
                     <p className="text-slate-700">+250 XXX XXX XXX</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <MapPin className="w-6 h-6 text-blue-600 mt-1 mr-4" />
+                  <MapPin className="w-6 h-6 mt-1 mr-4" style={{ color: '#0099f2' }} />
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Office</p>
                     <p className="text-slate-700">Kigali, Rwanda</p>
@@ -52,13 +52,13 @@ export default function ContactPage() {
                 <h4 className="font-bold text-slate-900 mb-4">Social Media</h4>
                 <div className="flex space-x-4">
                   {/* Social Icons placeholder */}
-                  <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-blue-50 cursor-pointer text-slate-600">
+                  <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center cursor-pointer text-slate-600 hover:[background-color:rgba(0,153,242,0.1)]">
                     X
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-blue-50 cursor-pointer text-slate-600">
+                  <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center cursor-pointer text-slate-600 hover:[background-color:rgba(0,153,242,0.1)]">
                     In
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-blue-50 cursor-pointer text-slate-600">
+                  <div className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center cursor-pointer text-slate-600 hover:[background-color:rgba(0,153,242,0.1)]">
                     Fb
                   </div>
             </div>
@@ -71,7 +71,7 @@ export default function ContactPage() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <label className={labelClasses}>Name</label>
-                    <input type="text" className={inputClasses} placeholder="Your full name" />
+                    <input type="text" className={inputClasses} placeholder="Your full name" style={{ '--tw-ring-color': '#0099f2' } as React.CSSProperties & { '--tw-ring-color'?: string }} />
                   </div>
                   <div>
                     <label className={labelClasses}>Phone (Optional)</label>

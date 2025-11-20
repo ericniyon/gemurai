@@ -9,7 +9,7 @@ export default function PortalPage() {
     <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl">
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-full flex items-center justify-center text-white">
+          <div className="mx-auto h-12 w-12 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: '#0099f2' }}>
             <Milk size={24} />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-slate-900">Member Portal</h2>
@@ -27,7 +27,7 @@ export default function PortalPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-slate-300 placeholder-slate-500 text-slate-900 rounded-t-md focus:outline-none focus:ring-blue-600 focus:border-blue-600 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-3 border border-slate-300 placeholder-slate-500 text-slate-900 rounded-t-md focus:outline-none focus:z-10 sm:text-sm"
                 placeholder="Email address"
               />
             </div>
@@ -53,7 +53,7 @@ export default function PortalPage() {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-600 border-slate-300 rounded"
+                className="h-4 w-4 border-slate-300 rounded"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-900">
                 Remember me
@@ -61,7 +61,7 @@ export default function PortalPage() {
             </div>
 
             <div className="text-sm">
-              <a href="#" className="font-medium text-blue-600 hover:text-blue-700">
+              <a href="#" className="font-medium hover:[color:#0080d1]" style={{ color: '#0099f2' }}>
                 Forgot your password?
               </a>
             </div>

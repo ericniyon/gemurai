@@ -51,14 +51,14 @@ export default function NewsPage() {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center justify-between text-xs text-slate-500 mb-3">
-                    <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-md font-medium">{item.category}</span>
+                    <span className="px-2 py-1 rounded-md font-medium" style={{ backgroundColor: 'rgba(0, 153, 242, 0.1)', color: '#0099f2' }}>{item.category}</span>
                     <span className="flex items-center">
                       <Calendar size={14} className="mr-1" /> {item.date}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2 hover:text-blue-600 cursor-pointer">{item.title}</h3>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2 cursor-pointer hover:[color:#0099f2]">{item.title}</h3>
                   <p className="text-slate-600 text-sm line-clamp-3">{item.summary}</p>
-                  <button className="mt-4 text-sm font-semibold text-blue-600 hover:underline">Read full story</button>
+                  <button className="mt-4 text-sm font-semibold hover:underline" style={{ color: '#0099f2' }}>Read full story</button>
                 </div>
               </div>
             </ScrollReveal>

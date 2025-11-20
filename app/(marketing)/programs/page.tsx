@@ -70,7 +70,7 @@ const programs = [
 
   return (
     <div className="pt-16 min-h-screen bg-slate-50">
-      <div className="bg-blue-600 py-24 relative overflow-hidden">
+      <div className="py-24 relative overflow-hidden" style={{ backgroundColor: '#0099f2' }}>
         {/* Background: Farmers in field */}
         <div className="absolute inset-0">
           <img
@@ -79,14 +79,14 @@ const programs = [
             className="w-full h-full object-cover opacity-20 mix-blend-overlay"
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-600/90 to-blue-600"></div>
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0, 153, 242, 0.9), #0099f2)' }}></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 animate-fade-in-up">
-          <span className="text-green-400 font-bold uppercase tracking-wider text-sm mb-4 block">Skills for the Future</span>
+          <span className="font-bold uppercase tracking-wider text-sm mb-4 block" style={{ color: '#016629' }}>Skills for the Future</span>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
             Programs that turn youth into dairy entrepreneurs
           </h1>
-          <p className="text-blue-100 text-xl max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl max-w-3xl mx-auto leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
             Comprehensive tracks designed to build skills, foster innovation, and launch real businesses in the dairy
             sector.
           </p>
@@ -99,12 +99,12 @@ const programs = [
             <ScrollReveal key={idx} delay={idx * 100}>
               <div className="group bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300">
                 <div className="md:flex">
-                  <div className="bg-gradient-to-br from-blue-50 to-slate-50 p-10 md:w-1/3 flex flex-col justify-center border-r border-slate-100 relative">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-emerald-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-                    <div className="bg-white w-16 h-16 rounded-2xl shadow-md flex items-center justify-center mb-6 text-blue-600 group-hover:scale-110 transition-transform duration-300">
+                  <div className="p-10 md:w-1/3 flex flex-col justify-center border-r border-slate-100 relative" style={{ background: 'linear-gradient(to bottom right, rgba(0, 153, 242, 0.1), rgb(248 250 252))' }}>
+                    <div className="absolute top-0 left-0 w-full h-1 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" style={{ background: 'linear-gradient(to right, #0099f2, #016629)' }}></div>
+                    <div className="bg-white w-16 h-16 rounded-2xl shadow-md flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300" style={{ color: '#0099f2' }}>
                       {program.icon}
               </div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors">
+                    <h3 className="text-2xl font-bold text-slate-900 mb-4 transition-colors group-hover:[color:#0099f2]">
                       {program.title}
                     </h3>
                     <div className="space-y-3 text-sm text-slate-600 mt-2">
@@ -120,25 +120,25 @@ const programs = [
         </div>
                   <div className="p-10 md:w-2/3 flex flex-col justify-between">
                 <div>
-                      <h4 className="font-bold text-slate-900 mb-6 uppercase text-xs tracking-wider text-emerald-600 flex items-center gap-2">
+                      <h4 className="font-bold text-slate-900 mb-6 uppercase text-xs tracking-wider flex items-center gap-2" style={{ color: '#016629' }}>
                         What you&apos;ll do
                         <div className="h-px bg-slate-100 flex-grow"></div>
                       </h4>
                       <ul className="grid md:grid-cols-1 gap-4 mb-8">
                         {program.content.map((item, i) => (
                           <li key={i} className="flex items-start text-slate-600 bg-slate-50 p-3 rounded-lg">
-                            <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                            <div className="w-1.5 h-1.5 rounded-full mt-2 mr-3 flex-shrink-0" style={{ backgroundColor: '#0099f2' }}></div>
                             <span className="text-base">{item}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
-                    <div className="bg-blue-50/50 p-5 rounded-xl border border-blue-100 flex items-start gap-3">
-                      <div className="mt-1 text-blue-600">
+                    <div className="p-5 rounded-xl border flex items-start gap-3" style={{ backgroundColor: 'rgba(0, 153, 242, 0.05)', borderColor: 'rgba(0, 153, 242, 0.2)' }}>
+                      <div className="mt-1" style={{ color: '#0099f2' }}>
                         <ChevronRight size={20} />
                       </div>
                       <p className="text-base font-medium text-slate-800">
-                        <span className="text-blue-600 font-bold">Outcome:</span> {program.outcome}
+                        <span className="font-bold" style={{ color: '#0099f2' }}>Outcome:</span> {program.outcome}
                       </p>
                     </div>
                 </div>

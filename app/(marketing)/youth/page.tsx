@@ -20,11 +20,11 @@ export default function YouthPage() {
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-12 items-center relative z-10">
           <div className="animate-fade-in-up">
-            <span className="text-green-400 font-bold uppercase tracking-wider text-sm mb-2 block">
+            <span className="font-bold uppercase tracking-wider text-sm mb-2 block" style={{ color: '#016629' }}>
               For Aspiring Agripreneurs
             </span>
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              Are you ready to build your <span className="text-blue-400">dairy business</span>?
+              Are you ready to build your <span style={{ color: '#0099f2' }}>dairy business</span>?
             </h1>
             <p className="text-xl text-slate-200 mb-8">
               YDEN helps you start and grow as a young dairy entrepreneur – even if you don&apos;t own cows yet. We
@@ -62,7 +62,7 @@ export default function YouthPage() {
                 "Willing to commit time and effort to training and implementation",
               ].map((req, i) => (
                 <li key={i} className="flex items-center text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-100">
-                  <CheckCircle className="w-5 h-5 text-emerald-600 mr-3 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 mr-3 flex-shrink-0" style={{ color: '#016629' }} />
                   {req}
                 </li>
               ))}
@@ -74,7 +74,7 @@ export default function YouthPage() {
             <h2 className="text-2xl font-bold text-slate-900 mb-6">What you get</h2>
             <div className="space-y-6">
               <div className="flex">
-                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-bold" style={{ backgroundColor: 'rgba(0, 153, 242, 0.1)', color: '#0099f2' }}>
                   1
                 </div>
                 <div className="ml-4">
@@ -83,7 +83,7 @@ export default function YouthPage() {
                 </div>
               </div>
               <div className="flex">
-                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-bold" style={{ backgroundColor: 'rgba(0, 153, 242, 0.1)', color: '#0099f2' }}>
                   2
                 </div>
                 <div className="ml-4">
@@ -92,7 +92,7 @@ export default function YouthPage() {
                 </div>
               </div>
               <div className="flex">
-                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-bold" style={{ backgroundColor: 'rgba(0, 153, 242, 0.1)', color: '#0099f2' }}>
                   3
                 </div>
                 <div className="ml-4">
@@ -100,7 +100,7 @@ export default function YouthPage() {
                 </div>
               </div>
               <div className="flex">
-                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-bold" style={{ backgroundColor: 'rgba(0, 153, 242, 0.1)', color: '#0099f2' }}>
                   4
                 </div>
                 <div className="ml-4">
@@ -109,7 +109,7 @@ export default function YouthPage() {
                 </div>
               </div>
               <div className="flex">
-                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-bold" style={{ backgroundColor: 'rgba(0, 153, 242, 0.1)', color: '#0099f2' }}>
                   5
                 </div>
                 <div className="ml-4">
