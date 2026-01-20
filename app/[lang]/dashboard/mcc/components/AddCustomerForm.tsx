@@ -19,6 +19,8 @@ import {
   FileText
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { GeoLocationInput } from "@/components/ui/geo-location-input"
+import { Separator } from "@/components/ui/separator"
 
 interface AddCustomerFormProps {
   open: boolean
@@ -35,10 +37,14 @@ interface CustomerFormData {
   contactPerson: string
   taxId: string
   notes: string
+  gpsLatitude?: number | null
+  gpsLongitude?: number | null
+  geoConsent?: boolean
 }
 
 export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFormProps) {
   const { user } = useAuth()
+  const missingMccAssignment = !user?.mccId
   
   const [formData, setFormData] = useState<CustomerFormData>({
     name: '',
@@ -48,11 +54,15 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
     district: '',
     contactPerson: '',
     taxId: '',
-    notes: ''
+    notes: '',
+    gpsLatitude: null,
+    gpsLongitude: null,
+    geoConsent: false
   })
   
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Partial<CustomerFormData>>({})
+  const submitDisabled = isLoading || missingMccAssignment
 
   const validateForm = (): boolean => {
     const newErrors: Partial<CustomerFormData> = {}
@@ -83,6 +93,11 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
       return
     }
 
+    if (!user?.mccId) {
+      toast.error("Your profile is not assigned to an MCC. Please contact an administrator.")
+      return
+    }
+
     setIsLoading(true)
     
     try {
@@ -108,6 +123,9 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
           taxId: formData.taxId.trim() || null,
           notes: formData.notes.trim() || null,
           mccId: user?.mccId,
+          gpsLatitude: formData.gpsLatitude || null,
+          gpsLongitude: formData.gpsLongitude || null,
+          geoConsent: formData.gpsLatitude != null && formData.gpsLongitude != null,
         }),
       })
 
@@ -123,7 +141,10 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
           district: '',
           contactPerson: '',
           taxId: '',
-          notes: ''
+          notes: '',
+          gpsLatitude: null,
+          gpsLongitude: null,
+          geoConsent: false
         })
         setErrors({})
         onOpenChange(false)
@@ -172,6 +193,11 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {missingMccAssignment && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-sm">
+              Your account is not linked to an MCC. Please contact your administrator to be assigned before adding customers.
+            </div>
+          )}
           <div className="space-y-4">
             {/* Customer Name */}
             <div className="space-y-2">
@@ -312,6 +338,24 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
               </div>
             </div>
 
+            <Separator className="my-4" />
+
+            {/* Geo-location Section */}
+            <div className="space-y-2">
+              <GeoLocationInput
+                latitude={formData.gpsLatitude}
+                longitude={formData.gpsLongitude}
+                onLocationChange={(lat, lng) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    gpsLatitude: lat,
+                    gpsLongitude: lng,
+                    geoConsent: lat != null && lng != null
+                  }))
+                }}
+              />
+            </div>
+
             {/* Notes */}
             <div className="space-y-2">
               <Label htmlFor="notes" className="text-sm font-medium">
@@ -344,8 +388,8 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
-              className="bg-blue-600 hover:bg-blue-700 text-white/90"
+              disabled={submitDisabled}
+              className="bg-blue-600 hover:bg-blue-700 text-white/90 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

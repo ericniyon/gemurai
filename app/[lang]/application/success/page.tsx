@@ -32,7 +32,7 @@ export default function ApplicationSuccessPage() {
       importantInfo: "Important Information",
       infoPoints: [
         "Keep your phone and email accessible for updates",
-        "Check your spam/junk folder for emails from Gemurai",
+        "Check your spam/junk folder for emails from HarvestPlus",
         "You can contact support if you don't hear back within 7 days"
       ],
       returnHome: "Return to Homepage"
@@ -49,7 +49,7 @@ export default function ApplicationSuccessPage() {
       importantInfo: "Amakuru y'Ingenzi",
       infoPoints: [
         "Komeza kugenzura telefoni n'imeyili yawe",
-        "Reba muri spam/junk folder imeyili ziva kuri Gemurai",
+        "Reba muri spam/junk folder imeyili ziva kuri HarvestPlus",
         "Ushobora guhamagara ubufasha niba utabonye igisubizo mu minsi 7"
       ],
       returnHome: "Subira ku Ipaji y'Ibanze"

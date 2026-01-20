@@ -85,7 +85,7 @@ export default function AboutPage() {
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">Our story</h2>
           <p className="text-xl text-slate-600 leading-relaxed">
             YDEN was born out of practical work in Rwanda&apos;s dairy value chain. Through{" "}
-            <strong className="font-semibold" style={{ color: '#0099f2' }}>Gemura&apos;s milk collection centers</strong> and{" "}
+            <strong className="font-semibold" style={{ color: '#0099f2' }}>HarvestPlus&apos;s milk collection centers</strong> and{" "}
             <strong className="font-semibold" style={{ color: '#0099f2' }}>MoHarvest&apos;s post-harvest and cold chain solutions</strong>, we saw a
             clear gap: <strong className="text-slate-900">young people</strong> were present on farms but rarely leading viable dairy businesses. We created YDEN to
             bridge that gap – combining technical training, entrepreneurship, and concrete market linkages into a
@@ -112,7 +112,7 @@ export default function AboutPage() {
               "Identify youth in rural and peri-urban areas interested in dairy.",
               "Train them in technical dairy skills and business fundamentals.",
               "Equip them with tools, technologies, and advisory support.",
-              "Connect them to Gemura, MoHarvest, cooperatives, processors, and off-takers.",
+              "Connect them to HarvestPlus, MoHarvest, cooperatives, processors, and off-takers.",
               "Support through mentorship, peer networks, and financing pathways.",
             ].map((step, i) => (
               <ScrollReveal key={i} delay={i * 150}>
@@ -139,7 +139,7 @@ export default function AboutPage() {
           </ScrollReveal>
           <div className="grid md:grid-cols-2 gap-8">
             {[
-              { name: "Gemura Milk Collection", role: "Quality milk aggregation and farmer linkages." },
+              { name: "HarvestPlus Milk Collection", role: "Quality milk aggregation and farmer linkages." },
               { name: "MoHarvest", role: "Cold chain and post-harvest infrastructure." },
               { name: "RAB & Districts", role: "Government partnership and regulatory alignment." },
               { name: "Development Partners", role: "Financial and technical support for scaling impact." },

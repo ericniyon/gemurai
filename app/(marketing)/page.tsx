@@ -166,7 +166,7 @@ export default function HomePage() {
             </span>
             </div>
             <div className="font-mono text-slate-400">
-              Partnering with <span className="text-white font-bold">GEMURA</span> &{" "}
+              Partnering with <span className="text-white font-bold">HARVESTPLUS</span> &{" "}
               <span className="text-white font-bold">KIVU COLD</span>
             </div>
           </div>
@@ -182,7 +182,7 @@ export default function HomePage() {
               <h4 className="font-bold uppercase tracking-widest text-sm mb-2" style={{ color: '#0099f2' }}>Who We Are</h4>
               <h2 className="text-4xl font-bold text-slate-900 mb-6 leading-tight">Who is YDEN?</h2>
               <p className="text-slate-600 text-lg mb-8 leading-relaxed">
-                Young Dairy Entrepreneurs Network (YDEN) is a youth-led initiative that equips young people in Rwanda to build profitable, climate-smart businesses in the dairy sector. Built around <strong className="text-slate-900">Gemura milk collection</strong>, <strong className="text-slate-900">Kivu Cold</strong> post-harvest solutions, and the <strong className="text-slate-900">HarvestPlus philosophy</strong>, we help youth create real jobs and real income along the entire dairy value chain.
+                Young Dairy Entrepreneurs Network (YDEN) is a youth-led initiative that equips young people in Rwanda to build profitable, climate-smart businesses in the dairy sector. Built around <strong className="text-slate-900">HarvestPlus milk collection</strong>, <strong className="text-slate-900">Kivu Cold</strong> post-harvest solutions, and the <strong className="text-slate-900">HarvestPlus philosophy</strong>, we help youth create real jobs and real income along the entire dairy value chain.
               </p>
 
               <Link href="/about" className="font-bold flex items-center gap-2 hover:gap-3 transition-all group" style={{ color: '#0099f2' }}>
@@ -272,7 +272,7 @@ export default function HomePage() {
               {
                 icon: <Building2 size={32} />,
                 title: "Markets & Opportunities",
-                desc: "Linkages to Gemura for milk aggregation, logistics, and value-added processing.",
+                desc: "Linkages to HarvestPlus for milk aggregation, logistics, and value-added processing.",
                 color: "from-purple-500 to-purple-600",
                 colorLight: "from-purple-50 to-violet-50",
                 bgColor: "bg-purple-50",
@@ -367,7 +367,7 @@ export default function HomePage() {
             {[
               { number: "120+", label: "youth trained in dairy entrepreneurship", icon: <Users size={32} /> },
               { number: "5", label: "pilot districts engaged", icon: <Truck size={32} /> },
-              { number: "3", label: "core value-chain partners (Gemura, Kivu Cold Group, others)", icon: <Award size={32} /> },
+              { number: "3", label: "core value-chain partners (HarvestPlus, Kivu Cold Group, others)", icon: <Award size={32} /> },
               { number: "20+", label: "youth-led dairy ventures supported", icon: <TrendingUp size={32} /> },
             ].map((stat, i) => (
               <ScrollReveal key={i} delay={i * 100}>
@@ -458,7 +458,7 @@ export default function HomePage() {
             <div className="md:w-1/2 p-12 md:p-16 flex flex-col justify-center">
               <h2 className="text-3xl font-bold text-white mb-6">From youth to dairy entrepreneur</h2>
               <p className="text-slate-300 text-lg leading-relaxed mb-8">
-                At 24, Aline from Kayonza started with 2 calves and basic training from YDEN. After joining our youngstock program and supplying milk through Gemura&apos;s collection centre, she now manages a small herd, employs 2 other youth, and has consistent income every month.
+                At 24, Aline from Kayonza started with 2 calves and basic training from YDEN. After joining our youngstock program and supplying milk through HarvestPlus&apos;s collection centre, she now manages a small herd, employs 2 other youth, and has consistent income every month.
               </p>
               <Link href="/news" className="self-start inline-flex items-center gap-2 rounded-full px-6 py-3 font-semibold text-white hover:opacity-90 transition-opacity" style={{ backgroundColor: '#016629' }}>
                 Read more success stories <ArrowRight className="h-4 w-4" />

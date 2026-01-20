@@ -49,7 +49,18 @@ import {
   Lock,
   ChevronsLeft,
   ChevronsRight,
-  ClipboardList
+  ClipboardList,
+  Wheat,
+  Coffee,
+  Sprout,
+  Calendar,
+  CheckCircle2,
+  CheckSquare,
+  Database,
+  UserPlus,
+  Clock,
+  Tractor,
+  DollarSign
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { usePermissionUpdates } from "@/hooks/use-permission-updates"
@@ -74,13 +85,121 @@ interface NavigationItem {
   roles?: string[]
 }
 
-// Define simplified navigation items - keeping only the specified menu items
-const getAllNavigationItems = (lang: string): NavigationItem[] => [
+// Define navigation items for ADMIN users (platform administration focus)
+// Matching the screenshot: Dashboard, Users, MCCs, Pricing Scheme, Categories, Commodities, Quality Checks, Inputs Catalog, Seasons & Calendars, Reports, Settings
+const getAdminNavigationItems = (lang: string): NavigationItem[] => [
+  { 
+    name: "Dashboard", 
+    href: `/${lang}/dashboard`,
+    icon: LayoutDashboard,
+    roles: ["ADMIN", "SUPER_ADMIN"]
+  },
+  {
+    name: "Users",
+    href: `/${lang}/dashboard/admin/users`,
+    icon: Users,
+    roles: ["ADMIN", "SUPER_ADMIN"]
+  },
+  {
+    name: "MCCs",
+    href: `/${lang}/dashboard/admin/mccs`,
+    icon: Building2,
+    roles: ["ADMIN", "SUPER_ADMIN"]
+  },
+  {
+    name: "Pricing Scheme",
+    href: `/${lang}/dashboard/admin/pricing-scheme`,
+    icon: DollarSign,
+    roles: ["ADMIN", "SUPER_ADMIN"]
+  },
+  {
+    name: "Categories",
+    href: `/${lang}/dashboard/admin/commodity-studio?tab=categories`,
+    icon: Package,
+    roles: ["ADMIN", "SUPER_ADMIN"]
+  },
+  {
+    name: "Commodities",
+    href: `/${lang}/dashboard/admin/commodity-studio?tab=commodities`,
+    icon: Wheat,
+    roles: ["ADMIN", "SUPER_ADMIN"]
+  },
+  {
+    name: "Quality Checks",
+    href: `/${lang}/dashboard/admin/commodity-studio?tab=quality`,
+    icon: CheckSquare,
+    roles: ["ADMIN", "SUPER_ADMIN"]
+  },
+  {
+    name: "Inputs Catalog",
+    href: `/${lang}/dashboard/admin/commodity-studio?tab=input-catalog`,
+    icon: Database,
+    roles: ["ADMIN", "SUPER_ADMIN"]
+  },
+  {
+    name: "Seasons & Calendars",
+    href: `/${lang}/dashboard/admin/commodity-studio?tab=frequency`,
+    icon: Calendar,
+    roles: ["ADMIN", "SUPER_ADMIN"]
+  },
+  {
+    name: "Reports",
+    href: `/${lang}/dashboard/admin/reports`,
+    icon: BarChart3,
+    roles: ["ADMIN", "SUPER_ADMIN"]
+  },
+  {
+    name: "Settings",
+    href: `/${lang}/dashboard/settings`,
+    icon: Settings,
+    roles: ["ADMIN", "SUPER_ADMIN"],
+    children: [
+      {
+        name: "General Settings",
+        href: `/${lang}/dashboard/settings/general`,
+        icon: Settings,
+        roles: ["ADMIN", "SUPER_ADMIN"]
+      },
+      {
+        name: "User Management",
+        href: `/${lang}/dashboard/settings/user-management`,
+        icon: Users,
+        roles: ["ADMIN", "SUPER_ADMIN"]
+      },
+      {
+        name: "System Configuration",
+        href: `/${lang}/dashboard/settings/system`,
+        icon: Database,
+        roles: ["ADMIN", "SUPER_ADMIN"]
+      },
+      {
+        name: "Notifications",
+        href: `/${lang}/dashboard/settings/notifications`,
+        icon: Bell,
+        roles: ["ADMIN", "SUPER_ADMIN"]
+      },
+      {
+        name: "Security",
+        href: `/${lang}/dashboard/settings/security`,
+        icon: Shield,
+        roles: ["ADMIN", "SUPER_ADMIN"]
+      },
+      {
+        name: "Audit Logs",
+        href: `/${lang}/dashboard/settings/audit`,
+        icon: FileText,
+        roles: ["ADMIN", "SUPER_ADMIN"]
+      }
+    ]
+  }
+]
+
+// Define navigation items for MCC_MANAGER and other operational roles
+const getMCCManagerNavigationItems = (lang: string): NavigationItem[] => [
   { 
     name: "Dashboard", 
     href: `/${lang}/dashboard`,
     icon: LayoutDashboard
-    // No permissions required - every user should have access to Dashboard
   },
   { 
     name: "Inventory", 
@@ -89,59 +208,158 @@ const getAllNavigationItems = (lang: string): NavigationItem[] => [
     requiredPermissions: [],
     roles: ["EMPLOYER", "SUPER_ADMIN", "BRANCH_MANAGER"],
     children: [
-      { name: "Milk Inventory", href: `/${lang}/dashboard/mcc`, icon: Droplets, requiredPermissions: [] },
-      { name: "Pharmacy Inventory", href: `/${lang}/dashboard/pharmacy`, icon: Pill, requiredPermissions: [] }
+      { name: "Milk Inventory", href: `/${lang}/dashboard/mcc`, icon: Droplets, requiredPermissions: [], roles: ["EMPLOYER", "SUPER_ADMIN", "BRANCH_MANAGER"] },
+      { name: "Pharmacy Inventory", href: `/${lang}/dashboard/pharmacy`, icon: Pill, requiredPermissions: [], roles: ["EMPLOYER", "SUPER_ADMIN", "BRANCH_MANAGER"] }
     ]
   },
-  // MCC Manager specific menu items
-  { 
-    name: "Customers", 
-    href: `/${lang}/dashboard/mcc/customers`, 
-    icon: Users, 
+  // MCC (Dairy) Sector Dropdown - milk_collections, mcc_periods, milk processing
+  {
+    name: "MCC",
+    href: `/${lang}/dashboard/mcc`,
+    icon: Droplets,
     requiredPermissions: [],
-    roles: ["MCC_MANAGER"]
+    roles: ["MCC_MANAGER", "SUPER_ADMIN"],
+    children: [
+      {
+        name: "Milk Collections",
+        href: `/${lang}/dashboard/mcc/collections`,
+        icon: Droplets,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      },
+      {
+        name: "MCC Periods",
+        href: `/${lang}/dashboard/mcc/periods`,
+        icon: Calendar,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      },
+      {
+        name: "Milk Processing",
+        href: `/${lang}/dashboard/mcc/processing`,
+        icon: Activity,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      },
+      {
+        name: "Customers",
+        href: `/${lang}/dashboard/mcc/customers`,
+        icon: Users,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      },
+      {
+        name: "Suppliers",
+        href: `/${lang}/dashboard/mcc/suppliers`,
+        icon: Package,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      },
+      {
+        name: "Sales",
+        href: `/${lang}/dashboard/mcc/sales`,
+        icon: ShoppingCart,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      },
+      {
+        name: "Payments",
+        href: `/${lang}/dashboard/mcc/payments`,
+        icon: CreditCard,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      },
+      {
+        name: "Ikofi",
+        href: `/${lang}/dashboard/mcc/ikofi`,
+        icon: Wallet,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      },
+      {
+        name: "Inventory & Rentals",
+        href: `/${lang}/dashboard/mcc/inventory-rentals`,
+        icon: ClipboardList,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      }
+    ]
   },
-  { 
-    name: "Suppliers", 
-    href: `/${lang}/dashboard/mcc/suppliers`, 
-    icon: Package, 
+  // Agriculture (Crops) Sector Dropdown - crop_collections, crop_types, crop_periods, crop processing
+  {
+    name: "Agriculture",
+    href: `/${lang}/dashboard/agriculture`,
+    icon: Sprout,
     requiredPermissions: [],
-    roles: ["MCC_MANAGER"]
+    roles: ["MCC_MANAGER", "SUPER_ADMIN"],
+    children: [
+      {
+        name: "Crop Collections",
+        href: `/${lang}/dashboard/mcc/crops/collections`,
+        icon: Package,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      },
+      {
+        name: "Crop Types",
+        href: `/${lang}/dashboard/mcc/crops/types`,
+        icon: Database,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      },
+      {
+        name: "Crop Periods",
+        href: `/${lang}/dashboard/mcc/crops/periods`,
+        icon: Calendar,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      },
+      {
+        name: "Crop Processing",
+        href: `/${lang}/dashboard/mcc/crops/processing`,
+        icon: Activity,
+        requiredPermissions: [],
+        roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+      }
+    ]
   },
-  { 
-    name: "Collections", 
-    href: `/${lang}/dashboard/mcc/collections`, 
-    icon: Droplets, 
+  // Settings - For MCC_MANAGER and other operational roles
+  {
+    name: "Settings",
+    href: `/${lang}/dashboard/settings`,
+    icon: Settings,
     requiredPermissions: [],
-    roles: ["MCC_MANAGER"]
-  },
-  { 
-    name: "Sales", 
-    href: `/${lang}/dashboard/mcc/sales`, 
-    icon: ShoppingCart, 
-    requiredPermissions: [],
-    roles: ["MCC_MANAGER"]
-  },
-  { 
-    name: "Inventory & Rentals", 
-    href: `/${lang}/dashboard/mcc/inventory-rentals`, 
-    icon: ClipboardList, 
-    requiredPermissions: [],
-    roles: ["MCC_MANAGER"]
-  },
-  { 
-    name: "Ikofi", 
-    href: `/${lang}/dashboard/mcc/ikofi`, 
-    icon: Wallet, 
-    requiredPermissions: [],
-    roles: ["MCC_MANAGER"]
-  },
-  { 
-    name: "Payments", 
-    href: `/${lang}/dashboard/mcc/payments`, 
-    icon: CreditCard, 
-    requiredPermissions: [],
-    roles: ["MCC_MANAGER"]
+    roles: ["SUPER_ADMIN", "MCC_MANAGER"],
+    children: [
+      {
+        name: "General Settings",
+        href: `/${lang}/dashboard/settings/general`,
+        icon: Settings,
+        requiredPermissions: [],
+        roles: ["SUPER_ADMIN", "MCC_MANAGER"]
+      },
+      {
+        name: "User Preferences",
+        href: `/${lang}/dashboard/settings/preferences`,
+        icon: User,
+        requiredPermissions: [],
+        roles: ["SUPER_ADMIN", "MCC_MANAGER"]
+      },
+      {
+        name: "Notifications",
+        href: `/${lang}/dashboard/settings/notifications`,
+        icon: Bell,
+        requiredPermissions: [],
+        roles: ["SUPER_ADMIN", "MCC_MANAGER"]
+      },
+      {
+        name: "MCC Configuration",
+        href: `/${lang}/dashboard/settings/mcc-config`,
+        icon: Building2,
+        requiredPermissions: [],
+        roles: ["SUPER_ADMIN", "MCC_MANAGER"]
+      }
+    ]
   },
 ]
 
@@ -164,7 +382,6 @@ const hasRequiredRole = (userRole: string, allowedRoles?: string[]): boolean => 
 const getNavigationItems = (user: any, lang: string): NavigationItem[] => {
   if (!user) return []
   
-  const allItems = getAllNavigationItems(lang)
   // Use database permissions (user.permissions) instead of rolePermissions
   const userPermissions = user.permissions || []
   
@@ -180,6 +397,25 @@ const getNavigationItems = (user: any, lang: string): NavigationItem[] => {
     })
   }
 
+  // ADMIN and SUPER_ADMIN users get a completely different sidebar focused on platform administration
+  if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+    console.log('🎯 ADMIN/SUPER_ADMIN User detected - using admin-specific navigation')
+    const adminItems = getAdminNavigationItems(lang)
+    return adminItems.filter(item => 
+      hasRequiredPermissions(userPermissions, item.requiredPermissions || [], user.role) &&
+      hasRequiredRole(user.role, item.roles)
+    ).map(item => ({
+      ...item,
+      children: item.children?.filter(child => 
+        hasRequiredPermissions(userPermissions, child.requiredPermissions || [], user.role) &&
+        hasRequiredRole(user.role, child.roles)
+      )
+    }))
+  }
+
+  // MCC_MANAGER and other operational roles get the standard navigation
+  const allItems = getMCCManagerNavigationItems(lang)
+  
   // Special handling for DCC users - ensure they can see stock management
   if (user.role === "DCC") {
     console.log('🎯 DCC User detected, ensuring stock management access')
@@ -196,7 +432,8 @@ const getNavigationItems = (user: any, lang: string): NavigationItem[] => {
   ).map(item => ({
     ...item,
     children: item.children?.filter(child => 
-      hasRequiredPermissions(userPermissions, child.requiredPermissions || [], user.role)
+      hasRequiredPermissions(userPermissions, child.requiredPermissions || [], user.role) &&
+      hasRequiredRole(user.role, child.roles)
     )
   }))
 
@@ -674,26 +911,17 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
         <nav className="h-full flex flex-col">
           {/* Sidebar Header */}
           <div className="sidebar-header">
-            <Link href={`/${lang}/dashboard`} className="sidebar-logo" aria-label="Gemura dashboard home">
+            <Link href={`/${lang}/dashboard`} className="sidebar-logo" aria-label="HarvestPlus by GEMURA dashboard home">
               <div className="sidebar-logo-icon">
-                <span className="text-lg font-semibold tracking-tight">G</span>
+                <span className="text-lg font-semibold tracking-tight">H</span>
               </div>
               <div>
-                <span className="sidebar-brand-title">Gemura</span>
-                <span className="sidebar-brand-subtitle">Dashboard</span>
+                <span className="sidebar-brand-title">HarvestPlus</span>
+                <span className="sidebar-brand-subtitle">by GEMURA</span>
               </div>
             </Link>
           </div>
 
-          <div className="sidebar-profile">
-            <div className="sidebar-profile-avatar">
-              {displayName.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <div className="sidebar-profile-name">{displayName}</div>
-              <div className="sidebar-profile-role">{displayRole}</div>
-            </div>
-          </div>
 
           {/* Desktop Navigation */}
           <div className="sidebar-nav">
@@ -732,24 +960,78 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                         expandedItems.includes(item.href) ? "expanded" : "collapsed"
                       )}>
                         <div className="sidebar-submenu">
-                          {item.children.map((child) => (
-                            child.href && child.href.trim() !== "" && child.href.trim() !== "#" && child.href.trim() !== "/" ? (
-                              <Link
-                                key={child.href}
-                                href={child.href.trim()}
-                                className={cn(
-                                  "sidebar-submenu-item",
-                                  isActiveLink(child.href) ? "active" : ""
-                                )}
-                                title={child.name}
-                              >
-                                {createElement(child.icon, {
-                                  className: "sidebar-nav-item-icon"
-                                })}
-                                <span className="sidebar-item-label">{child.name}</span>
-                              </Link>
-                            ) : null
-                          ))}
+                          {item.children.map((child) => {
+                            // If child has children, render as nested expandable
+                            if (child.children && child.children.length > 0) {
+                              return (
+                                <div key={child.href || child.name} className="sidebar-nested-expandable">
+                                  <button
+                                    className={cn(
+                                      "sidebar-expandable-toggle sidebar-nested-toggle",
+                                      pathname.startsWith(child.href || "") ? "active" : ""
+                                    )}
+                                    onClick={() => toggleExpanded(child.href || child.name)}
+                                    title={child.name}
+                                  >
+                                    <div className="sidebar-item-content">
+                                      {createElement(child.icon, {
+                                        className: "sidebar-nav-item-icon"
+                                      })}
+                                      <span className="sidebar-item-label">{child.name}</span>
+                                    </div>
+                                    <ChevronDown className={cn(
+                                      "sidebar-expandable-chevron",
+                                      expandedItems.includes(child.href || child.name) ? "expanded" : ""
+                                    )} />
+                                  </button>
+                                  <div className={cn(
+                                    "sidebar-expandable-content sidebar-nested-content",
+                                    expandedItems.includes(child.href || child.name) ? "expanded" : "collapsed"
+                                  )}>
+                                    <div className="sidebar-submenu sidebar-nested-submenu">
+                                      {child.children.map((nestedChild) => (
+                                        nestedChild.href && nestedChild.href.trim() !== "" && nestedChild.href.trim() !== "#" && nestedChild.href.trim() !== "/" ? (
+                                          <Link
+                                            key={nestedChild.href}
+                                            href={nestedChild.href.trim()}
+                                            className={cn(
+                                              "sidebar-submenu-item",
+                                              isActiveLink(nestedChild.href) ? "active" : ""
+                                            )}
+                                            title={nestedChild.name}
+                                          >
+                                            {createElement(nestedChild.icon, {
+                                              className: "sidebar-nav-item-icon"
+                                            })}
+                                            <span className="sidebar-item-label">{nestedChild.name}</span>
+                                          </Link>
+                                        ) : null
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            }
+                            // Regular child link
+                            return (
+                              child.href && child.href.trim() !== "" && child.href.trim() !== "#" && child.href.trim() !== "/" ? (
+                                <Link
+                                  key={child.href}
+                                  href={child.href.trim()}
+                                  className={cn(
+                                    "sidebar-submenu-item",
+                                    isActiveLink(child.href) ? "active" : ""
+                                  )}
+                                  title={child.name}
+                                >
+                                  {createElement(child.icon, {
+                                    className: "sidebar-nav-item-icon"
+                                  })}
+                                  <span className="sidebar-item-label">{child.name}</span>
+                                </Link>
+                              ) : null
+                            )
+                          })}
                         </div>
                       </div>
                     </div>
@@ -762,6 +1044,11 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                           isActiveLink(item.href) ? "active" : ""
                         )}
                         title={item.name}
+                        style={isActiveLink(item.href) ? {
+                          borderLeft: "4px solid #3b82f6",
+                          paddingLeft: "calc(1rem - 4px)",
+                          background: "rgba(135, 206, 250, 0.3)"
+                        } : {}}
                       >
                         {createElement(item.icon, {
                           className: "sidebar-nav-item-icon"
@@ -857,6 +1144,11 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
                             ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm active"
                             : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                         )}
+                        style={isActiveLink(item.href) ? {
+                          borderLeft: "4px solid #3b82f6",
+                          paddingLeft: "calc(0.75rem - 4px)",
+                          background: "rgba(135, 206, 250, 0.3)"
+                        } : {}}
                         >
                           {createElement(item.icon, {
                           className: cn("h-5 w-5", isActiveLink(item.href) ? "text-sidebar-primary-foreground" : "text-sidebar-foreground")

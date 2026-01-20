@@ -27,7 +27,13 @@
     "create-dcc-user": "tsx scripts/create-dcc-user.ts",
     "create-multiple-dcc-users": "tsx scripts/create-multiple-dcc-users.ts",
     "create-dcc-application": "tsx scripts/create-dcc-application.ts",
-    "setup-redis": "tsx scripts/setup-redis.ts"
+    "setup-redis": "tsx scripts/setup-redis.ts",
+    "apply-migrations": "tsx scripts/apply-migrations.ts",
+    "apply-sql-migrations": "tsx scripts/apply-all-sql-migrations.ts",
+    "generate-sql": "tsx scripts/generate-combined-sql.ts",
+    "generate-pgadmin-sql": "tsx scripts/generate-pgadmin-sql.ts",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev"
   },
   "dependencies": {
     "@auth/core": "^0.39.1",

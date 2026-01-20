@@ -793,7 +793,7 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
   },
   fr: {
     hero: {
-      title: "Rejoignez la Communauté Gemurai",
+      title: "Rejoignez la Communauté HarvestPlus",
       subtitle: "Faites partie du voyage de transformation numérique du Rwanda",
       values: {
         innovation: {
@@ -868,7 +868,7 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
         },
         success: {
           title: "Compte Créé avec Succès !",
-          description: "Bienvenue sur la Plateforme Gemurai. Vous pouvez maintenant accéder à votre tableau de bord."
+          description: "Bienvenue sur la Plateforme HarvestPlus. Vous pouvez maintenant accéder à votre tableau de bord."
         },
         error: {
           title: "Échec de l'Inscription",

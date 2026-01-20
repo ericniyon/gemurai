@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown, Search } from "lucide-react"
+import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -63,15 +63,8 @@ export function Combobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0 bg-white" align="start">
-        <Command>
-          <div className="flex items-center border-b px-3 bg-white">
-            <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-            <CommandInput
-              placeholder={searchPlaceholder}
-              className="flex h-10 w-full rounded-md bg-white py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
-          <CommandList className="bg-white">
+        <Command shouldFilter={false}>
+          <CommandList className="bg-white max-h-[300px] overflow-y-auto">
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground bg-white">{emptyText}</CommandEmpty>
             <CommandGroup className="bg-white">
               {options.map((option) => (
@@ -79,19 +72,24 @@ export function Combobox({
                   key={option.value}
                   value={option.label}
                   onSelect={(currentValue) => {
-                    // Find the option by label (since we're using label as value for search)
-                    const selectedOption = options.find(opt => opt.label === currentValue)
-                    const newValue = selectedOption && selectedOption.value === value ? "" : selectedOption?.value || ""
-                    onValueChange?.(newValue)
-                    setOpen(false)
-                    if (onBlur) {
-                      setTimeout(onBlur, 100)
+                    // Find the option by label (since Command uses label for search)
+                    const selectedOption = options.find(opt => 
+                      opt.label.toLowerCase() === currentValue.toLowerCase()
+                    )
+                    if (selectedOption) {
+                      // Always set the value when an option is selected (don't toggle)
+                      const newValue = selectedOption.value
+                      onValueChange?.(newValue)
+                      setOpen(false)
+                      if (onBlur) {
+                        setTimeout(onBlur, 100)
+                      }
                     }
                   }}
-                  className="cursor-pointer bg-white hover:bg-gray-100"
+                  className="cursor-pointer bg-white hover:bg-blue-50 transition-colors"
                 >
-                  <Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
-                  <span className="truncate">{option.label}</span>
+                  <Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100 text-blue-600" : "opacity-0")} />
+                  <span className={cn("truncate", value === option.value && "font-semibold text-blue-900")}>{option.label}</span>
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -3,15 +3,18 @@
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
 import { 
   type LucideIcon,
-  Activity, ShoppingCart, Truck, UserPlus, BatteryCharging, GaugeCircle, Package, ClipboardList, PiggyBank, AlertTriangle
+  Activity, ShoppingCart, Truck, UserPlus, BatteryCharging, GaugeCircle, Package, ClipboardList, PiggyBank, AlertTriangle, Wheat, Coffee, Settings, CheckCircle2, XCircle, DollarSign, Clock, Droplets, Users, Building2, Database, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, CheckSquare, Calendar
 } from "lucide-react"
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { GeoIntelligenceWidgets } from "@/components/dashboard/geo-intelligence-widgets"
+import { GeoMapViewer, type GeoEntity } from "@/components/ui/geo-map-viewer"
+import { CommodityCollectionForm } from "@/components/mcc/CommodityCollectionForm"
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -24,6 +27,13 @@ export default function DashboardPage() {
   const [mccDashboardData, setMccDashboardData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [trendPeriod, setTrendPeriod] = useState<"7D" | "30D" | "90D">("30D")
+  const [geoStats, setGeoStats] = useState<any>(null)
+  const [geoEntities, setGeoEntities] = useState<GeoEntity[]>([])
+  const [geoLoading, setGeoLoading] = useState(true)
+  const [commodities, setCommodities] = useState<any[]>([])
+  const [commodityStats, setCommodityStats] = useState<any>(null)
+  const [commodityLoading, setCommodityLoading] = useState(true)
+  const [isCollectionFormOpen, setIsCollectionFormOpen] = useState(false)
 
   const formatDate = (value?: string | null) => {
     if (!value) return null
@@ -60,6 +70,139 @@ export default function DashboardPage() {
             }
           } catch (error) {
             console.error("Error fetching MCC dashboard:", error)
+          }
+        }
+
+        // Fetch geo-intelligence data
+        if (token) {
+          try {
+            setGeoLoading(true)
+            const [geoStatsRes, geoEntitiesRes] = await Promise.all([
+              fetch("/api/v1/geo/stats", {
+                headers: {
+                  "Authorization": `Bearer ${token}`
+                }
+              }),
+              fetch("/api/v1/geo/entities", {
+                headers: {
+                  "Authorization": `Bearer ${token}`
+                }
+              })
+            ])
+
+            if (geoStatsRes.ok) {
+              const statsData = await geoStatsRes.json()
+              if (statsData.success && statsData.data) {
+                setGeoStats(statsData.data)
+              } else {
+                // Set default empty stats if API returns error
+                setGeoStats({
+                  farmersWithGeo: 0,
+                  agentsWithGeo: 0,
+                  mccsWithGeo: 0,
+                  warehousesWithGeo: 0,
+                  customersWithGeo: 0,
+                  suppliersWithGeo: 0,
+                  averageFarmerToMCCDistance: null,
+                  distanceBands: {
+                    "0-2km": 0,
+                    "2-5km": 0,
+                    "5-10km": 0,
+                    ">10km": 0,
+                  },
+                  totalEntitiesWithGeo: 0,
+                })
+              }
+            } else {
+              // Set default empty stats on API error
+              setGeoStats({
+                farmersWithGeo: 0,
+                agentsWithGeo: 0,
+                mccsWithGeo: 0,
+                warehousesWithGeo: 0,
+                customersWithGeo: 0,
+                suppliersWithGeo: 0,
+                averageFarmerToMCCDistance: null,
+                distanceBands: {
+                  "0-2km": 0,
+                  "2-5km": 0,
+                  "5-10km": 0,
+                  ">10km": 0,
+                },
+                totalEntitiesWithGeo: 0,
+              })
+            }
+
+            if (geoEntitiesRes.ok) {
+              const entitiesData = await geoEntitiesRes.json()
+              if (entitiesData.success && entitiesData.data) {
+                setGeoEntities(entitiesData.data)
+              } else {
+                setGeoEntities([])
+              }
+            } else {
+              setGeoEntities([])
+            }
+          } catch (error) {
+            console.error("Error fetching geo data:", error)
+          } finally {
+            setGeoLoading(false)
+          }
+
+          // Fetch HarvestPlus commodity data
+          try {
+            setCommodityLoading(true)
+            const [commoditiesRes, collectionsRes] = await Promise.all([
+              fetch("/api/v1/admin/commodity-studio/commodities", {
+                headers: {
+                  "Authorization": `Bearer ${token}`
+                }
+              }),
+              isMCCManager && user?.mccId
+                ? fetch(`/api/v1/mcc/commodities/collections?mccId=${user.mccId}`, {
+                    headers: {
+                      "Authorization": `Bearer ${token}`
+                    }
+                  })
+                : Promise.resolve(null)
+            ])
+
+            if (commoditiesRes.ok) {
+              const commoditiesData = await commoditiesRes.json()
+              if (commoditiesData.success) {
+                setCommodities(commoditiesData.data || [])
+              }
+            }
+
+            if (collectionsRes && collectionsRes.ok) {
+              const collectionsData = await collectionsRes.json()
+              if (collectionsData.success) {
+                const collections = collectionsData.data || []
+                // Calculate stats
+                const stats = {
+                  totalCollections: collections.length,
+                  totalVolume: collections.reduce((sum: number, c: any) => sum + (c.quantity || 0), 0),
+                  totalRevenue: collections.reduce((sum: number, c: any) => sum + (c.totalAmount || 0), 0),
+                  byCommodity: collections.reduce((acc: any, c: any) => {
+                    const name = c.commodity?.name || "Unknown"
+                    if (!acc[name]) {
+                      acc[name] = { count: 0, volume: 0, revenue: 0 }
+                    }
+                    acc[name].count++
+                    acc[name].volume += c.quantity || 0
+                    acc[name].revenue += c.totalAmount || 0
+                    return acc
+                  }, {}),
+                  pendingCollections: collections.filter((c: any) => c.status === "PENDING").length,
+                  approvedCollections: collections.filter((c: any) => c.status === "APPROVED").length,
+                }
+                setCommodityStats(stats)
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching commodity data:", error)
+          } finally {
+            setCommodityLoading(false)
           }
         }
       } catch (error) {
@@ -399,10 +542,17 @@ export default function DashboardPage() {
 
     const quickActions: Array<{
       title: string
-      href: string
+      href?: string
       icon: LucideIcon
       accent: Accent
+      onClick?: () => void
     }> = [
+      {
+        title: "Collect Commodity",
+        icon: Package,
+        accent: "primary",
+        onClick: () => setIsCollectionFormOpen(true),
+      },
       {
         title: "Collect Milk",
         href: `/${lang}/dashboard/mcc/collections`,
@@ -489,61 +639,10 @@ export default function DashboardPage() {
                     MCC Manager • Dashboard
                   </span>
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">MCC Dashboard</h1>
-                  <p className="mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">Monitor operations, track performance, and manage your milk collection center</p>
-                </div>
               </div>
             </header>
         
         <div className="w-full px-2 sm:px-3 py-4 sm:py-6 space-y-4 sm:space-y-6">
-          {/* Quick Actions Section */}
-          <section id="inventory-rentals" className="relative mt-12">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Quick Actions</h2>
-                <p className="text-sm text-gray-600">Get started with common tasks</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {quickActions.map(({ title, href, icon: Icon, accent }) => {
-                const accentClasses = getAccentClasses(accent)
-                return (
-                  <Link key={title} href={href} className="group">
-                    <Card className="relative bg-gradient-to-br from-white via-white to-blue-50/30 border border-blue-100/60 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer overflow-hidden transform hover:-translate-y-1 hover:scale-[1.02]">
-                      {/* Top gradient bar - always visible */}
-                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600"></div>
-                      
-                      <CardContent className="relative p-3 sm:p-4">
-                        {/* Icon container */}
-                        <div className="mb-3 flex justify-center">
-                          <div className="relative">
-                            <div className={`flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-sm group-hover:shadow-md transition-all duration-300 transform group-hover:scale-105 group-hover:rotate-6`}>
-                              <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white relative z-10" />
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Text content */}
-                        <div className="text-center space-y-1">
-                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-blue-700 transition-colors duration-300">
-                            {title}
-                          </h3>
-                          <div className="flex items-center justify-center gap-1.5 text-xs font-medium text-gray-500 group-hover:text-blue-600 transition-colors">
-                            <span>Get Started</span>
-                            <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                )
-              })}
-            </div>
-          </section>
-
           {/* Summary Cards Section */}
           <section className="relative mt-12">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -585,6 +684,204 @@ export default function DashboardPage() {
                   </Card>
                 )
               })}
+            </div>
+          </section>
+
+          {/* HarvestPlus Multi-Commodity Section */}
+          {(user?.role === "MCC_MANAGER" || user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") && (
+            <section className="relative mt-12">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">HarvestPlus by GEMURA</h2>
+                  <p className="text-sm text-gray-600">Multi-Commodity Aggregation & Settlement Platform (Dairy, Coffee, Cereals & More)</p>
+                </div>
+                <div className="flex gap-2">
+                  {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") && (
+                    <Link
+                      href={`/${lang}/dashboard/admin/commodity-studio`}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl text-xs sm:text-sm font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                    >
+                      <Settings className="h-4 w-4" />
+                      Commodity Studio
+                    </Link>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {/* Commodity Stats Cards */}
+                <Card className="group bg-white border-2 border-purple-100 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500"></div>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-semibold text-gray-700">Total Commodities</CardTitle>
+                      <Wheat className="h-5 w-5 text-purple-600" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold text-gray-900">{commodities.length}</p>
+                    <p className="text-xs text-gray-500 mt-1">Active commodities</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="group bg-white border-2 border-emerald-100 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500"></div>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-semibold text-gray-700">Collections</CardTitle>
+                      <Package className="h-5 w-5 text-emerald-600" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold text-gray-900">{commodityStats?.totalCollections || 0}</p>
+                    <p className="text-xs text-gray-500 mt-1">Total recorded</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="group bg-white border-2 border-blue-100 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-semibold text-gray-700">Total Volume</CardTitle>
+                      <Activity className="h-5 w-5 text-blue-600" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold text-gray-900">
+                      {commodityStats?.totalVolume ? commodityStats.totalVolume.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "0"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Units collected</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="group bg-white border-2 border-amber-100 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
+                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500"></div>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-semibold text-gray-700">Revenue</CardTitle>
+                      <DollarSign className="h-5 w-5 text-amber-600" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-3xl font-bold text-gray-900">
+                      RF {commodityStats?.totalRevenue ? commodityStats.totalRevenue.toLocaleString() : "0"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Total revenue</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Commodity Breakdown */}
+              {commodityStats?.byCommodity && Object.keys(commodityStats.byCommodity).length > 0 && (
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-bold">Commodity Breakdown</CardTitle>
+                    <CardDescription>Collections by commodity type</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {Object.entries(commodityStats.byCommodity).map(([name, data]: [string, any]) => (
+                        <div key={name} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50">
+                          <div className="flex items-center gap-3">
+                            {name.toLowerCase().includes("milk") || name.toLowerCase().includes("dairy") ? (
+                              <Droplets className="h-5 w-5 text-blue-600" />
+                            ) : name.toLowerCase().includes("coffee") ? (
+                              <Coffee className="h-5 w-5 text-amber-600" />
+                            ) : (
+                              <Wheat className="h-5 w-5 text-green-600" />
+                            )}
+                            <div>
+                              <p className="font-semibold text-gray-900">{name}</p>
+                              <p className="text-xs text-gray-500">{data.count} collections</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-gray-900">{data.volume.toLocaleString(undefined, { maximumFractionDigits: 1 })} units</p>
+                            <p className="text-xs text-gray-500">RF {data.revenue.toLocaleString()}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Collection Status */}
+              {commodityStats && (
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-bold">Collection Status</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex items-center gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50">
+                        <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="font-semibold text-gray-900">{commodityStats.approvedCollections || 0}</p>
+                          <p className="text-xs text-gray-500">Approved</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 rounded-lg border border-amber-200 bg-amber-50">
+                        <Clock className="h-5 w-5 text-amber-600" />
+                        <div>
+                          <p className="font-semibold text-gray-900">{commodityStats.pendingCollections || 0}</p>
+                          <p className="text-xs text-gray-500">Pending</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Commodity Collection Form Dialog */}
+              <CommodityCollectionForm
+                open={isCollectionFormOpen}
+                onOpenChange={setIsCollectionFormOpen}
+                onSuccess={() => {
+                  // Refresh data
+                  window.location.reload()
+                }}
+              />
+            </section>
+          )}
+
+          {/* Geo-Intelligence Section */}
+          <section className="relative mt-12">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Geo-Intelligence</h2>
+                <p className="text-sm text-gray-600">Location-based insights and visualization</p>
+              </div>
+            </div>
+            <div className="space-y-6">
+              {geoStats ? (
+                <GeoIntelligenceWidgets stats={geoStats} isLoading={geoLoading} />
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    {geoLoading ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                        <p className="text-sm text-gray-500">Loading geo-intelligence data...</p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="text-sm text-gray-500">No geo-location data available</p>
+                        <p className="text-xs text-gray-400">Add geo-location data to entities to see insights</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+              {geoEntities.length > 0 ? (
+                <GeoMapViewer entities={geoEntities} height="600px" />
+              ) : !geoLoading && (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <p className="text-sm text-gray-500">No entities with geo-location data found</p>
+                    <p className="text-xs text-gray-400 mt-1">Add geo-location to farmers, agents, or MCCs to see them on the map</p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </section>
 
@@ -1356,7 +1653,12 @@ export default function DashboardPage() {
     )
   }
 
-  // For non-MCC Manager users, show a simplified dashboard
+  // For ADMIN and SUPER_ADMIN users, show admin dashboard
+  if (user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") {
+    return <AdminDashboard lang={lang} />
+  }
+
+  // For other users, show a simplified dashboard
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -1374,6 +1676,372 @@ export default function DashboardPage() {
             {user.role}
           </Badge>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Admin Dashboard Component
+function AdminDashboard({ lang }: { lang: string }) {
+  const { user } = useAuth()
+  const [dashboardData, setDashboardData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true)
+        const token = localStorage.getItem("Gemurai_token")
+        if (!token) return
+
+        const response = await fetch("/api/v1/admin/dashboard", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success) {
+            setDashboardData(result.data)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching admin dashboard:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-blue-700 font-medium">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  const data = dashboardData || {
+    overview: { totalUsers: 0, totalMCCs: 0, totalCommodities: 0, totalCategories: 0, totalFarmers: 0, totalAgents: 0, activeCommodities: 0 },
+    collections: { total: 0, today: 0, thisMonth: 0, pending: 0, approved: 0, growth: "0" },
+    revenue: { total: 0, today: 0, thisMonth: 0 },
+    system: { totalQualityFields: 0, totalSeasonPlans: 0 },
+    byCommodity: [],
+    byStatus: [],
+    recent: { collections: [], users: [] },
+  }
+
+  const statCards = [
+    {
+      title: "Total Users",
+      value: data.overview.totalUsers,
+      icon: Users,
+      gradient: "from-blue-500 to-blue-600",
+      bgGradient: "from-blue-50 to-blue-100",
+    },
+    {
+      title: "MCCs",
+      value: data.overview.totalMCCs,
+      icon: Building2,
+      gradient: "from-indigo-500 to-indigo-600",
+      bgGradient: "from-indigo-50 to-indigo-100",
+    },
+    {
+      title: "Commodities",
+      value: data.overview.totalCommodities,
+      icon: Wheat,
+      gradient: "from-cyan-500 to-cyan-600",
+      bgGradient: "from-cyan-50 to-cyan-100",
+    },
+    {
+      title: "Farmers",
+      value: data.overview.totalFarmers,
+      icon: UserPlus,
+      gradient: "from-sky-500 to-sky-600",
+      bgGradient: "from-sky-50 to-sky-100",
+    },
+    {
+      title: "Collections",
+      value: data.collections.total,
+      icon: Package,
+      gradient: "from-blue-600 to-indigo-600",
+      bgGradient: "from-blue-50 to-indigo-50",
+      subtitle: `${data.collections.today} today`,
+      change: data.collections.growth,
+    },
+    {
+      title: "Total Revenue",
+      value: `RWF ${(data.revenue.total || 0).toLocaleString()}`,
+      icon: DollarSign,
+      gradient: "from-indigo-600 to-purple-600",
+      bgGradient: "from-indigo-50 to-purple-50",
+      subtitle: `RWF ${(data.revenue.thisMonth || 0).toLocaleString()} this month`,
+    },
+  ]
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg">
+              <Activity className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Admin Dashboard
+              </h1>
+              <p className="text-blue-700 mt-1 font-medium">HarvestPlus by GEMURA - System Overview</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {statCards.map((stat, index) => {
+            const Icon = stat.icon
+            return (
+              <Card key={index} className="border-2 border-blue-200 hover:border-blue-400 transition-all shadow-lg hover:shadow-xl bg-white overflow-hidden">
+                <div className={`h-1 bg-gradient-to-r ${stat.gradient}`} />
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-blue-700 mb-1 uppercase tracking-wide">{stat.title}</p>
+                      <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                      {stat.subtitle && (
+                        <p className="text-xs text-blue-600 mt-2 font-medium">{stat.subtitle}</p>
+                      )}
+                      {stat.change && (
+                        <div className="flex items-center gap-1 mt-2">
+                          {parseFloat(stat.change) >= 0 ? (
+                            <ArrowUpRight className="h-4 w-4 text-blue-600" />
+                          ) : (
+                            <ArrowDownRight className="h-4 w-4 text-red-500" />
+                          )}
+                          <span className={`text-xs font-semibold ${parseFloat(stat.change) >= 0 ? "text-blue-600" : "text-red-500"}`}>
+                            {Math.abs(parseFloat(stat.change))}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className={`p-4 rounded-xl bg-gradient-to-br ${stat.bgGradient} border-2 border-blue-200 relative`}>
+                      <Icon className={`h-7 w-7 text-blue-600`} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+
+        {/* Secondary Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white hover:shadow-lg transition-all">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Categories</p>
+                  <p className="text-2xl font-bold text-blue-900 mt-1">{data.overview.totalCategories}</p>
+                </div>
+                <Database className="h-6 w-6 text-blue-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-white hover:shadow-lg transition-all">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wide">Agents</p>
+                  <p className="text-2xl font-bold text-indigo-900 mt-1">{data.overview.totalAgents}</p>
+                </div>
+                <UserPlus className="h-6 w-6 text-indigo-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-2 border-cyan-200 bg-gradient-to-br from-cyan-50 to-white hover:shadow-lg transition-all">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-cyan-700 uppercase tracking-wide">Quality Fields</p>
+                  <p className="text-2xl font-bold text-cyan-900 mt-1">{data.system.totalQualityFields}</p>
+                </div>
+                <CheckSquare className="h-6 w-6 text-cyan-500" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-white hover:shadow-lg transition-all">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-sky-700 uppercase tracking-wide">Season Plans</p>
+                  <p className="text-2xl font-bold text-sky-900 mt-1">{data.system.totalSeasonPlans}</p>
+                </div>
+                <Calendar className="h-6 w-6 text-sky-500" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Collections Status - Blue Theme */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-xl transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-blue-800 uppercase tracking-wide">Pending Collections</p>
+                  <p className="text-4xl font-bold text-blue-900 mt-3">{data.collections.pending}</p>
+                  <p className="text-xs text-blue-700 mt-2">Awaiting approval</p>
+                </div>
+                <div className="p-4 bg-blue-200 rounded-xl">
+                  <Clock className="h-8 w-8 text-blue-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-2 border-indigo-300 bg-gradient-to-br from-indigo-50 to-indigo-100 hover:shadow-xl transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-indigo-800 uppercase tracking-wide">Approved Collections</p>
+                  <p className="text-4xl font-bold text-indigo-900 mt-3">{data.collections.approved}</p>
+                  <p className="text-xs text-indigo-700 mt-2">Ready for payment</p>
+                </div>
+                <div className="p-4 bg-indigo-200 rounded-xl">
+                  <CheckCircle2 className="h-8 w-8 text-indigo-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-2 border-cyan-300 bg-gradient-to-br from-cyan-50 to-cyan-100 hover:shadow-xl transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-cyan-800 uppercase tracking-wide">This Month</p>
+                  <p className="text-4xl font-bold text-cyan-900 mt-3">{data.collections.thisMonth}</p>
+                  <p className="text-xs text-cyan-700 mt-2">Current period</p>
+                </div>
+                <div className="p-4 bg-cyan-200 rounded-xl">
+                  <TrendingUp className="h-8 w-8 text-cyan-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <Card className="border-2 border-blue-200 bg-white shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Package className="h-5 w-5" />
+                Recent Collections
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {data.recent.collections.length > 0 ? (
+                <div className="space-y-3">
+                  {data.recent.collections.slice(0, 5).map((collection: any) => (
+                    <div key={collection.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200 hover:border-blue-400 transition-all">
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">{collection.commodity}</p>
+                        <p className="text-sm text-blue-700 font-medium">{collection.farmer} • {collection.mcc}</p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          {new Date(collection.date).toLocaleDateString()} • {collection.quantity} units
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-blue-900">RWF {collection.amount?.toLocaleString() || 0}</p>
+                        <Badge className={`mt-2 border-2 ${
+                          collection.status === "APPROVED" ? "bg-green-100 text-green-800 border-green-300" :
+                          collection.status === "PENDING" ? "bg-yellow-100 text-yellow-800 border-yellow-300" :
+                          "bg-blue-100 text-blue-800 border-blue-300"
+                        }`}>
+                          {collection.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-blue-600 py-8 font-medium">No recent collections</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-blue-200 bg-white shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-white">
+                <Users className="h-5 w-5" />
+                Recent Users
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {data.recent.users.length > 0 ? (
+                <div className="space-y-3">
+                  {data.recent.users.map((user: any) => (
+                    <div key={user.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200 hover:border-blue-400 transition-all">
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">{user.name || "Unknown"}</p>
+                        <p className="text-sm text-blue-700 font-medium">{user.email || "No email"}</p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          {new Date(user.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Badge className="bg-blue-100 text-blue-800 border-2 border-blue-300 font-semibold">
+                        {user.role}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-blue-600 py-8 font-medium">No recent users</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <Card className="border-2 border-blue-200 bg-white shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
+            <CardTitle className="text-white">Quick Actions</CardTitle>
+            <CardDescription className="text-blue-100">Access frequently used features</CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Link href={`/${lang}/dashboard/admin/users`}>
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all border-2 border-blue-500">
+                  <Users className="h-4 w-4 mr-2" />
+                  Manage Users
+                </Button>
+              </Link>
+              <Link href={`/${lang}/dashboard/admin/mccs`}>
+                <Button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white shadow-lg hover:shadow-xl transition-all border-2 border-indigo-500">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Manage MCCs
+                </Button>
+              </Link>
+              <Link href={`/${lang}/dashboard/admin/commodity-studio`}>
+                <Button className="w-full bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all border-2 border-cyan-500">
+                  <Wheat className="h-4 w-4 mr-2" />
+                  Commodity Studio
+                </Button>
+              </Link>
+              <Link href={`/${lang}/dashboard/admin/reports`}>
+                <Button className="w-full bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-700 hover:to-sky-800 text-white shadow-lg hover:shadow-xl transition-all border-2 border-sky-500">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  View Reports
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

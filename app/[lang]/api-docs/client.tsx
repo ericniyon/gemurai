@@ -366,7 +366,7 @@ export function ApiDocs({ params }: { params: { lang: string } }) {
                 </div>
                 <div>
                   <h2 className={`font-bold text-xl ${isDark ? 'text-white' : 'text-gray-900'}`}>API Reference</h2>
-                  <p className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-blue-600'}`}>Gemurai Platform</p>
+                  <p className={`text-sm font-medium ${isDark ? 'text-blue-300' : 'text-blue-600'}`}>HarvestPlus Platform</p>
                 </div>
           </div>
               <Button

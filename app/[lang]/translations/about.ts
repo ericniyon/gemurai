@@ -124,7 +124,7 @@ export const aboutTranslations: Record<string, AboutTranslation> = {
   en: {
     hero: {
       backToHome: "Back to Home",
-      title: "About Gemurai Platform",
+      title: "About HarvestPlus Platform",
       subtitle: "Empowering Digital Community Champions across Rwanda through innovative technology, comprehensive training, and sustainable opportunities.",
       badges: {
         impact: "Community Impact",
@@ -135,7 +135,7 @@ export const aboutTranslations: Record<string, AboutTranslation> = {
     mission: {
       title: "Our Mission",
       description: {
-        primary: "Gemurai Platform is a collaborative effort between The Commons Project Foundation, ICT Chamber, and the Mastercard Foundation to advance education and relieve poverty for financially disadvantaged youth in Rwanda.",
+        primary: "HarvestPlus Platform is a collaborative effort between The Commons Project Foundation, ICT Chamber, and the Mastercard Foundation to advance education and relieve poverty for financially disadvantaged youth in Rwanda.",
         secondary: "We empower Digital Community Champions to create sustainable livelihoods through health product sales, comprehensive training programs, and meaningful job opportunities that transform communities."
       }
     },
@@ -227,7 +227,7 @@ export const aboutTranslations: Record<string, AboutTranslation> = {
     },
     cta: {
       title: "Join Our Community",
-      description: "Ready to make a difference in your community? Join Gemurai Platform as a Digital Community Champion and be part of Rwanda's digital transformation journey.",
+      description: "Ready to make a difference in your community? Join HarvestPlus Platform as a Digital Community Champion and be part of Rwanda's digital transformation journey.",
       button: "Apply Now"
     },
     contact: {
@@ -245,7 +245,7 @@ export const aboutTranslations: Record<string, AboutTranslation> = {
   rw: {
     hero: {
       backToHome: "Subira ku Rugo",
-      title: "Ibyerekeye Gemurai",
+      title: "Ibyerekeye HarvestPlus",
       subtitle: "Guha ubushobozi Intumwa z'Ikoranabuhanga mu Midugudu yo mu Rwanda binyuze mu ikoranabuhanga rishya, amahugurwa akwiye n'amahirwe arambye.",
       badges: {
         impact: "Ingaruka ku Baturage",
@@ -256,7 +256,7 @@ export const aboutTranslations: Record<string, AboutTranslation> = {
     mission: {
       title: "Intego Yacu",
       description: {
-        primary: "Ihuriro Gemurai ni umushinga uhuriweho na The Commons Project Foundation, ICT Chamber na Mastercard Foundation wo guteza imbere uburezi no kurwanya ubukene mu rubyiruko rufite ibibazo by'ubukungu mu Rwanda.",
+        primary: "Ihuriro HarvestPlus ni umushinga uhuriweho na The Commons Project Foundation, ICT Chamber na Mastercard Foundation wo guteza imbere uburezi no kurwanya ubukene mu rubyiruko rufite ibibazo by'ubukungu mu Rwanda.",
         secondary: "Duha ubushobozi Intumwa z'Ikoranabuhanga mu Midugudu kugira ngo zishobore kubona imibereho myiza binyuze mu kugurisha ibikoresho by'ubuzima, gahunda z'amahugurwa akwiye n'amahirwe y'akazi afite ireme ahindura imidugudu."
       }
     },
@@ -348,7 +348,7 @@ export const aboutTranslations: Record<string, AboutTranslation> = {
     },
     cta: {
       title: "Injira muri Umuryango Wacu",
-      description: "Witeguye guhindura imidugudu yawe? Injira mu Ihuriro Gemurai nk'Intumwa y'Ikoranabuhanga mu Mudugudu kandi ube umwe mu rugendo rwo guhindura u Rwanda mu ikoranabuhanga.",
+      description: "Witeguye guhindura imidugudu yawe? Injira mu Ihuriro HarvestPlus nk'Intumwa y'Ikoranabuhanga mu Mudugudu kandi ube umwe mu rugendo rwo guhindura u Rwanda mu ikoranabuhanga.",
       button: "Iyandikishe Ubu"
     },
     contact: {

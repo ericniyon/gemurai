@@ -26,3 +26,6 @@ ALTER TABLE "payments" ADD CONSTRAINT "payments_farmerId_fkey" FOREIGN KEY ("far
 
 
 
+
+
+

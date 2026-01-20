@@ -225,9 +225,11 @@
 
   .sidebar-nav-item.active,
   .sidebar-expandable-toggle.active {
-    background: rgba(255, 255, 255, 0.24);
+    background: rgba(135, 206, 250, 0.3); /* Light blue background */
     color: #ffffff;
     box-shadow: 0 20px 40px -22px rgba(5, 24, 74, 0.85);
+    border-left: 4px solid #3b82f6; /* Vertical blue border on left */
+    padding-left: calc(1rem - 4px); /* Adjust padding to account for border */
   }
 }
 
@@ -356,10 +358,12 @@
 }
 
 .sidebar-submenu-item.active {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(135, 206, 250, 0.3); /* Light blue background */
   color: #ffffff;
   font-weight: 600;
   box-shadow: 0 8px 20px -12px rgba(15, 23, 42, 0.75);
+  border-left: 3px solid #3b82f6; /* Vertical blue border on left */
+  padding-left: calc(0.6rem - 3px); /* Adjust padding to account for border */
 }
 
 .sidebar-footer {

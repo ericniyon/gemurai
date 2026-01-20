@@ -1,10 +1,10 @@
 export const translations = {
   en: {
     title: "API Documentation",
-    description: "Complete API documentation for the Gemurai Platform",
+    description: "Complete API documentation for the HarvestPlus Platform",
     header: {
-      title: "Gemurai Platform API",
-      subtitle: "Explore our comprehensive API endpoints and learn how to integrate with the Gemurai Platform.",
+      title: "HarvestPlus Platform API",
+      subtitle: "Explore our comprehensive API endpoints and learn how to integrate with the HarvestPlus Platform.",
       searchPlaceholder: "Search endpoints...",
       allCategories: "All"
     },
@@ -23,10 +23,10 @@ export const translations = {
   },
   fr: {
     title: "Documentation API",
-    description: "Documentation complète de l'API pour la plateforme Gemurai",
+    description: "Documentation complète de l'API pour la plateforme HarvestPlus",
     header: {
-      title: "API de la Plateforme Gemurai",
-      subtitle: "Explorez nos points de terminaison API et apprenez à intégrer la plateforme Gemurai.",
+      title: "API de la Plateforme HarvestPlus",
+      subtitle: "Explorez nos points de terminaison API et apprenez à intégrer la plateforme HarvestPlus.",
       searchPlaceholder: "Rechercher les endpoints...",
       allCategories: "Tous"
     },
@@ -45,10 +45,10 @@ export const translations = {
   },
   rw: {
     title: "Inyandiko za API",
-    description: "Inyandiko zuzuye za API ya Gemurai Platform",
+    description: "Inyandiko zuzuye za API ya HarvestPlus Platform",
     header: {
-      title: "API ya Gemurai Platform",
-      subtitle: "Reba endpoints zacu za API kandi wige uko wakoresha Platform ya Gemurai.",
+      title: "API ya HarvestPlus Platform",
+      subtitle: "Reba endpoints zacu za API kandi wige uko wakoresha Platform ya HarvestPlus.",
       searchPlaceholder: "Shakisha endpoints...",
       allCategories: "Zose"
     },

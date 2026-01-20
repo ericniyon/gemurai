@@ -1,7 +1,7 @@
 import { Metadata, Viewport } from "next"
 
 export const metadata: Metadata = {
-  title: "DCC Application Form | Gemurai",
+  title: "DCC Application Form | HarvestPlus",
   description: "Apply to become a Digital Community Champion and make a difference in your community",
 }
 

@@ -111,7 +111,7 @@ export const homeTranslations: Record<string, Translation> = {
       ]
     },
     features: {
-      title: "How Gemurai Works",
+      title: "How HarvestPlus Works",
       subtitle: "Our comprehensive platform provides everything you need to succeed as a Digital Community Champion.",
       cards: [
         {
@@ -168,13 +168,13 @@ export const homeTranslations: Record<string, Translation> = {
       testimonial: {
         role: "Community Member",
         subtitle: "Digital Champion",
-        content: "Gemurai has transformed the way we connect and collaborate within our community. The platform's tools and resources have been invaluable for our digital initiatives."
+        content: "HarvestPlus has transformed the way we connect and collaborate within our community. The platform's tools and resources have been invaluable for our digital initiatives."
       }
     },
     cta: {
       badge: "Apply to become a DCC Today",
       title: "Ready to Join Our Digital Community?",
-      subtitle: "Take the first step towards digital transformation. Join Gemurai and become part of a thriving community of digital champions.",
+      subtitle: "Take the first step towards digital transformation. Join HarvestPlus and become part of a thriving community of digital champions.",
       primary: "Join Now",
       secondary: "Learn More"
     }
@@ -278,13 +278,13 @@ export const homeTranslations: Record<string, Translation> = {
       testimonial: {
         role: "Membre de la Communauté",
         subtitle: "Champion Numérique",
-        content: "Gemurai a transformé la façon dont nous nous connectons et collaborons au sein de notre communauté. Les outils et ressources de la plateforme ont été inestimables pour nos initiatives numériques."
+        content: "HarvestPlus a transformé la façon dont nous nous connectons et collaborons au sein de notre communauté. Les outils et ressources de la plateforme ont été inestimables pour nos initiatives numériques."
       }
     },
     cta: {
       badge: "Commencez Aujourd'hui",
       title: "Prêt à Rejoindre Notre Communauté Numérique ?",
-      subtitle: "Faites le premier pas vers la transformation numérique. Rejoignez Gemurai et faites partie d'une communauté florissante de champions numériques.",
+      subtitle: "Faites le premier pas vers la transformation numérique. Rejoignez HarvestPlus et faites partie d'une communauté florissante de champions numériques.",
       primary: "Rejoindre Maintenant",
       secondary: "En Savoir Plus"
     }
@@ -331,7 +331,7 @@ export const homeTranslations: Record<string, Translation> = {
       ]
     },
     features: {
-      title: "Uko Gemurai Ikora",
+      title: "Uko HarvestPlus Ikora",
       subtitle: "Platform yacu itanga ibikenewe byose kugira ngo ubashe gutsinda nk'Umuyobozi w'Ikoranabuhanga mu Muryango.",
       cards: [
         {
@@ -388,13 +388,13 @@ export const homeTranslations: Record<string, Translation> = {
       testimonial: {
         role: "Umwe mu Muryango",
         subtitle: "Umuyobozi w'Ikoranabuhanga",
-        content: "Gemurai yahinduriye uburyo duhuza kandi dukorana mu muryango wacu. Ibikoresho n'umutungo bya platform byagize akamaro kanini mu bikorwa byacu by'ikoranabuhanga."
+        content: "HarvestPlus yahinduriye uburyo duhuza kandi dukorana mu muryango wacu. Ibikoresho n'umutungo bya platform byagize akamaro kanini mu bikorwa byacu by'ikoranabuhanga."
       }
     },
     cta: {
       badge: "Saba kujya mumushinga Uyu Munsi",
       title: "Witeguye Kwifatanya n'Umuryango Wacu w'Ikoranabuhanga?",
-      subtitle: "Kora intambwe ya mbere yerekeza ku ihinduka ry'ikoranabuhanga. Ifatanye na Gemurai ube umwe mu muryango utera imbere w'abayobozi b'ikoranabuhanga.",
+      subtitle: "Kora intambwe ya mbere yerekeza ku ihinduka ry'ikoranabuhanga. Ifatanye na HarvestPlus ube umwe mu muryango utera imbere w'abayobozi b'ikoranabuhanga.",
       primary: "Ifatanye Natwe",
       secondary: "Menya Byinshi"
     }

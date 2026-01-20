@@ -21,7 +21,7 @@ export function AuthFooter() {
                 <span className="text-white font-bold text-xl">I</span>
               </div>
               <div>
-                <h3 className="text-xl font-bold">Gemurai</h3>
+                <h3 className="text-xl font-bold">HarvestPlus</h3>
                 <p className="text-sm text-gray-400">{t.footer.tagline}</p>
               </div>
             </div>

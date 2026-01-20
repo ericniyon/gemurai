@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { checkMCCPermission } from "@/lib/mcc-auth"
 
 /**
- * GET /api/v1/mcc/customers - Get customers (from sales records)
+ * GET /api/v1/mcc/customers - Get customers (from customers table and sales records)
  */
 export async function GET(req: NextRequest) {
   try {
@@ -57,22 +57,61 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    // Build where clause
-    const where: any = {
+    // Get customers from customers table (if table exists)
+    let registeredCustomers: any[] = []
+    try {
+      // Check if mcc_customers model exists in Prisma client
+      if (prisma.mcc_customers) {
+        const customerWhere: any = {
+          mccId: targetMccId,
+        }
+
+        if (search) {
+          customerWhere.OR = [
+            { name: { contains: search, mode: "insensitive" } },
+            { contact: { contains: search, mode: "insensitive" } },
+            { address: { contains: search, mode: "insensitive" } },
+          ]
+        }
+
+        registeredCustomers = await prisma.mcc_customers.findMany({
+          where: customerWhere,
+          select: {
+            id: true,
+            name: true,
+            contact: true,
+            email: true,
+            address: true,
+            district: true,
+            contactPerson: true,
+            taxId: true,
+            notes: true,
+            createdAt: true,
+          },
+        })
+      }
+    } catch (error) {
+      // Table doesn't exist yet or Prisma client not regenerated
+      // Continue with just sales data
+      console.warn("mcc_customers table not available, using sales data only:", error)
+      registeredCustomers = []
+    }
+
+    // Get unique customers from sales
+    const salesWhere: any = {
       mccId: targetMccId,
     }
 
     if (search) {
-      where.OR = [
+      salesWhere.OR = [
         { companyName: { contains: search, mode: "insensitive" } },
         { companyContact: { contains: search, mode: "insensitive" } },
         { companyAddress: { contains: search, mode: "insensitive" } },
       ]
     }
 
-    // Get unique customers from sales
     const sales = await prisma.mcc_sales.findMany({
-      where,
+      where: salesWhere,
       select: {
         companyName: true,
         companyContact: true,
@@ -85,9 +124,34 @@ export async function GET(req: NextRequest) {
       orderBy: { saleDate: "desc" },
     })
 
-    // Group by company name to get unique customers
+    // Group by company name to get unique customers from sales
     const customerMap = new Map<string, any>()
     
+    // First, add registered customers to the map
+    registeredCustomers.forEach((customer) => {
+      const key = customer.name.toLowerCase().trim()
+      if (!customerMap.has(key)) {
+        customerMap.set(key, {
+          name: customer.name,
+          contact: customer.contact,
+          address: customer.address || "",
+          email: customer.email || null,
+          district: customer.district || null,
+          contactPerson: customer.contactPerson || null,
+          taxId: customer.taxId || null,
+          notes: customer.notes || null,
+          totalPurchases: 0,
+          totalAmount: 0,
+          lastPurchaseDate: customer.createdAt.toISOString(),
+          avgPricePerLiter: 0,
+          totalLiters: 0,
+          paymentStatus: "pending",
+          registeredDate: customer.createdAt.toISOString(),
+        })
+      }
+    })
+    
+    // Then, merge sales data into the map
     sales.forEach((sale) => {
       const key = sale.companyName.toLowerCase().trim()
       if (!customerMap.has(key)) {
@@ -95,12 +159,18 @@ export async function GET(req: NextRequest) {
           name: sale.companyName,
           contact: sale.companyContact,
           address: sale.companyAddress || "",
+          email: null,
+          district: null,
+          contactPerson: null,
+          taxId: null,
+          notes: null,
           totalPurchases: 0,
           totalAmount: 0,
           lastPurchaseDate: sale.saleDate,
           avgPricePerLiter: 0,
           totalLiters: 0,
           paymentStatus: sale.paymentStatus,
+          registeredDate: null,
         })
       }
       
@@ -111,6 +181,8 @@ export async function GET(req: NextRequest) {
       if (new Date(sale.saleDate) > new Date(customer.lastPurchaseDate)) {
         customer.lastPurchaseDate = sale.saleDate
       }
+      // Update payment status to the most recent sale's status
+      customer.paymentStatus = sale.paymentStatus
     })
 
     // Calculate average price per liter for each customer
@@ -120,23 +192,15 @@ export async function GET(req: NextRequest) {
         : 0
     })
 
-    // Convert to array and apply search filter if needed
+    // Convert to array
     let customers = Array.from(customerMap.values())
     
-    if (search) {
-      const searchLower = search.toLowerCase()
-      customers = customers.filter(
-        (c) =>
-          c.name.toLowerCase().includes(searchLower) ||
-          c.contact?.toLowerCase().includes(searchLower) ||
-          c.address?.toLowerCase().includes(searchLower)
-      )
-    }
-
-    // Sort by last purchase date (most recent first)
-    customers.sort((a, b) => 
-      new Date(b.lastPurchaseDate).getTime() - new Date(a.lastPurchaseDate).getTime()
-    )
+    // Sort by last purchase date (most recent first), then by registered date
+    customers.sort((a, b) => {
+      const dateA = new Date(a.lastPurchaseDate || a.registeredDate || 0).getTime()
+      const dateB = new Date(b.lastPurchaseDate || b.registeredDate || 0).getTime()
+      return dateB - dateA
+    })
 
     // Apply pagination
     const total = customers.length
@@ -145,11 +209,16 @@ export async function GET(req: NextRequest) {
     // Get statistics
     const totalCustomers = customers.length
     const activeCustomers = customers.filter(
-      (c) => new Date(c.lastPurchaseDate) >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      (c) => {
+        const lastDate = c.lastPurchaseDate ? new Date(c.lastPurchaseDate) : null
+        if (!lastDate) return false
+        return lastDate >= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      }
     ).length
 
-    const avgPrice = customers.length > 0
-      ? customers.reduce((sum, c) => sum + c.avgPricePerLiter, 0) / customers.length
+    const customersWithSales = customers.filter(c => c.totalPurchases > 0)
+    const avgPrice = customersWithSales.length > 0
+      ? customersWithSales.reduce((sum, c) => sum + c.avgPricePerLiter, 0) / customersWithSales.length
       : 0
 
     const totalRevenue = customers.reduce((sum, c) => sum + c.totalAmount, 0)
@@ -180,8 +249,7 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * POST /api/v1/mcc/customers - Create a customer (by creating a sale record)
- * Note: Customers are created implicitly when recording sales
+ * POST /api/v1/mcc/customers - Create a customer record
  */
 export async function POST(req: NextRequest) {
   try {
@@ -196,31 +264,114 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await req.json()
-    const { name, contact, address, mccId } = data
+    const { name, contact, email, address, district, contactPerson, taxId, notes, mccId, gpsLatitude, gpsLongitude, geoConsent } = data
+    const trimmedName = typeof name === "string" ? name.trim() : ""
+    const trimmedContact = typeof contact === "string" ? contact.trim() : ""
 
-    if (!name || !contact || !mccId) {
+    // If user is MCC_MANAGER and explicitly passed a different MCC, block it
+    if (user.role === "MCC_MANAGER" && mccId && user.mccId && user.mccId !== mccId) {
+      return NextResponse.json({ error: "Unauthorized for this MCC" }, { status: 403 })
+    }
+
+    let targetMccId: string | null = mccId || user.mccId || null
+
+    if (!targetMccId) {
+      try {
+        if (user.role === "MCC_MANAGER") {
+          const managerMcc = await prisma.mccs.findFirst({
+            where: { managerUserId: user.id },
+            select: { id: true },
+          })
+          targetMccId = managerMcc?.id || null
+        } else {
+          const staffRecord = await prisma.staff.findFirst({
+            where: { userId: user.id },
+            select: { mccId: true },
+          })
+          targetMccId = staffRecord?.mccId || null
+        }
+      } catch (resolveError) {
+        console.error("Failed to resolve MCC assignment for user:", resolveError)
+      }
+    }
+
+    if (!trimmedName || !trimmedContact || !targetMccId) {
       return NextResponse.json(
         { error: "Missing required fields: name, contact, mccId" },
         { status: 400 }
       )
     }
 
-    // If user is MCC_MANAGER, verify they own this MCC
-    if (user.role === "MCC_MANAGER" && user.mccId !== mccId) {
-      return NextResponse.json({ error: "Unauthorized for this MCC" }, { status: 403 })
+    // Check if mcc_customers table exists
+    if (!prisma.mcc_customers) {
+      // Table doesn't exist yet - return success but don't create record
+      // User needs to run migration first
+      return NextResponse.json({
+        success: true,
+        message: "Customer information validated. Note: Customer table migration needed. Create a sale to register the customer.",
+        data: {
+          name: trimmedName,
+          contact: trimmedContact,
+          address: (typeof address === "string" ? address.trim() : "") || "",
+          mccId: targetMccId,
+        },
+      })
     }
 
-    // Customers are created implicitly through sales
-    // This endpoint is mainly for validation/pre-registration
-    // Return success with customer info
+    // Check if customer already exists (by name and contact)
+    const existingCustomer = await prisma.mcc_customers.findFirst({
+      where: {
+        mccId: targetMccId,
+        name: trimmedName,
+        contact: trimmedContact,
+      },
+    })
+
+    if (existingCustomer) {
+      return NextResponse.json({
+        success: true,
+        message: "Customer already exists",
+        data: {
+          id: existingCustomer.id,
+          name: existingCustomer.name,
+          contact: existingCustomer.contact,
+          address: existingCustomer.address || "",
+          mccId: existingCustomer.mccId,
+        },
+      })
+    }
+
+    // Create customer record
+    const hasGeoLocation = gpsLatitude != null && gpsLongitude != null
+    const customer = await prisma.mcc_customers.create({
+      data: {
+        mccId: targetMccId,
+        name: trimmedName,
+        contact: trimmedContact,
+        email: email && typeof email === "string" ? email.trim() || null : null,
+        address: address && typeof address === "string" ? address.trim() || null : null,
+        district: district && typeof district === "string" ? district.trim() || null : null,
+        contactPerson: contactPerson && typeof contactPerson === "string" ? contactPerson.trim() || null : null,
+        taxId: taxId && typeof taxId === "string" ? taxId.trim() || null : null,
+        notes: notes && typeof notes === "string" ? notes.trim() || null : null,
+        // Geo-location fields
+        gpsLatitude: gpsLatitude != null ? parseFloat(gpsLatitude) : null,
+        gpsLongitude: gpsLongitude != null ? parseFloat(gpsLongitude) : null,
+        geoConsent: geoConsent ?? hasGeoLocation,
+        geoConsentAt: hasGeoLocation ? new Date() : null,
+        geoCreatedAt: hasGeoLocation ? new Date() : null,
+      },
+    })
+
     return NextResponse.json({
       success: true,
-      message: "Customer information validated. Create a sale to register the customer.",
+      message: "Customer created successfully",
       data: {
-        name,
-        contact,
-        address: address || "",
-        mccId,
+        id: customer.id,
+        name: customer.name,
+        contact: customer.contact,
+        address: customer.address || "",
+        mccId: customer.mccId,
       },
     })
   } catch (error) {

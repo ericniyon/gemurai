@@ -6,10 +6,10 @@ import { PerformanceMonitor } from "@/components/performance-monitor"
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Gemurai",
-    default: "Gemurai",
+    template: "%s | HarvestPlus by GEMURA",
+    default: "HarvestPlus by GEMURA",
   },
-  description: "Gemurai Platform",
+  description: "Multi-Commodity Aggregation & Settlement Platform",
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Gemurai Platform",
+    title: "HarvestPlus by GEMURA",
   },
   other: {
     "mobile-web-app-capable": "yes",
@@ -27,21 +27,21 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://www.Gemurai.rw",
-    siteName: "Gemurai Platform",
-    title: "Gemurai Platform",
-    description: "Digital Community Platform for Rwanda",
+    url: "https://www.harvestplus.rw",
+    siteName: "HarvestPlus by GEMURA",
+    title: "HarvestPlus by GEMURA - Multi-Commodity Aggregation Platform",
+    description: "Multi-Commodity Aggregation & Settlement Platform for Dairy, Coffee, Cereals & Other Commodities",
     images: [{
       url: "/placeholder.jpg",
       width: 1200,
       height: 630,
-      alt: "Gemurai Platform",
+      alt: "HarvestPlus by GEMURA",
     }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Gemurai Platform",
-    description: "Digital Community Platform for Rwanda",
+    title: "HarvestPlus by GEMURA",
+    description: "Multi-Commodity Aggregation & Settlement Platform",
     images: ["/placeholder.jpg"],
   },
 }
@@ -59,7 +59,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="dns-prefetch" href="//www.Gemurai.rw" />
+        <link rel="dns-prefetch" href="//www.harvestplus.rw" />
         
         {/* Performance optimization meta tags */}
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />

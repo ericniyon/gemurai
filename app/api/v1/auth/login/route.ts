@@ -77,6 +77,12 @@ export async function POST(request: NextRequest) {
           name: true,
           password: true,
           avatar: true,
+          mccId: true,
+          staff: {
+            select: {
+              mccId: true,
+            },
+          },
           userRole: {
             include: {
               role: {
@@ -184,7 +190,24 @@ export async function POST(request: NextRequest) {
     const finalPermissions = rolePermissions.length > 0 ? rolePermissions : codeRolePermissions
     console.log("Final permissions:", finalPermissions)
 
-    // Create JWT token with role and permissions
+    // Determine MCC assignment for MCC users
+    let derivedMccId: string | null = user.mccId || user.staff?.mccId || null
+
+    if (!derivedMccId && roleName === "MCC_MANAGER") {
+      try {
+        if (prisma) {
+          const managerMcc = await prisma.mccs.findFirst({
+            where: { managerUserId: user.id },
+            select: { id: true },
+          })
+          derivedMccId = managerMcc?.id || null
+        }
+      } catch (mccLookupError) {
+        console.error("Failed to resolve MCC assignment for manager:", mccLookupError)
+      }
+    }
+
+    // Create JWT token with role, permissions, and MCC ID
     let token;
     try {
       console.log("🔑 Generating auth token for user:", user.email)
@@ -206,7 +229,8 @@ export async function POST(request: NextRequest) {
         permissions: finalPermissions,
         rolePermissions: finalPermissions, // For backward compatibility
         databasePermissions: finalPermissions, // For backward compatibility
-        avatar: user.avatar
+        avatar: user.avatar,
+        mccId: derivedMccId,
       })
       
       console.log("✅ Token generated successfully, length:", token.length)
@@ -227,7 +251,8 @@ export async function POST(request: NextRequest) {
         email: user.email,
         name: user.name,
         role: roleName,
-        permissions: finalPermissions
+        permissions: finalPermissions,
+        mccId: derivedMccId,
       },
       token,
     })

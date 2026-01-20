@@ -157,14 +157,27 @@ export class MilkCollectionService {
     qualityResult: QualityValidationResult
     payment?: any
   }> {
-    // Get farmer to determine MCC
-    const farmer = await prisma.farmers.findUnique({
+    // Get farmer to determine MCC - try multiple lookup methods
+    let farmer = await prisma.farmers.findUnique({
       where: { id: data.farmerId },
-      select: { mccId: true },
+      select: { id: true, mccId: true, name: true, farmerCode: true, phone: true },
     })
 
+    // If not found by ID, try by farmerCode
+    if (!farmer && data.farmerId) {
+      farmer = await prisma.farmers.findFirst({
+        where: { 
+          OR: [
+            { farmerCode: data.farmerId },
+            { phone: data.farmerId },
+          ]
+        },
+        select: { id: true, mccId: true, name: true, farmerCode: true, phone: true },
+      })
+    }
+
     if (!farmer) {
-      throw new Error("Farmer not found")
+      throw new Error(`Farmer not found with ID/code/phone: ${data.farmerId}. Please ensure the farmer is registered.`)
     }
 
     const mccId = data.mccId || farmer.mccId

@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client"
-import { prisma } from "@/lib/database"
+import { prisma } from "@/lib/prisma"
 
 // Types for MCC-Inventory Integration
 export interface MilkCollectionData {
@@ -78,6 +78,10 @@ export interface FarmerData {
   bankAccount?: string
   bankName?: string
   notes?: string
+  // Geo-location fields
+  gpsLatitude?: number | null
+  gpsLongitude?: number | null
+  geoConsent?: boolean
 }
 
 export class MCCInventoryService {
@@ -559,12 +563,29 @@ export class MCCInventoryService {
         notes: data.notes
       }
 
-      const farmerData = {
+      // Validate National ID is provided (HarvestPlus requirement)
+      if (!data.nationalId || !data.nationalId.trim()) {
+        throw new Error("National ID is required for farmer registration (HarvestPlus requirement)")
+      }
+
+      const farmerData: any = {
         mccId: data.mccId,
         name: data.name,
         phone: data.phone,
         location: fullLocation,
-        isActive: true
+        isActive: true,
+        // Enhanced fields
+        email: data.email,
+        nationalId: data.nationalId,
+        village: data.village,
+        address: fullLocation,
+        emergencyContact: data.emergencyContact,
+        // Geo-location fields
+        gpsLatitude: data.gpsLatitude ?? null,
+        gpsLongitude: data.gpsLongitude ?? null,
+        geoConsent: data.geoConsent ?? (data.gpsLatitude != null && data.gpsLongitude != null),
+        geoConsentAt: (data.gpsLatitude != null && data.gpsLongitude != null) ? new Date() : null,
+        geoCreatedAt: (data.gpsLatitude != null && data.gpsLongitude != null) ? new Date() : null,
       }
       
       console.log("Creating farmer with data:", farmerData)

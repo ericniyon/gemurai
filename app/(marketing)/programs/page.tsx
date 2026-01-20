@@ -37,7 +37,7 @@ const programs = [
       audience: "Logistics and business-minded youth.",
       duration: "Ongoing operational support.",
       content: [
-      "Collect and transport milk from smallholders to Gemura/MoHarvest hubs",
+      "Collect and transport milk from smallholders to HarvestPlus/MoHarvest hubs",
         "Use quality control tools (testing, chilling)",
         "Learn logistics, negotiation, and data reporting.",
     ],

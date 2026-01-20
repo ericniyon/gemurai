@@ -94,22 +94,43 @@ export async function GET(req: NextRequest) {
     }
 
     let farmers;
-    if (mccId) {
-      farmers = await MCCInventoryService.getMCCFarmers(mccId)
-    } else {
-      // Get all farmers if no mccId specified (only for admins)
-      if (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") {
-        return NextResponse.json(
-          { error: "MCC ID is required. Please provide mccId parameter or ensure the user is assigned to an MCC." },
-          { status: 400 }
-        )
+    try {
+      if (mccId) {
+        farmers = await MCCInventoryService.getMCCFarmers(mccId)
+      } else {
+        // Get all farmers if no mccId specified (only for admins)
+        if (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") {
+          return NextResponse.json(
+            { error: "MCC ID is required. Please provide mccId parameter or ensure the user is assigned to an MCC." },
+            { status: 400 }
+          )
+        }
+        farmers = await MCCInventoryService.getAllFarmers()
       }
-      farmers = await MCCInventoryService.getAllFarmers()
+    } catch (serviceError: any) {
+      console.error("MCCInventoryService error:", serviceError)
+      // Fallback: try direct prisma query
+      try {
+        const { prisma } = await import("@/lib/prisma")
+        if (mccId) {
+          farmers = await prisma.farmers.findMany({
+            where: { mccId },
+            orderBy: { name: 'asc' }
+          })
+        } else {
+          farmers = await prisma.farmers.findMany({
+            orderBy: { name: 'asc' }
+          })
+        }
+      } catch (fallbackError) {
+        console.error("Fallback query error:", fallbackError)
+        throw serviceError // Throw original error
+      }
     }
 
     return NextResponse.json({
       success: true,
-      data: farmers
+      data: farmers || []
     })
   } catch (error) {
     console.error("Get farmers error:", error)

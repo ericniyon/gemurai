@@ -26,6 +26,7 @@ import {
   Hash
 } from "lucide-react"
 import { useAuthStore } from "@/lib/stores/auth-store"
+import { GeoLocationInput } from "@/components/ui/geo-location-input"
 
 interface AddFarmerFormProps {
   open: boolean
@@ -56,6 +57,9 @@ interface FarmerFormData {
   expectedDailyMilk: number
   isCooperativeMember: boolean
   cooperativeName?: string
+  gpsLatitude?: number | null
+  gpsLongitude?: number | null
+  geoConsent?: boolean
 }
 
 export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormProps) {
@@ -83,7 +87,10 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
     cowCount: 0,
     expectedDailyMilk: 0,
     isCooperativeMember: false,
-    cooperativeName: ''
+    cooperativeName: '',
+    gpsLatitude: null,
+    gpsLongitude: null,
+    geoConsent: false
   })
   
   const [isLoading, setIsLoading] = useState(false)
@@ -167,7 +174,10 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
         emergencyPhone: formData.emergencyPhone || undefined,
         bankAccount: formData.bankAccount || undefined,
         bankName: formData.bankName || undefined,
-        notes: formData.notes || undefined
+        notes: formData.notes || undefined,
+        gpsLatitude: formData.gpsLatitude || undefined,
+        gpsLongitude: formData.gpsLongitude || undefined,
+        geoConsent: formData.gpsLatitude != null && formData.gpsLongitude != null
       }
 
       // Call the API to create farmer
@@ -226,7 +236,10 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
         cowCount: 0,
         expectedDailyMilk: 0,
         isCooperativeMember: false,
-        cooperativeName: ''
+        cooperativeName: '',
+        gpsLatitude: null,
+        gpsLongitude: null,
+        geoConsent: false
       })
       setErrors({})
       
@@ -423,6 +436,24 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
                     placeholder="Enter village name"
                   />
                 </div>
+              </div>
+
+              <Separator className="my-4" />
+
+              {/* Geo-location Section */}
+              <div className="space-y-2">
+                <GeoLocationInput
+                  latitude={formData.gpsLatitude}
+                  longitude={formData.gpsLongitude}
+                  onLocationChange={(lat, lng) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      gpsLatitude: lat,
+                      gpsLongitude: lng,
+                      geoConsent: lat != null && lng != null
+                    }))
+                  }}
+                />
               </div>
 
             </CardContent>

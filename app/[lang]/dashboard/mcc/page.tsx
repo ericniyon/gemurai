@@ -594,6 +594,25 @@ export default function MCCDashboard() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-6 space-y-2">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+              <Droplets className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">MCC - Dairy Sector</h1>
+              <p className="text-gray-600">Milk Collection & Processing Operations</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span>Operations:</span>
+            <Badge variant="outline">Milk Collections (milk_collections)</Badge>
+            <Badge variant="outline">MCC Periods (mcc_periods)</Badge>
+            <Badge variant="outline">Milk Processing (milk_processing)</Badge>
+          </div>
+        </div>
+
         <Tabs value={tab} onValueChange={handleTabChange} className="space-y-6">
           {/* Tab Navigation */}
           <div className="bg-white rounded-lg border border-gray-200 p-1">

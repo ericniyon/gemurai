@@ -17,7 +17,9 @@ import {
   Loader2,
   Calculator,
   DollarSign,
-  FileText
+  FileText,
+  User,
+  Search
 } from "lucide-react"
 
 interface AddCollectionFormProps {
@@ -359,9 +361,19 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch (parseError) {
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` }
+        }
         console.error('API Error:', errorData)
-        throw new Error(errorData.error || 'Failed to save collection')
+        
+        const errorMessage = errorData.details 
+          ? `${errorData.error}: ${errorData.details}`
+          : errorData.error || 'Failed to save collection'
+        
+        throw new Error(errorMessage)
       }
 
       const result = await response.json()
@@ -680,24 +692,38 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
           <div className="space-y-6">
           {/* Farmer Selection */}
                 <div className="space-y-2">
-              <Label htmlFor="farmer" className="text-sm font-medium text-gray-700">
-                Farmer <span className="text-red-500">*</span>
+              <Label htmlFor="farmer" className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                <User className="h-4 w-4 text-blue-600" />
+                <span>Farmer</span>
+                <span className="text-red-500">*</span>
               </Label>
-              <Combobox
-                value={formData.farmerId}
-                onValueChange={(value) => handleFarmerSelect(value)}
-                options={farmers.map((farmer) => ({
-                  value: farmer.id,
-                  label: farmer.name,
-                }))}
-                placeholder="Select farmer..."
-                searchPlaceholder="Search farmers..."
-                emptyText="No farmer found"
-                className={`h-11 ${errors.farmerId ? 'border-red-500' : ''}`}
-              />
+              <div className="relative group">
+                <Combobox
+                  value={formData.farmerId}
+                  onValueChange={(value) => handleFarmerSelect(value)}
+                  options={farmers.map((farmer) => ({
+                    value: farmer.id,
+                    label: farmer.name,
+                  }))}
+                  placeholder="Search and select farmer..."
+                  searchPlaceholder="Type to search farmers..."
+                  emptyText="No farmer found"
+                  className={`h-12 text-sm font-medium transition-all duration-200 ${
+                    errors.farmerId 
+                      ? 'border-2 border-red-500 bg-red-50 focus:border-red-600 focus:ring-2 focus:ring-red-200' 
+                      : 'border-2 border-blue-200 bg-gradient-to-r from-white to-blue-50/30 hover:border-blue-400 hover:from-white hover:to-blue-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm hover:shadow-md group-hover:shadow-lg'
+                  }`}
+                />
+              </div>
+              {formData.farmerName && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                  <CheckCircle className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-900">Selected: {formData.farmerName}</span>
+                </div>
+              )}
                   {errors.farmerId && (
-                <p className="text-xs text-red-500 flex items-center gap-1 mt-1">
-                      <AlertCircle className="h-3 w-3" />
+                <p className="text-xs text-red-600 flex items-center gap-1 mt-1 font-medium">
+                      <AlertCircle className="h-3.5 w-3.5" />
                       {errors.farmerId}
                     </p>
                   )}

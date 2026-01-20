@@ -45,7 +45,7 @@ const translations = {
         title: "Network Opportunities",
         description: "Connect with like-minded individuals and organizations"
       },
-      copyright: "© 2024 Gemurai. All rights reserved."
+      copyright: "© 2024 HarvestPlus. All rights reserved."
     }
   },
   rw: {
@@ -76,7 +76,7 @@ const translations = {
         title: "Amahirwe yo Gukorana",
         description: "Huza n'abantu n'imiryango bafite intego zimwe"
       },
-      copyright: "© 2024 Gemurai. Uburenganzira bwose bwahawe"
+      copyright: "© 2024 HarvestPlus. Uburenganzira bwose bwahawe"
     }
   }
 } as const

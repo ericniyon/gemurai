@@ -14,7 +14,7 @@ export const layoutTranslations = {
       },
       auth: {
         login: "Login",
-        getStarted: "Join Gemura Platform"
+        getStarted: "Join HarvestPlus Platform"
       }
     },
     footer: {
@@ -38,10 +38,10 @@ export const layoutTranslations = {
         title: "Contact Us",
         address: "Kicukiro, Kigali, Rwanda",
         phone: "+250 788 606 765",
-        email: "info@gemura.rw"
+        email: "info@harvestplus.rw"
       },
       legal: {
-        copyright: "© 2024 Gemura Platform. All rights reserved.",
+        copyright: "© 2024 HarvestPlus Platform. All rights reserved.",
         privacy: "Privacy Policy",
         terms: "Terms of Service"
       }
@@ -62,7 +62,7 @@ export const layoutTranslations = {
       },
       auth: {
         login: "Connexion",
-        getStarted: "Rejoindre la Plateforme Gemura"
+        getStarted: "Rejoindre la Plateforme HarvestPlus"
       }
     },
     footer: {
@@ -86,10 +86,10 @@ export const layoutTranslations = {
         title: "Contactez-nous",
         address: "Kicukiro, Kigali, Rwanda",
         phone: "+250 788 606 765",
-        email: "info@gemura.rw"
+        email: "info@harvestplus.rw"
       },
       legal: {
-        copyright: "© 2024 Plateforme Gemura. Tous droits réservés.",
+        copyright: "© 2024 Plateforme HarvestPlus. Tous droits réservés.",
         privacy: "Politique de Confidentialité",
         terms: "Conditions d'Utilisation"
       }
@@ -110,7 +110,7 @@ export const layoutTranslations = {
       },
       auth: {
         login: "Injira",
-        getStarted: "Jya muri Gemura"
+        getStarted: "Jya muri HarvestPlus"
       }
     },
     footer: {
@@ -134,10 +134,10 @@ export const layoutTranslations = {
         title: "Twandikire",
         address: "Kicukiro, Kigali, Rwanda",
         phone: "+250 788 606 765",
-        email: "info@gemura.rw"
+        email: "info@harvestplus.rw"
       },
       legal: {
-        copyright: "© 2024 Urubuga rwa Gemura. Uburenganzira bwose burarinzwe.",
+        copyright: "© 2024 Urubuga rwa HarvestPlus. Uburenganzira bwose burarinzwe.",
         privacy: "Politiki y'Ibanga",
         terms: "Amabwiriza yo Gukoresha"
       }

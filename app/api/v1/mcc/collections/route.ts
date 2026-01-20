@@ -26,6 +26,44 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Validate farmerId format
+    if (typeof data.farmerId !== "string" || data.farmerId.trim() === "") {
+      return NextResponse.json(
+        { error: "Invalid farmerId: must be a non-empty string" },
+        { status: 400 }
+      )
+    }
+
+    // Try to verify farmer exists before processing
+    try {
+      const farmerExists = await prisma.farmers.findFirst({
+        where: {
+          OR: [
+            { id: data.farmerId },
+            { farmerCode: data.farmerId },
+            { phone: data.farmerId },
+          ]
+        },
+        select: { id: true, name: true, farmerCode: true },
+      })
+
+      if (!farmerExists) {
+        return NextResponse.json(
+          { 
+            error: "Farmer not found",
+            details: `No farmer found with ID, code, or phone: ${data.farmerId}. Please register the farmer first.`
+          },
+          { status: 404 }
+        )
+      }
+
+      // Use the actual farmer ID for the collection
+      data.farmerId = farmerExists.id
+    } catch (farmerCheckError) {
+      console.error("Error checking farmer:", farmerCheckError)
+      // Continue anyway - let the service handle it
+    }
+
     // Set agent ID from authenticated user if not provided
     if (!data.agentId && user.id) {
       data.agentId = user.id
