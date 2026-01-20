@@ -127,7 +127,7 @@ export default function AdminMCCsPage() {
       const result = await response.json()
 
       if (result.success) {
-        setMCCs(result.data || [])
+        setMccs(result.data || [])
       } else {
         toast.error(result.error || "Failed to fetch MCCs")
       }

@@ -130,7 +130,7 @@ export default function AdminReportsPage() {
       const result = await response.json()
 
       if (result.success) {
-        setMCCs(result.data || [])
+        setMccs(result.data || [])
       }
     } catch (error) {
       console.error("Error fetching MCCs:", error)
