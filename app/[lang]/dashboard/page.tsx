@@ -818,7 +818,7 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                 <div className="space-y-1">
                   <h2 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-purple-600 via-indigo-600 to-[#0099f2] bg-clip-text text-transparent">
-                    HarvestPlus by GEMURA
+                    HarvestPlus by YDEN
                   </h2>
                   <p className="text-sm text-gray-600 font-medium">Multi-Commodity Aggregation & Settlement Platform</p>
                 </div>

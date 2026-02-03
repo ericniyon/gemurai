@@ -1023,13 +1023,13 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
         <nav className="h-full flex flex-col">
           {/* Sidebar Header */}
           <div className="sidebar-header">
-            <Link href={`/${lang}/dashboard`} className="sidebar-logo" aria-label="HarvestPlus by GEMURA dashboard home">
+            <Link href={`/${lang}/dashboard`} className="sidebar-logo" aria-label="HarvestPlus by YDEN dashboard home">
               <div className="sidebar-logo-icon">
                 <span className="text-lg font-semibold tracking-tight">H</span>
               </div>
               <div>
                 <span className="sidebar-brand-title">HarvestPlus</span>
-                <span className="sidebar-brand-subtitle">by GEMURA</span>
+                <span className="sidebar-brand-subtitle">by YDEN</span>
               </div>
             </Link>
           </div>

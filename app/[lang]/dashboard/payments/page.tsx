@@ -204,7 +204,7 @@ export default function PaymentsDashboardPage() {
       <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">HarvestPlus by GEMURA - Payments Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">HarvestPlus by YDEN - Payments Dashboard</h1>
           <p className="text-gray-600 mt-1">Multi-Commodity Aggregation & Settlement Platform</p>
         </div>
 

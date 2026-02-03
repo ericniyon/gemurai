@@ -302,7 +302,7 @@ export function ReportPDFDocument({
         ))}
 
         <Text style={styles.footer}>
-          MCC Report • GEMURA Platform • Confidential
+          MCC Report • YDEN Platform • Confidential
         </Text>
       </Page>
     </Document>

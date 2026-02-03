@@ -6,8 +6,8 @@ import { PerformanceMonitor } from "@/components/performance-monitor"
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | HarvestPlus by GEMURA",
-    default: "HarvestPlus by GEMURA",
+    template: "%s | HarvestPlus by YDEN",
+    default: "HarvestPlus by YDEN",
   },
   description: "Multi-Commodity Aggregation & Settlement Platform",
   icons: {
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "HarvestPlus by GEMURA",
+    title: "HarvestPlus by YDEN",
   },
   other: {
     "mobile-web-app-capable": "yes",
@@ -28,19 +28,19 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://www.harvestplus.rw",
-    siteName: "HarvestPlus by GEMURA",
-    title: "HarvestPlus by GEMURA - Multi-Commodity Aggregation Platform",
+    siteName: "HarvestPlus by YDEN",
+    title: "HarvestPlus by YDEN - Multi-Commodity Aggregation Platform",
     description: "Multi-Commodity Aggregation & Settlement Platform for Dairy, Coffee, Cereals & Other Commodities",
     images: [{
       url: "/placeholder.jpg",
       width: 1200,
       height: 630,
-      alt: "HarvestPlus by GEMURA",
+      alt: "HarvestPlus by YDEN",
     }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "HarvestPlus by GEMURA",
+    title: "HarvestPlus by YDEN",
     description: "Multi-Commodity Aggregation & Settlement Platform",
     images: ["/placeholder.jpg"],
   },

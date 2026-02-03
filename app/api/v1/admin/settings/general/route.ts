@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     // For now, return default settings
     // In production, these would be stored in a settings table
     const settings = {
-      platformName: "HarvestPlus by GEMURA",
+      platformName: "HarvestPlus by YDEN",
       platformDescription: "Multi-Commodity Aggregation & Settlement Platform",
       defaultLanguage: "en",
       timezone: "Africa/Kigali",

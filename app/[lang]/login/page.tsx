@@ -125,7 +125,7 @@ function LoginContent() {
                 <div className="relative w-40 h-12">
                   <Image
                     src="/yden.png"
-                    alt="HarvestPlus by GEMURA"
+                    alt="HarvestPlus by YDEN"
                     fill
                     className="object-contain brightness-0 invert opacity-95"
                     priority
@@ -191,7 +191,7 @@ function LoginContent() {
             <div className="lg:hidden text-center mb-8">
               <Link href={`/${lang}`} className="inline-block mb-4">
                 <div className="relative w-32 h-10 mx-auto">
-                  <Image src="/yden.png" alt="HarvestPlus by GEMURA" fill className="object-contain" priority />
+                  <Image src="/yden.png" alt="HarvestPlus by YDEN" fill className="object-contain" priority />
                 </div>
               </Link>
               <h1 className="text-xl font-bold text-slate-900">{t.welcome.title}</h1>

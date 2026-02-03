@@ -345,7 +345,7 @@ function RegisterContent() {
             <div className="max-w-md">
               <Link href={`/${lang}`} className="inline-block mb-12">
                 <div className="relative w-40 h-12">
-                  <Image src="/yden.png" alt="HarvestPlus by GEMURA" fill className="object-contain brightness-0 invert opacity-95" priority />
+                  <Image src="/yden.png" alt="HarvestPlus by YDEN" fill className="object-contain brightness-0 invert opacity-95" priority />
                 </div>
               </Link>
               <h2 className="text-3xl xl:text-4xl font-bold text-white tracking-tight mb-4 leading-tight">
@@ -395,7 +395,7 @@ function RegisterContent() {
             <div className="lg:hidden text-center mb-8">
               <Link href={`/${lang}`} className="inline-block mb-4">
                 <div className="relative w-32 h-10 mx-auto">
-                  <Image src="/yden.png" alt="HarvestPlus by GEMURA" fill className="object-contain" priority />
+                  <Image src="/yden.png" alt="HarvestPlus by YDEN" fill className="object-contain" priority />
                 </div>
               </Link>
               <h1 className="text-xl font-bold text-slate-900">{t.hero.title}</h1>

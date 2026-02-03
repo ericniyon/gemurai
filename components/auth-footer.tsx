@@ -19,7 +19,7 @@ export function AuthFooter() {
           <div className="lg:col-span-1 space-y-4">
             <Link href={`/${lang}`} className="inline-block">
               <div className="relative w-32 h-10">
-                <Image src="/yden.png" alt="HarvestPlus by GEMURA" fill className="object-contain" />
+                <Image src="/yden.png" alt="HarvestPlus by YDEN" fill className="object-contain" />
               </div>
             </Link>
             <p className="text-slate-600 text-sm leading-relaxed max-w-xs">

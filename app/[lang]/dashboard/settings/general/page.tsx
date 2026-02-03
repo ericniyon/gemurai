@@ -26,7 +26,7 @@ export default function GeneralSettingsPage() {
   const lang = (params?.lang as string) || "en"
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    platformName: "HarvestPlus by GEMURA",
+    platformName: "HarvestPlus by YDEN",
     platformDescription: "Multi-Commodity Aggregation & Settlement Platform",
     defaultLanguage: "en",
     timezone: "Africa/Kigali",
@@ -141,7 +141,7 @@ export default function GeneralSettingsPage() {
                   value={formData.platformName}
                   onChange={(e) => setFormData({ ...formData, platformName: e.target.value })}
                   className="border-slate-200 focus:border-primary focus:ring-primary/20"
-                  placeholder="HarvestPlus by GEMURA"
+                  placeholder="HarvestPlus by YDEN"
                 />
               </div>
 
