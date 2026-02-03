@@ -62,8 +62,12 @@ export async function GET(req: NextRequest) {
       // Agents (users with AGENT, FIELD_AGENT roles)
       prisma.user.count({
         where: {
-          role: {
-            in: ["AGENT", "FIELD_AGENT", "EXTENSION_AGENT"]
+          userRole: {
+            role: {
+              name: {
+                in: ["AGENT", "FIELD_AGENT", "EXTENSION_AGENT"]
+              }
+            }
           }
         }
       }),
@@ -142,8 +146,12 @@ export async function GET(req: NextRequest) {
           id: true,
           name: true,
           email: true,
-          role: true,
-          createdAt: true
+          createdAt: true,
+          userRole: {
+            select: {
+              role: { select: { name: true } }
+            }
+          }
         }
       }),
     ])
@@ -242,7 +250,7 @@ export async function GET(req: NextRequest) {
             id: u.id,
             name: u.name,
             email: u.email,
-            role: u.role,
+            role: u.userRole?.role?.name ?? "UNASSIGNED",
             createdAt: u.createdAt,
           })),
         },

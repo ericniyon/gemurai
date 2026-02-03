@@ -3,16 +3,15 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams, useParams } from "next/navigation"
-import { Loader2, Shield, Building, User, ShoppingBag, Briefcase, Eye, EyeOff, Mail, Phone } from "lucide-react"
+import Image from "next/image"
+import { Loader2, Shield, Eye, EyeOff, Lock, Mail, Phone, Building, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AuthHeader } from "@/components/auth-header"
 import { AuthFooter } from "@/components/auth-footer"
-import { TEST_CREDENTIALS } from "@/lib/test-credentials"
 import { ClientOnly } from "@/components/client-only"
 import { loginTranslations } from "../translations/auth"
 import { useAuth } from "@/hooks/use-auth"
@@ -34,7 +33,6 @@ function LoginContent() {
   })
   const { login, isAuthenticated } = useAuth()
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       const redirect = searchParams?.get("redirect") || `/${lang}/dashboard`
@@ -50,7 +48,6 @@ function LoginContent() {
       ...prev,
       [name]: value
     }))
-    // Clear error when user starts typing
     setError(null)
   }
 
@@ -60,10 +57,8 @@ function LoginContent() {
     setError(null)
 
     try {
-      // Determine which identifier to use based on login method
       const identifier = loginMethod === "email" ? formData.email : formData.phone
       
-      // Validation
       if (!identifier) {
         setError(loginMethod === "email" ? t.form.errors.missingEmail : t.form.errors.missingPhone)
         setIsLoading(false)
@@ -76,14 +71,12 @@ function LoginContent() {
         return
       }
 
-      // Email validation
       if (loginMethod === "email" && !isValidEmail(identifier)) {
         setError(t.form.errors.invalidEmail)
         setIsLoading(false)
         return
       }
 
-      // Phone validation
       if (loginMethod === "phone" && !isValidPhone(identifier)) {
         setError(t.form.errors.invalidPhone)
         setIsLoading(false)
@@ -94,300 +87,257 @@ function LoginContent() {
       
       if (result.success) {
         const redirect = searchParams?.get("redirect") || `/${lang}/dashboard`
-        // Use router.replace to prevent going back to login page
-        // Only redirect if we're not already on the target page
         if (window.location.pathname !== redirect) {
           router.replace(redirect)
         }
       } else {
-        console.error("Login failed:", result.message || "Unknown error")
         setError(result.message || t.form.errors.invalidCredentials)
       }
     } catch (error) {
-      console.error("Login error:", error)
       setError(t.form.errors.serverError)
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Validation functions
   const isValidEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     return emailRegex.test(email)
   }
 
   const isValidPhone = (phone: string): boolean => {
-    // Basic phone validation - allows digits, spaces, dashes, and plus sign
     const phoneRegex = /^[\+]?[0-9\s\-\(\)]{7,}$/
     return phoneRegex.test(phone)
   }
 
-  const handleQuickLogin = async (userType: keyof typeof TEST_CREDENTIALS) => {
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const credentials = TEST_CREDENTIALS[userType]
-      const result = await login(credentials.email, credentials.password)
-
-      if (result.success) {
-        const redirect = searchParams?.get("redirect") || `/${lang}/dashboard`
-        if (window.location.pathname !== redirect) {
-          router.replace(redirect)
-        }
-      } else {
-        console.error("Quick login failed:", result.message)
-        setError(result.message || t.form.errors.invalidCredentials)
-      }
-    } catch (error) {
-      console.error("Quick login error:", error)
-      setError(t.form.errors.serverError)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
-      <div className="relative">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-400/10 to-purple-400/10 blur-3xl" />
-          <div className="absolute bottom-[-160px] left-[-160px] h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-400/15 via-sky-400/10 to-blue-400/5 blur-3xl" />
-        </div>
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      <AuthHeader />
 
-        {/* Navigation */}
-        <div className="relative z-10">
-          <AuthHeader />
-        </div>
-
-        {/* Login Section */}
-        <div className="relative z-10 flex flex-col lg:flex-row min-h-[calc(100vh-80px)] gap-y-8">
-          {/* Left Side - Mission & Vision */}
-          <div className="hidden lg:flex w-1/2 text-white relative overflow-hidden" style={{ backgroundColor: '#0249ad' }}>
-            <div className="relative z-10 flex flex-col justify-center p-12">
-              <div className="max-w-lg">
-                {/* Header */}
-                <div className="mb-12">
-                  <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                    <Shield className="w-8 h-8" />
-                  </div>
-                  <h2 className="text-3xl font-bold mb-4 text-white">
-                    {t.welcome.title}
-                  </h2>
-                  <p className="text-white/90 text-lg">
-                    {t.welcome.subtitle}
-                  </p>
+      <div className="flex-1 flex flex-col lg:flex-row min-h-[calc(100vh-80px)]">
+        {/* Left - Blue Brand Panel */}
+        <div className="hidden lg:flex lg:w-[42%] xl:w-[45%] relative overflow-hidden bg-[#0099f2]">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0099f2] via-[#0082d9] to-[#006bb8]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_20%_80%,rgba(255,255,255,0.12),transparent)]" />
+          <div className="relative z-10 flex flex-col justify-center p-12 xl:p-20 w-full">
+            <div className="max-w-md">
+              <Link href={`/${lang}`} className="inline-block mb-12">
+                <div className="relative w-40 h-12">
+                  <Image
+                    src="/yden.png"
+                    alt="HarvestPlus by GEMURA"
+                    fill
+                    className="object-contain brightness-0 invert opacity-95"
+                    priority
+                  />
                 </div>
+              </Link>
+              <h2 className="text-3xl xl:text-4xl font-bold text-white tracking-tight mb-4 leading-tight">
+                {t.welcome.title}
+              </h2>
+              <p className="text-white/90 text-lg leading-relaxed mb-12">
+                {t.welcome.subtitle}
+              </p>
 
-                <div className="space-y-8">
-                  <div className="flex items-start space-x-4 group">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-all duration-300 shadow-md">
-                      <Shield className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2 text-white">{t.mission.title}</h3>
-                      <p className="text-white/80 leading-relaxed">{t.mission.content}</p>
-                    </div>
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-white" />
                   </div>
-
-                  <div className="flex items-start space-x-4 group">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-all duration-300 shadow-md">
-                      <User className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2 text-white">{t.vision.title}</h3>
-                      <p className="text-white/80 leading-relaxed">{t.vision.content}</p>
-                    </div>
+                  <div>
+                    <h3 className="font-semibold text-white mb-1">{t.mission.title}</h3>
+                    <p className="text-white/80 text-sm leading-relaxed">{t.mission.content}</p>
                   </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+                    <User className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white mb-1">{t.vision.title}</h3>
+                    <p className="text-white/80 text-sm leading-relaxed">{t.vision.content}</p>
+                  </div>
+                </div>
+              </div>
 
-                  <div className="grid grid-cols-2 gap-6 mt-12">
-                    <div className="text-center group">
-                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-white/30 transition-all duration-300 shadow-md">
-                        <Shield className="w-8 h-8" />
-                      </div>
-                      <h4 className="font-semibold text-white mb-2">{t.features.learn.title}</h4>
-                      <p className="text-sm text-white/80 leading-relaxed">{t.features.learn.subtitle}</p>
-                    </div>
-                    <div className="text-center group">
-                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:bg-white/30 transition-all duration-300 shadow-md">
-                        <Building className="w-8 h-8" />
-                      </div>
-                      <h4 className="font-semibold text-white mb-2">{t.features.earn.title}</h4>
-                      <p className="text-sm text-white/80 leading-relaxed">{t.features.earn.subtitle}</p>
-                    </div>
+              <div className="flex gap-6 mt-12 pt-8 border-t border-white/25">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white text-sm">{t.features.learn.title}</p>
+                    <p className="text-white/70 text-xs">{t.features.learn.subtitle}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                    <Building className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-white text-sm">{t.features.earn.title}</p>
+                    <p className="text-white/70 text-xs">{t.features.earn.subtitle}</p>
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Decorative Elements */}
-            <div className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-            <div className="absolute bottom-20 right-32 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
-            <div className="absolute top-1/2 right-10 w-16 h-16 bg-white/10 rounded-full blur-2xl"></div>
           </div>
+        </div>
 
-          {/* Right Side - Login Form */}
-          <div className="w-full lg:w-1/2 flex items-center justify-center p-8 px-4 pt-8 pb-8 min-h-[calc(100vh-80px)] flex-grow overflow-y-auto">
-            <div className="w-full max-w-md">
-              <Tabs defaultValue="login" className="w-full">
-                <TabsContent value="login">
-                  <Card className="border-2 border-blue-100 rounded-3xl shadow-xl bg-white/90 backdrop-blur-sm">
-                    <form onSubmit={handleSubmit}>
-                      <CardHeader className="pb-6">
-                        <CardTitle className="text-2xl font-bold text-gray-900">{t.form.title}</CardTitle>
-                        <CardDescription className="text-gray-600 mt-2">{t.form.subtitle}</CardDescription>
-                        {error && (
-                          <Alert variant="destructive" className="mt-4 rounded-xl">
-                            <AlertDescription>{error}</AlertDescription>
-                          </Alert>
-                        )}
-                      </CardHeader>
-                      <CardContent className="space-y-5">
-                        {/* Login Method Tabs */}
-                        <div className="space-y-4">
-                          <Tabs value={loginMethod} onValueChange={(value) => setLoginMethod(value as "email" | "phone")} className="w-full">
-                            <TabsList className="grid w-full grid-cols-2 bg-gray-100 rounded-xl p-1">
-                              <TabsTrigger value="email" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                                <Mail className="h-4 w-4" />
-                                {t.form.loginMethod.email}
-                              </TabsTrigger>
-                              <TabsTrigger value="phone" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                                <Phone className="h-4 w-4" />
-                                {t.form.loginMethod.phone}
-                              </TabsTrigger>
-                            </TabsList>
-                          </Tabs>
-                        </div>
+        {/* Right - Login Form */}
+        <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16 bg-gradient-to-b from-slate-50 to-white">
+          <div className="w-full max-w-[420px]">
+            {/* Mobile Brand */}
+            <div className="lg:hidden text-center mb-8">
+              <Link href={`/${lang}`} className="inline-block mb-4">
+                <div className="relative w-32 h-10 mx-auto">
+                  <Image src="/yden.png" alt="HarvestPlus by GEMURA" fill className="object-contain" priority />
+                </div>
+              </Link>
+              <h1 className="text-xl font-bold text-slate-900">{t.welcome.title}</h1>
+              <p className="text-slate-500 text-sm mt-1">{t.welcome.subtitle}</p>
+            </div>
 
-                        {/* Email/Phone Input */}
-                        <div className="space-y-2">
-                          <Label htmlFor={loginMethod} className="text-sm font-semibold text-gray-700">
-                            {loginMethod === "email" ? t.form.email.label : t.form.phone.label}
-                          </Label>
-                          <Input
-                            id={loginMethod}
-                            name={loginMethod}
-                            type={loginMethod === "email" ? "email" : "tel"}
-                            placeholder={loginMethod === "email" ? t.form.email.placeholder : t.form.phone.placeholder}
-                            value={loginMethod === "email" ? formData.email : formData.phone}
-                            onChange={handleInputChange}
-                            autoComplete={loginMethod === "email" ? "email" : "tel"}
-                            className="h-11 rounded-lg"
-                            style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                          />
-                        </div>
+            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/60 overflow-hidden ring-1 ring-slate-900/5">
+              <div className="relative px-8 py-7 overflow-hidden bg-gradient-to-br from-white via-[#0099f2]/[0.02] to-[#0099f2]/[0.04]">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#0099f2] via-[#0082d9] to-[#006bb8]" />
+                <div className="absolute top-0 right-0 w-40 h-40 bg-[#0099f2]/[0.06] rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+                <div className="relative flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0099f2]/20 to-[#0099f2]/5 flex items-center justify-center ring-1 ring-[#0099f2]/15 shadow-sm">
+                    <Lock className="h-5 w-5 text-[#0099f2]" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t.form.title}</h2>
+                    <p className="text-slate-500 text-sm mt-1.5 leading-relaxed">{t.form.subtitle}</p>
+                  </div>
+                </div>
+              </div>
 
-                        {/* Password Input */}
-                        <div className="space-y-2">
-                          <Label htmlFor="password" className="text-sm font-semibold text-gray-700">{t.form.password.label}</Label>
-                          <div className="relative">
-                            <Input
-                              id="password"
-                              name="password"
-                              type={showPassword ? "text" : "password"}
-                              placeholder={t.form.password.placeholder}
-                              value={formData.password}
-                              onChange={handleInputChange}
-                              autoComplete="current-password"
-                              className="h-11 rounded-lg pr-10"
-                              style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 transition-colors"
-                            >
-                              {showPassword ? (
-                                <EyeOff className="h-4 w-4" />
-                              ) : (
-                                <Eye className="h-4 w-4" />
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="flex flex-col gap-4 pt-6">
-                        <Button 
-                          type="submit" 
-                          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300" 
-                          disabled={isLoading}
-                        >
-                          {isLoading ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              {t.form.buttons.loggingIn}
-                            </>
-                          ) : (
-                            t.form.buttons.login
-                          )}
-                        </Button>
-                        <div className="text-center text-sm space-y-2">
-                          <Link href={`/${lang}/forgot-password`} className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
-                            {t.form.buttons.forgotPassword}
-                          </Link>
-                          <div>
-                            <span className="text-gray-500">{t.form.buttons.noAccount} </span>
-                            <Link href={`/${lang}/register`} className="text-blue-600 font-semibold hover:text-blue-700 hover:underline">
-                              {t.form.buttons.register}
-                            </Link>
-                          </div>
-                        </div>
-                      </CardFooter>
-                    </form>
-                  </Card>
-                </TabsContent>
+              <form onSubmit={handleSubmit} className="p-8 pt-6 space-y-5 border-t border-slate-100/80">
+                {error && (
+                  <Alert variant="destructive" className="rounded-2xl border-red-200/80 bg-red-50/95">
+                    <AlertDescription className="text-sm font-medium">{error}</AlertDescription>
+                  </Alert>
+                )}
 
-                <TabsContent value="quick-login">
-                  <Card className="border-2 border-blue-100 rounded-3xl shadow-xl bg-white/90 backdrop-blur-sm">
-                    <CardHeader className="pb-6">
-                      <CardTitle className="text-2xl font-bold text-gray-900">{t.form.quickLogin.title}</CardTitle>
-                      <CardDescription className="text-gray-600 mt-2">{t.form.quickLogin.subtitle}</CardDescription>
-                      {error && (
-                        <Alert variant="destructive" className="mt-4 rounded-xl">
-                          <AlertDescription>{error}</AlertDescription>
-                        </Alert>
+                <div>
+                  <Tabs value={loginMethod} onValueChange={(value) => setLoginMethod(value as "email" | "phone")}>
+                    <TabsList className="grid w-full grid-cols-2 h-11 p-1 bg-slate-100/80 rounded-2xl">
+                      <TabsTrigger
+                        value="email"
+                        className="rounded-xl text-sm font-medium text-slate-600 data-[state=active]:bg-white data-[state=active]:text-[#0099f2] data-[state=active]:shadow-md data-[state=active]:shadow-slate-200/50 data-[state=active]:border-0 transition-all duration-200"
+                      >
+                        <Mail className="h-4 w-4 mr-2" />
+                        {t.form.loginMethod.email}
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="phone"
+                        className="rounded-xl text-sm font-medium text-slate-600 data-[state=active]:bg-white data-[state=active]:text-[#0099f2] data-[state=active]:shadow-md data-[state=active]:shadow-slate-200/50 data-[state=active]:border-0 transition-all duration-200"
+                      >
+                        <Phone className="h-4 w-4 mr-2" />
+                        {t.form.loginMethod.phone}
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={loginMethod} className="text-sm font-medium text-slate-700">
+                    {loginMethod === "email" ? t.form.email.label : t.form.phone.label}
+                  </Label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                      {loginMethod === "email" ? (
+                        <Mail className="h-5 w-5" strokeWidth={2} />
+                      ) : (
+                        <Phone className="h-5 w-5" strokeWidth={2} />
                       )}
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Button
-                          variant="outline"
-                          className="h-auto py-6 flex flex-col items-center gap-3 border-2 border-blue-200 hover:border-blue-400 rounded-xl bg-white hover:bg-blue-50 transition-all duration-300 shadow-sm hover:shadow-md"
-                          onClick={() => handleQuickLogin("DCC")}
-                          disabled={isLoading}
-                        >
-                          <Shield className="h-6 w-6 text-blue-600" />
-                          <div className="space-y-1">
-                            <h3 className="font-semibold text-gray-900">{t.form.quickLogin.dcc.title}</h3>
-                            <p className="text-sm text-gray-600">{t.form.quickLogin.dcc.subtitle}</p>
-                          </div>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="h-auto py-6 flex flex-col items-center gap-3 border-2 border-blue-200 hover:border-blue-400 rounded-xl bg-white hover:bg-blue-50 transition-all duration-300 shadow-sm hover:shadow-md"
-                          onClick={() => handleQuickLogin("EMPLOYER")}
-                          disabled={isLoading}
-                        >
-                          <Briefcase className="h-6 w-6 text-blue-600" />
-                          <div className="space-y-1">
-                            <h3 className="font-semibold text-gray-900">{t.form.quickLogin.employer.title}</h3>
-                            <p className="text-sm text-gray-600">{t.form.quickLogin.employer.subtitle}</p>
-                          </div>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
+                    </div>
+                    <Input
+                      id={loginMethod}
+                      name={loginMethod}
+                      type={loginMethod === "email" ? "email" : "tel"}
+                      placeholder={loginMethod === "email" ? t.form.email.placeholder : t.form.phone.placeholder}
+                      value={loginMethod === "email" ? formData.email : formData.phone}
+                      onChange={handleInputChange}
+                      autoComplete={loginMethod === "email" ? "email" : "tel"}
+                      style={{ paddingLeft: 48, paddingRight: 20, paddingTop: 14, paddingBottom: 14 }}
+                      className="h-12 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 hover:border-slate-300 focus:border-[#0099f2] focus:ring-2 focus:ring-[#0099f2]/20 focus:outline-none transition-all duration-200"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password" className="text-sm font-medium text-slate-700">
+                      {t.form.password.label}
+                    </Label>
+                    <Link
+                      href={`/${lang}/forgot-password`}
+                      className="text-xs font-medium text-[#0099f2] hover:text-[#0082d9] transition-colors"
+                    >
+                      {t.form.buttons.forgotPassword}
+                    </Link>
+                  </div>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                      <Lock className="h-5 w-5" strokeWidth={2} />
+                    </div>
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder={t.form.password.placeholder}
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      autoComplete="current-password"
+                      style={{ paddingLeft: 48, paddingRight: 48, paddingTop: 14, paddingBottom: 14 }}
+                      className="h-12 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 hover:border-slate-300 focus:border-[#0099f2] focus:ring-2 focus:ring-[#0099f2]/20 focus:outline-none transition-all duration-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0099f2] p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 rounded-2xl font-semibold text-white bg-gradient-to-r from-[#0099f2] to-[#0082d9] shadow-lg shadow-[#0099f2]/30 hover:shadow-xl hover:shadow-[#0099f2]/40 hover:from-[#0082d9] hover:to-[#006bb8] transition-all duration-200"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t.form.buttons.loggingIn}
+                    </>
+                  ) : (
+                    t.form.buttons.login
+                  )}
+                </Button>
+              </form>
+
+              <div className="px-8 py-5 border-t border-slate-100">
+                <p className="text-center text-sm text-slate-600">
+                  <span>{t.form.buttons.noAccount} </span>
+                  <Link
+                    href={`/${lang}/register`}
+                    className="font-semibold text-[#0099f2] hover:text-[#0082d9] transition-colors"
+                  >
+                    {t.form.buttons.register}
+                  </Link>
+                </p>
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="relative z-10">
-          <AuthFooter />
-        </div>
       </div>
+
+      <AuthFooter />
     </div>
   )
 }
@@ -395,14 +345,14 @@ function LoginContent() {
 export default function Login() {
   return (
     <ClientOnly fallback={
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-[#0099f2]"></div>
+          <p className="text-sm text-slate-500">Loading...</p>
         </div>
       </div>
     }>
       <LoginContent />
     </ClientOnly>
   )
-} 
+}

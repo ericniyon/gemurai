@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { useAuth } from "@/hooks/use-auth"
 import { useParams } from "next/navigation"
-import { Shield, Save, Lock, Key, Eye, EyeOff } from "lucide-react"
+import { Shield, Save, Lock, Key } from "lucide-react"
+import { SettingsPageHeader } from "@/components/settings/settings-page-header"
 import { toast } from "sonner"
 import {
   Select,
@@ -68,7 +69,7 @@ export default function SecurityPage() {
         if (response.ok) {
           const result = await response.json()
           if (result.success && result.data) {
-            setFormData({ ...formData, ...result.data })
+            setFormData((prev) => ({ ...prev, ...result.data }))
           }
         }
       } catch (error) {
@@ -115,7 +116,7 @@ export default function SecurityPage() {
           <CardContent className="pt-6">
             <div className="text-center">
               <h2 className="text-xl font-bold mb-2">Access Denied</h2>
-              <p className="text-gray-600">You need admin privileges to access this page</p>
+              <p className="text-slate-500">You need admin privileges to access this page</p>
             </div>
           </CardContent>
         </Card>
@@ -124,38 +125,29 @@ export default function SecurityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg">
-              <Shield className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Security Settings
-              </h1>
-              <p className="text-blue-700 mt-1 font-medium">Configure security policies and authentication</p>
-            </div>
-          </div>
-        </div>
+    <div className="max-w-5xl mx-auto">
+      <SettingsPageHeader
+        title="Security Settings"
+        description="Configure security policies and authentication"
+        icon={Shield}
+        lang={lang}
+      />
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
           {/* Password Policy */}
-          <Card className="border-2 border-blue-200 bg-white shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Lock className="h-5 w-5" />
+          <Card className="border-slate-200/80">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-slate-900">
+                <Lock className="h-5 w-5 text-slate-600" />
                 Password Policy
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-slate-600">
                 Configure password requirements and policies
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="minPasswordLength" className="text-base font-semibold text-gray-700">
+                <Label htmlFor="minPasswordLength" className="text-sm font-medium text-slate-700">
                   Minimum Password Length
                 </Label>
                 <Input
@@ -163,16 +155,16 @@ export default function SecurityPage() {
                   type="number"
                   value={formData.minPasswordLength}
                   onChange={(e) => setFormData({ ...formData, minPasswordLength: parseInt(e.target.value) || 8 })}
-                  className="border-2 border-blue-200 focus:border-blue-500"
+                  className="border-slate-200 focus:border-primary focus:ring-primary/20"
                   min={6}
                   max={32}
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                   <div className="flex-1">
-                    <Label htmlFor="requireUppercase" className="text-base font-semibold text-gray-700 cursor-pointer">
+                    <Label htmlFor="requireUppercase" className="text-sm font-medium text-slate-700 cursor-pointer">
                       Require Uppercase
                     </Label>
                   </div>
@@ -183,9 +175,9 @@ export default function SecurityPage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                   <div className="flex-1">
-                    <Label htmlFor="requireLowercase" className="text-base font-semibold text-gray-700 cursor-pointer">
+                    <Label htmlFor="requireLowercase" className="text-sm font-medium text-slate-700 cursor-pointer">
                       Require Lowercase
                     </Label>
                   </div>
@@ -196,9 +188,9 @@ export default function SecurityPage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                   <div className="flex-1">
-                    <Label htmlFor="requireNumbers" className="text-base font-semibold text-gray-700 cursor-pointer">
+                    <Label htmlFor="requireNumbers" className="text-sm font-medium text-slate-700 cursor-pointer">
                       Require Numbers
                     </Label>
                   </div>
@@ -209,9 +201,9 @@ export default function SecurityPage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                   <div className="flex-1">
-                    <Label htmlFor="requireSpecialChars" className="text-base font-semibold text-gray-700 cursor-pointer">
+                    <Label htmlFor="requireSpecialChars" className="text-sm font-medium text-slate-700 cursor-pointer">
                       Require Special Characters
                     </Label>
                   </div>
@@ -225,7 +217,7 @@ export default function SecurityPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="passwordExpiryDays" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="passwordExpiryDays" className="text-sm font-medium text-slate-700">
                     Password Expiry (days)
                   </Label>
                   <Input
@@ -233,14 +225,14 @@ export default function SecurityPage() {
                     type="number"
                     value={formData.passwordExpiryDays}
                     onChange={(e) => setFormData({ ...formData, passwordExpiryDays: parseInt(e.target.value) || 90 })}
-                    className="border-2 border-blue-200 focus:border-blue-500"
+                    className="border-slate-200 focus:border-primary focus:ring-primary/20"
                     min={30}
                     max={365}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="maxPasswordHistory" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="maxPasswordHistory" className="text-sm font-medium text-slate-700">
                     Password History (prevent reuse)
                   </Label>
                   <Input
@@ -248,19 +240,19 @@ export default function SecurityPage() {
                     type="number"
                     value={formData.maxPasswordHistory}
                     onChange={(e) => setFormData({ ...formData, maxPasswordHistory: parseInt(e.target.value) || 5 })}
-                    className="border-2 border-blue-200 focus:border-blue-500"
+                    className="border-slate-200 focus:border-primary focus:ring-primary/20"
                     min={0}
                     max={10}
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="preventPasswordReuse" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="preventPasswordReuse" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Prevent Password Reuse
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Users cannot reuse previous passwords</p>
+                  <p className="text-sm text-slate-500 mt-1">Users cannot reuse previous passwords</p>
                 </div>
                 <Switch
                   id="preventPasswordReuse"
@@ -272,23 +264,23 @@ export default function SecurityPage() {
           </Card>
 
           {/* Authentication */}
-          <Card className="border-2 border-blue-200 bg-white shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Key className="h-5 w-5" />
+          <Card className="border-slate-200/80">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-slate-900">
+                <Key className="h-5 w-5 text-slate-600" />
                 Authentication
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-slate-600">
                 Configure authentication methods and session management
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enable2FA" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enable2FA" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Enable Two-Factor Authentication (2FA)
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Require 2FA for admin accounts</p>
+                  <p className="text-sm text-slate-500 mt-1">Require 2FA for admin accounts</p>
                 </div>
                 <Switch
                   id="enable2FA"
@@ -297,12 +289,12 @@ export default function SecurityPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="requireStrongPasswords" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="requireStrongPasswords" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Require Strong Passwords
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Enforce all password policy requirements</p>
+                  <p className="text-sm text-slate-500 mt-1">Enforce all password policy requirements</p>
                 </div>
                 <Switch
                   id="requireStrongPasswords"
@@ -313,7 +305,7 @@ export default function SecurityPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="sessionTimeout" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="sessionTimeout" className="text-sm font-medium text-slate-700">
                     Session Timeout (minutes)
                   </Label>
                   <Input
@@ -321,14 +313,14 @@ export default function SecurityPage() {
                     type="number"
                     value={formData.sessionTimeout}
                     onChange={(e) => setFormData({ ...formData, sessionTimeout: parseInt(e.target.value) || 30 })}
-                    className="border-2 border-blue-200 focus:border-blue-500"
+                    className="border-slate-200 focus:border-primary focus:ring-primary/20"
                     min={5}
                     max={480}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="maxLoginAttempts" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="maxLoginAttempts" className="text-sm font-medium text-slate-700">
                     Max Login Attempts
                   </Label>
                   <Input
@@ -336,14 +328,14 @@ export default function SecurityPage() {
                     type="number"
                     value={formData.maxLoginAttempts}
                     onChange={(e) => setFormData({ ...formData, maxLoginAttempts: parseInt(e.target.value) || 5 })}
-                    className="border-2 border-blue-200 focus:border-blue-500"
+                    className="border-slate-200 focus:border-primary focus:ring-primary/20"
                     min={3}
                     max={10}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="lockoutDuration" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="lockoutDuration" className="text-sm font-medium text-slate-700">
                     Lockout Duration (minutes)
                   </Label>
                   <Input
@@ -351,7 +343,7 @@ export default function SecurityPage() {
                     type="number"
                     value={formData.lockoutDuration}
                     onChange={(e) => setFormData({ ...formData, lockoutDuration: parseInt(e.target.value) || 15 })}
-                    className="border-2 border-blue-200 focus:border-blue-500"
+                    className="border-slate-200 focus:border-primary focus:ring-primary/20"
                     min={5}
                     max={60}
                   />
@@ -361,23 +353,23 @@ export default function SecurityPage() {
           </Card>
 
           {/* API Security */}
-          <Card className="border-2 border-blue-200 bg-white shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Shield className="h-5 w-5" />
+          <Card className="border-slate-200/80">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-slate-900">
+                <Shield className="h-5 w-5 text-slate-600" />
                 API Security
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-slate-600">
                 Configure API authentication and security
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enableAPIAuthentication" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enableAPIAuthentication" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Require API Authentication
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">All API requests must be authenticated</p>
+                  <p className="text-sm text-slate-500 mt-1">All API requests must be authenticated</p>
                 </div>
                 <Switch
                   id="enableAPIAuthentication"
@@ -386,12 +378,12 @@ export default function SecurityPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enableHTTPSOnly" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enableHTTPSOnly" className="text-sm font-medium text-slate-700 cursor-pointer">
                     HTTPS Only
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Force HTTPS for all connections</p>
+                  <p className="text-sm text-slate-500 mt-1">Force HTTPS for all connections</p>
                 </div>
                 <Switch
                   id="enableHTTPSOnly"
@@ -400,12 +392,12 @@ export default function SecurityPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enableCSRFProtection" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enableCSRFProtection" className="text-sm font-medium text-slate-700 cursor-pointer">
                     CSRF Protection
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Enable Cross-Site Request Forgery protection</p>
+                  <p className="text-sm text-slate-500 mt-1">Enable Cross-Site Request Forgery protection</p>
                 </div>
                 <Switch
                   id="enableCSRFProtection"
@@ -415,7 +407,7 @@ export default function SecurityPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="apiKeyExpiryDays" className="text-base font-semibold text-gray-700">
+                <Label htmlFor="apiKeyExpiryDays" className="text-sm font-medium text-slate-700">
                   API Key Expiry (days)
                 </Label>
                 <Input
@@ -423,7 +415,7 @@ export default function SecurityPage() {
                   type="number"
                   value={formData.apiKeyExpiryDays}
                   onChange={(e) => setFormData({ ...formData, apiKeyExpiryDays: parseInt(e.target.value) || 365 })}
-                  className="border-2 border-blue-200 focus:border-blue-500"
+                  className="border-slate-200 focus:border-primary focus:ring-primary/20"
                   min={30}
                   max={3650}
                 />
@@ -432,23 +424,23 @@ export default function SecurityPage() {
           </Card>
 
           {/* Data Security */}
-          <Card className="border-2 border-blue-200 bg-white shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Lock className="h-5 w-5" />
+          <Card className="border-slate-200/80">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-slate-900">
+                <Lock className="h-5 w-5 text-slate-600" />
                 Data Security
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-slate-600">
                 Configure data encryption and protection
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enableEncryption" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enableEncryption" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Enable Data Encryption
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Encrypt sensitive data at rest</p>
+                  <p className="text-sm text-slate-500 mt-1">Encrypt sensitive data at rest</p>
                 </div>
                 <Switch
                   id="enableEncryption"
@@ -459,14 +451,14 @@ export default function SecurityPage() {
 
               {formData.enableEncryption && (
                 <div className="space-y-2">
-                  <Label htmlFor="encryptionAlgorithm" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="encryptionAlgorithm" className="text-sm font-medium text-slate-700">
                     Encryption Algorithm
                   </Label>
                   <Select
                     value={formData.encryptionAlgorithm}
                     onValueChange={(value) => setFormData({ ...formData, encryptionAlgorithm: value })}
                   >
-                    <SelectTrigger className="border-2 border-blue-200 focus:border-blue-500">
+                    <SelectTrigger className="border-slate-200 focus:border-primary focus:ring-primary/20">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -477,12 +469,12 @@ export default function SecurityPage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enableDataBackup" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enableDataBackup" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Enable Data Backup
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Automatically backup sensitive data</p>
+                  <p className="text-sm text-slate-500 mt-1">Automatically backup sensitive data</p>
                 </div>
                 <Switch
                   id="enableDataBackup"
@@ -491,12 +483,12 @@ export default function SecurityPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enableAuditLogging" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enableAuditLogging" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Enable Audit Logging
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Log all security-related events</p>
+                  <p className="text-sm text-slate-500 mt-1">Log all security-related events</p>
                 </div>
                 <Switch
                   id="enableAuditLogging"
@@ -512,14 +504,13 @@ export default function SecurityPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all border-2 border-blue-500"
+              className="bg-slate-900 hover:bg-slate-800"
             >
               <Save className="h-4 w-4 mr-2" />
               {loading ? "Saving..." : "Save Security Settings"}
             </Button>
-          </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   )
 }

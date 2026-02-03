@@ -103,12 +103,12 @@ export async function POST(req: NextRequest) {
         })
         approvedCollections.push(updated)
 
-        // Create payment record
+        // Create payment record (use commodityCollectionId for commodity collections)
         if (collection.netPayment > 0) {
           const payment = await tx.mcc_payments.create({
             data: {
               farmerId: collection.farmerId,
-              collectionId: collection.id,
+              commodityCollectionId: collection.id,
               mccId: collection.mccId,
               totalAmount: collection.totalAmount,
               deductions: collection.totalDeductions,

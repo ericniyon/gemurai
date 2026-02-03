@@ -49,9 +49,11 @@ export async function verifyAuthToken(token: string): Promise<any> {
           id: true,
           email: true,
           name: true,
+          mccId: true,
           createdAt: true,
           updatedAt: true,
           isActive: true,
+          staff: { select: { mccId: true } },
           userRole: {
             select: {
               role: {
@@ -86,6 +88,8 @@ export async function verifyAuthToken(token: string): Promise<any> {
       // Transform to match expected format
       const roleName = user.userRole?.role?.name || 'CONSUMER'
       const permissions = user.userRole?.role?.rolePermissions?.map(rp => rp.permission.name) || []
+      // mccId: from token (set at login), or user record, or staff assignment
+      const mccId = (decoded.mccId as string) || user.mccId || user.staff?.mccId || null
 
       return {
         id: user.id,
@@ -93,6 +97,7 @@ export async function verifyAuthToken(token: string): Promise<any> {
         name: user.name,
         role: roleName,
         permissions: permissions,
+        mccId,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         isActive: user.isActive
@@ -105,8 +110,10 @@ export async function verifyAuthToken(token: string): Promise<any> {
           id: true,
           email: true,
           name: true,
+          mccId: true,
           createdAt: true,
           updatedAt: true,
+          staff: { select: { mccId: true } },
           roleAssignments: {
             include: {
               role: {
@@ -132,11 +139,17 @@ export async function verifyAuthToken(token: string): Promise<any> {
       const permissions = user.roleAssignments?.flatMap(assignment => 
         assignment.role.rolePermissions.map(rp => rp.permission.name)
       ) || []
+      const mccId = (decoded.mccId as string) || user.mccId || user.staff?.mccId || null
 
       return {
-        ...user,
+        id: user.id,
+        email: user.email,
+        name: user.name,
         role: primaryRole?.name || 'USER',
-        permissions: permissions
+        permissions: permissions,
+        mccId,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt
       }
     }
   } catch (error) {

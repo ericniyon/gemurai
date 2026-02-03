@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { CropCollectionService } from "@/lib/services/CropCollectionService"
 import { verifyAuthToken } from "@/lib/api-auth"
+import { checkMCCPermission } from "@/lib/mcc-auth"
 import { prisma } from "@/lib/prisma"
 
 /**
@@ -38,6 +39,7 @@ export async function GET(req: NextRequest) {
 
 /**
  * POST /api/v1/mcc/crops/types - Create crop type
+ * Allowed: SUPER_ADMIN, ADMIN, or MCC user with mcc.crops.manage
  */
 export async function POST(req: NextRequest) {
   try {
@@ -47,7 +49,13 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await verifyAuthToken(authToken)
-    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const isAdmin = user.role === "SUPER_ADMIN" || user.role === "ADMIN"
+    const mccAllowed = await checkMCCPermission(authToken, "mcc.crops.manage")
+    if (!isAdmin && !mccAllowed.authorized) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 

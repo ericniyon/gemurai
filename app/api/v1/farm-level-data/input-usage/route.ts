@@ -18,8 +18,11 @@ export async function GET(req: NextRequest) {
     }
 
     const { prisma } = await import("@/lib/prisma")
-    
+    const mccId = user.mccId
+    const where = mccId ? { farmer: { mccId } } : {}
+
     const logs = await prisma.input_usage_logs.findMany({
+      where,
       include: {
         farmer: {
           select: {
@@ -34,7 +37,7 @@ export async function GET(req: NextRequest) {
               select: {
                 id: true,
                 name: true,
-                unit: true,
+                unitOfMeasure: true,
               },
             },
           },

@@ -22,6 +22,22 @@ export async function GET(req: NextRequest) {
     const farmerId = searchParams.get("farmerId")
     const commodityId = searchParams.get("commodityId")
     const status = searchParams.get("status")
+    // For MCC_MANAGER, only use their assigned mccId; ADMIN/SUPER_ADMIN can pass mccId
+    const mccId =
+      user.role === "MCC_MANAGER"
+        ? user.mccId
+        : searchParams.get("mccId") || user.mccId
+
+    // If MCC_MANAGER and mccId available, get all prepayments for their MCC
+    if (mccId && (user.role === "MCC_MANAGER" || user.role === "SUPER_ADMIN" || user.role === "ADMIN")) {
+      const prepayments = await AgentPrepaymentService.getPrepaymentsByMcc(mccId, {
+        status: status || undefined,
+      })
+      return NextResponse.json({
+        success: true,
+        data: prepayments,
+      })
+    }
 
     // If agentId is provided, get prepayments for that agent
     if (agentId) {

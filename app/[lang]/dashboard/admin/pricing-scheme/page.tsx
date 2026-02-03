@@ -5,14 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { DataTable } from "@/components/ui/data-table"
+import { ColumnDef } from "@tanstack/react-table"
 import {
   Dialog,
   DialogContent,
@@ -33,7 +27,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import {
   DollarSign,
-  Search,
   Plus,
   Edit,
   Trash2,
@@ -105,9 +98,7 @@ interface PricingScheme {
 export default function AdminPricingSchemePage() {
   const { user: currentUser } = useAuth()
   const [commodities, setCommodities] = useState<Commodity[]>([])
-  const [filteredCommodities, setFilteredCommodities] = useState<Commodity[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
   const [pricingMethodFilter, setPricingMethodFilter] = useState<string>("all")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -131,9 +122,11 @@ export default function AdminPricingSchemePage() {
     }
   }, [currentUser])
 
-  useEffect(() => {
-    filterCommodities()
-  }, [commodities, searchQuery, pricingMethodFilter, categoryFilter])
+  const filteredCommodities = commodities.filter((commodity) => {
+    if (pricingMethodFilter !== "all" && commodity.pricingMethod !== pricingMethodFilter) return false
+    if (categoryFilter !== "all" && commodity.categoryId !== categoryFilter) return false
+    return true
+  })
 
   const fetchCommodities = async () => {
     try {
@@ -177,33 +170,6 @@ export default function AdminPricingSchemePage() {
     } catch (error) {
       console.error("Error fetching categories:", error)
     }
-  }
-
-  const filterCommodities = () => {
-    let filtered = [...commodities]
-
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (commodity) =>
-          commodity.name.toLowerCase().includes(query) ||
-          commodity.code.toLowerCase().includes(query) ||
-          commodity.category?.name.toLowerCase().includes(query)
-      )
-    }
-
-    // Pricing method filter
-    if (pricingMethodFilter !== "all") {
-      filtered = filtered.filter((commodity) => commodity.pricingMethod === pricingMethodFilter)
-    }
-
-    // Category filter
-    if (categoryFilter !== "all") {
-      filtered = filtered.filter((commodity) => commodity.categoryId === categoryFilter)
-    }
-
-    setFilteredCommodities(filtered)
   }
 
   const handleEditPricing = (commodity: Commodity) => {
@@ -411,19 +377,9 @@ export default function AdminPricingSchemePage() {
         {/* Filters */}
         <Card className="mb-6 border-2 border-blue-200">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search commodities..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
+            <div className="flex flex-wrap items-center gap-4">
               <Select value={pricingMethodFilter} onValueChange={setPricingMethodFilter}>
-                <SelectTrigger style={{ border: '2px solid lightblue' }}>
+                <SelectTrigger className="w-[200px]" style={{ border: "2px solid lightblue" }}>
                   <SelectValue placeholder="Filter by pricing method" />
                 </SelectTrigger>
                 <SelectContent>
@@ -436,7 +392,7 @@ export default function AdminPricingSchemePage() {
                 </SelectContent>
               </Select>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger style={{ border: '2px solid lightblue' }}>
+                <SelectTrigger className="w-[200px]" style={{ border: "2px solid lightblue" }}>
                   <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -448,22 +404,14 @@ export default function AdminPricingSchemePage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery("")
-                  setPricingMethodFilter("all")
-                  setCategoryFilter("all")
-                }}
-                className="w-full"
-              >
+              <Button variant="outline" onClick={() => { setPricingMethodFilter("all"); setCategoryFilter("all") }}>
                 Clear Filters
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Commodities Table */}
+        {/* Commodities DataTable */}
         <Card className="border-2 border-blue-200">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-blue-900">
@@ -475,93 +423,93 @@ export default function AdminPricingSchemePage() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
               </div>
-            ) : filteredCommodities.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>No commodities found</p>
-              </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Commodity</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Unit</TableHead>
-                      <TableHead>Pricing Method</TableHead>
-                      <TableHead>Quality Rules</TableHead>
-                      <TableHead>Pricing Multipliers</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredCommodities.map((commodity) => {
-                      const pricingMultipliers = commodity.qualityRules?.filter(
+              <DataTable
+                columns={[
+                  {
+                    accessorKey: "name",
+                    header: "Commodity",
+                    cell: ({ row }) => (
+                      <div>
+                        <div className="font-medium">{row.original.name}</div>
+                        <div className="text-xs text-gray-500">{row.original.code}</div>
+                      </div>
+                    ),
+                  },
+                  {
+                    id: "category",
+                    accessorFn: (row) => row.category?.name || "",
+                    header: "Category",
+                    cell: ({ row }) => (
+                      <Badge variant="outline" className="border-gray-300 text-gray-700">
+                        {row.original.category?.name || "N/A"}
+                      </Badge>
+                    ),
+                  },
+                  { accessorKey: "unitOfMeasure", header: "Unit" },
+                  {
+                    accessorKey: "pricingMethod",
+                    header: "Pricing Method",
+                    cell: ({ row }) => (
+                      <Badge variant="outline" className={getPricingMethodBadge(row.original.pricingMethod)}>
+                        {getPricingMethodLabel(row.original.pricingMethod)}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    id: "qualityRules",
+                    accessorFn: (row) => row.qualityRules?.length || 0,
+                    header: "Quality Rules",
+                    cell: ({ row }) => (
+                      <div className="flex items-center gap-2">
+                        <Settings className="h-4 w-4 text-gray-400" />
+                        {row.original.qualityRules?.length || 0} rules
+                      </div>
+                    ),
+                  },
+                  {
+                    id: "pricingMultipliers",
+                    accessorFn: (row) => row.qualityRules?.filter((r) => r.impactOnPricing && r.pricingMultiplier).length || 0,
+                    header: "Pricing Multipliers",
+                    cell: ({ row }) => {
+                      const pricingMultipliers = row.original.qualityRules?.filter(
                         (r) => r.impactOnPricing && r.pricingMultiplier
                       ) || []
-                      const pricingScheme = commodity.metadata?.pricingScheme
-
-                      return (
-                        <TableRow key={commodity.id}>
-                          <TableCell className="font-medium">
-                            <div>
-                              <div>{commodity.name}</div>
-                              <div className="text-xs text-gray-500">{commodity.code}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="border-gray-300 text-gray-700">
-                              {commodity.category?.name || "N/A"}
+                      return pricingMultipliers.length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          {pricingMultipliers.map((rule, idx) => (
+                            <Badge key={idx} variant="outline" className="border-blue-300 text-blue-700 text-xs">
+                              {rule.qualityField?.fieldName || "N/A"}: {rule.pricingMultiplier}x
                             </Badge>
-                          </TableCell>
-                          <TableCell>{commodity.unitOfMeasure}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={getPricingMethodBadge(commodity.pricingMethod)}
-                            >
-                              {getPricingMethodLabel(commodity.pricingMethod)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Settings className="h-4 w-4 text-gray-400" />
-                              {commodity.qualityRules?.length || 0} rules
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {pricingMultipliers.length > 0 ? (
-                              <div className="flex flex-col gap-1">
-                                {pricingMultipliers.map((rule, idx) => (
-                                  <Badge
-                                    key={idx}
-                                    variant="outline"
-                                    className="border-blue-300 text-blue-700 text-xs"
-                                  >
-                                    {rule.qualityField?.fieldName || "N/A"}: {rule.pricingMultiplier}x
-                                  </Badge>
-                                ))}
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">None</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditPricing(commodity)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Edit className="h-4 w-4 text-blue-600" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">None</span>
                       )
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                    },
+                  },
+                  {
+                    id: "actions",
+                    header: () => <span className="text-right w-full block">Actions</span>,
+                    cell: ({ row }) => (
+                      <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="sm" onClick={() => handleEditPricing(row.original)} className="h-8 w-8 p-0">
+                          <Edit className="h-4 w-4 text-blue-600" />
+                        </Button>
+                      </div>
+                    ),
+                  },
+                ]}
+                data={filteredCommodities}
+                searchKey="search"
+                searchPlaceholder="Search commodities..."
+                emptyMessage="No commodities found"
+                emptyDescription="Try adjusting your search or filters"
+                entityName="commodities"
+                pageSize={10}
+                defaultSorting={[{ id: "name", desc: false }]}
+                onRowClick={(row) => handleEditPricing(row)}
+              />
             )}
           </CardContent>
         </Card>

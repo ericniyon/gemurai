@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { checkMCCPermission } from "@/lib/mcc-auth"
+import crypto from "crypto"
 
 /**
  * GET /api/v1/mcc/assets - Get equipment assets list
@@ -88,7 +90,17 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await req.json()
-    const { serial, name, assetType, purchasedAt, notes } = data
+    const {
+      serial,
+      name,
+      assetType,
+      purchasedAt,
+      notes,
+      rentable,
+      capacityLiters,
+      weightKg,
+      specifications,
+    } = data
 
     if (!serial || !assetType) {
       return NextResponse.json(
@@ -109,16 +121,63 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const asset = await prisma.assets.create({
-      data: {
-        serial,
-        name: name || null,
-        assetType,
-        status: "available",
-        purchasedAt: purchasedAt ? new Date(purchasedAt) : null,
-        notes: notes || null,
-      },
-    })
+    const rentableValue = typeof rentable === "boolean" ? rentable : rentable !== false && rentable !== "false"
+
+    const capLiters =
+      capacityLiters != null && capacityLiters !== "" ? parseFloat(String(capacityLiters)) : null
+    const weight =
+      weightKg != null && weightKg !== "" ? parseFloat(String(weightKg)) : null
+    const specs =
+      specifications && typeof specifications === "object" && Object.keys(specifications).length > 0
+        ? (specifications as Record<string, unknown>)
+        : null
+
+    // Use raw INSERT to avoid Prisma client validation issues (e.g. stale client missing rentable)
+    const id = `c${Date.now().toString(36)}${crypto.randomBytes(12).toString("base64url").replace(/[-_]/g, "").slice(0, 16)}`
+    const now = new Date()
+    const purchasedAtDate = purchasedAt ? new Date(purchasedAt) : null
+    const specsJson = specs != null ? JSON.stringify(specs) : null
+
+    const rows = await prisma.$queryRaw<
+      Array<{
+        id: string
+        serial: string
+        name: string | null
+        assetType: string | null
+        status: string
+        rentable: boolean
+        currentHolderType: string | null
+        currentHolderId: string | null
+        purchasedAt: Date | null
+        notes: string | null
+        capacityLiters: number | null
+        weightKg: number | null
+        specifications: unknown
+        createdAt: Date
+      }>
+    >(
+      Prisma.sql`
+        INSERT INTO "assets" (
+          id, serial, name, "assetType", status, rentable,
+          "currentHolderType", "currentHolderId", "purchasedAt", notes,
+          "capacityLiters", "weightKg", specifications, "createdAt"
+        )
+        VALUES (
+          ${id}, ${serial}, ${name || null}, ${assetType}, 'available', ${rentableValue},
+          NULL, NULL, ${purchasedAtDate}, ${notes || null},
+          ${capLiters != null && !Number.isNaN(capLiters) ? capLiters : null},
+          ${weight != null && !Number.isNaN(weight) ? weight : null},
+          ${specsJson}::jsonb,
+          ${now}
+        )
+        RETURNING *
+      `
+    )
+
+    const asset = rows[0]
+    if (!asset) {
+      throw new Error("Insert succeeded but no row returned")
+    }
 
     return NextResponse.json({
       success: true,
@@ -127,8 +186,9 @@ export async function POST(req: NextRequest) {
     })
   } catch (error) {
     console.error("Create asset error:", error)
+    const message = error instanceof Error ? error.message : "Failed to create asset"
     return NextResponse.json(
-      { error: "Failed to create asset" },
+      { error: process.env.NODE_ENV === "development" ? message : "Failed to create asset" },
       { status: 500 }
     )
   }

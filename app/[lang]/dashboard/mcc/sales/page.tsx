@@ -79,6 +79,7 @@ export default function SalesPage() {
   const [addSaleOpen, setAddSaleOpen] = useState(false)
   const [editSaleOpen, setEditSaleOpen] = useState(false)
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     litersSold: "",
     unitPrice: "",
@@ -239,6 +240,7 @@ export default function SalesPage() {
         return
       }
 
+      setIsSubmitting(true)
       const token = localStorage.getItem("Gemurai_token")
       const saleData = {
         litersSold: parseFloat(formData.litersSold),
@@ -280,6 +282,8 @@ export default function SalesPage() {
     } catch (error) {
       console.error('Error submitting sale:', error)
       toast.error(`Failed to ${editSaleOpen ? 'update' : 'record'} sale`)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -635,7 +639,7 @@ export default function SalesPage() {
             </Card>
           </section>
 
-          {/* Add/Edit Sale Dialog */}
+          {/* Add/Edit Sale Dialog - Redesigned */}
           <Dialog open={addSaleOpen || editSaleOpen} onOpenChange={(open) => {
           setAddSaleOpen(open)
           setEditSaleOpen(open)
@@ -643,130 +647,180 @@ export default function SalesPage() {
             setSelectedSale(null)
           }
         }}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editSaleOpen ? "Edit Sale" : "Record Sale"}</DialogTitle>
-              <DialogDescription>
-                {editSaleOpen ? "Update sale record details" : "Record a new milk sale to a customer"}
-              </DialogDescription>
+          <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-2xl">
+            <DialogHeader className="space-y-1 pb-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25">
+                  <ShoppingCart className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-semibold text-gray-900">
+                    {editSaleOpen ? "Edit Sale" : "Record Sale"}
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-gray-600">
+                    {editSaleOpen ? "Update sale record details" : "Record a new milk sale to a customer"}
+                  </DialogDescription>
+                </div>
+              </div>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="litersSold">Liters Sold *</Label>
-                  <Input
-                    id="litersSold"
-                    type="number"
-                    step="0.01"
-                    value={formData.litersSold}
-                    onChange={(e) => setFormData({ ...formData, litersSold: e.target.value })}
-                    placeholder="0.00"
-                    className="border border-gray-300"
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSubmitSale()
+              }}
+              className="space-y-5 pt-1"
+            >
+              {/* Sale details */}
+              <div className="space-y-4">
+                <div className="rounded-xl border border-blue-100 bg-blue-50/30 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-blue-600 mb-3">Sale Details</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="litersSold" className="text-sm font-medium text-gray-700">Liters Sold *</Label>
+                      <Input
+                        id="litersSold"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.litersSold}
+                        onChange={(e) => setFormData({ ...formData, litersSold: e.target.value })}
+                        placeholder="0.00"
+                        className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="unitPrice" className="text-sm font-medium text-gray-700">Unit Price (RWF) *</Label>
+                      <Input
+                        id="unitPrice"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.unitPrice}
+                        onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
+                        placeholder="0.00"
+                        className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+                  {formData.litersSold && formData.unitPrice && parseFloat(formData.litersSold) > 0 && parseFloat(formData.unitPrice) > 0 && (
+                    <div className="mt-3 flex items-center justify-between rounded-lg bg-white px-4 py-2.5 border border-emerald-200">
+                      <span className="text-sm font-medium text-gray-600">Total Amount</span>
+                      <span className="text-lg font-bold text-emerald-700">
+                        RWF {(parseFloat(formData.litersSold || "0") * parseFloat(formData.unitPrice || "0")).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Customer info */}
+                <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Customer Information</p>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="companyName" className="text-sm font-medium text-gray-700">Customer Name *</Label>
+                      <Input
+                        id="companyName"
+                        value={formData.companyName}
+                        onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                        placeholder="Enter customer or company name"
+                        className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="companyContact" className="text-sm font-medium text-gray-700">Contact *</Label>
+                      <Input
+                        id="companyContact"
+                        value={formData.companyContact}
+                        onChange={(e) => setFormData({ ...formData, companyContact: e.target.value })}
+                        placeholder="Phone or email"
+                        className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="companyAddress" className="text-sm font-medium text-gray-700">Address</Label>
+                      <Input
+                        id="companyAddress"
+                        value={formData.companyAddress}
+                        onChange={(e) => setFormData({ ...formData, companyAddress: e.target.value })}
+                        placeholder="Delivery or billing address"
+                        className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Payment & date */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="paymentStatus" className="text-sm font-medium text-gray-700">Payment Status</Label>
+                    <Select
+                      value={formData.paymentStatus}
+                      onValueChange={(value: any) => setFormData({ ...formData, paymentStatus: value })}
+                    >
+                      <SelectTrigger className="rounded-lg border-gray-200 bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="paid">Paid</SelectItem>
+                        <SelectItem value="partial">Partial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="saleDate" className="text-sm font-medium text-gray-700">Sale Date</Label>
+                    <Input
+                      id="saleDate"
+                      type="date"
+                      value={formData.saleDate}
+                      onChange={(e) => setFormData({ ...formData, saleDate: e.target.value })}
+                      className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes" className="text-sm font-medium text-gray-700">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    placeholder="Additional notes (optional)"
+                    rows={2}
+                    className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20 resize-none"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="unitPrice">Unit Price (RWF) *</Label>
-                  <Input
-                    id="unitPrice"
-                    type="number"
-                    step="0.01"
-                    value={formData.unitPrice}
-                    onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
-                    placeholder="0.00"
-                    className="border border-gray-300"
-                  />
-                </div>
               </div>
-              <div>
-                <Label htmlFor="companyName">Customer Name *</Label>
-                <Input
-                  id="companyName"
-                  value={formData.companyName}
-                  onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                  placeholder="Enter customer name"
-                  className="border border-gray-300"
-                />
-              </div>
-              <div>
-                <Label htmlFor="companyContact">Customer Contact *</Label>
-                <Input
-                  id="companyContact"
-                  value={formData.companyContact}
-                  onChange={(e) => setFormData({ ...formData, companyContact: e.target.value })}
-                  placeholder="Enter contact information"
-                  className="border border-gray-300"
-                />
-              </div>
-              <div>
-                <Label htmlFor="companyAddress">Customer Address</Label>
-                <Input
-                  id="companyAddress"
-                  value={formData.companyAddress}
-                  onChange={(e) => setFormData({ ...formData, companyAddress: e.target.value })}
-                  placeholder="Enter address"
-                  className="border border-gray-300"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="paymentStatus">Payment Status</Label>
-                  <Select
-                    value={formData.paymentStatus}
-                    onValueChange={(value: any) => setFormData({ ...formData, paymentStatus: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="paid">Paid</SelectItem>
-                      <SelectItem value="partial">Partial</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="saleDate">Sale Date</Label>
-                  <Input
-                    id="saleDate"
-                    type="date"
-                    value={formData.saleDate}
-                    onChange={(e) => setFormData({ ...formData, saleDate: e.target.value })}
-                    className="border border-gray-300"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Additional notes..."
-                  rows={3}
-                  className="border border-gray-300"
-                />
-              </div>
-              {formData.litersSold && formData.unitPrice && (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Total Amount:</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    RWF {(parseFloat(formData.litersSold || "0") * parseFloat(formData.unitPrice || "0")).toLocaleString()}
-                  </p>
-                </div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                setAddSaleOpen(false)
-                setEditSaleOpen(false)
-                setSelectedSale(null)
-              }}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmitSale}>
-                {editSaleOpen ? "Update Sale" : "Record Sale"}
-              </Button>
-            </DialogFooter>
+
+              <DialogFooter className="pt-4 border-t border-gray-100 gap-2 sm:gap-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setAddSaleOpen(false)
+                    setEditSaleOpen(false)
+                    setSelectedSale(null)
+                  }}
+                  className="rounded-xl border-gray-200 hover:bg-gray-50"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {editSaleOpen ? "Updating..." : "Recording..."}
+                    </>
+                  ) : (
+                    editSaleOpen ? "Update Sale" : "Record Sale"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
         </div>

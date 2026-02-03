@@ -5,14 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { DataTable } from "@/components/ui/data-table"
+import { ColumnDef } from "@tanstack/react-table"
 import {
   Dialog,
   DialogContent,
@@ -32,7 +26,6 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import {
   Users,
-  Search,
   Plus,
   Edit,
   Trash2,
@@ -63,9 +56,7 @@ interface User {
 export default function AdminUsersPage() {
   const { user: currentUser } = useAuth()
   const [users, setUsers] = useState<User[]>([])
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
   const [roleFilter, setRoleFilter] = useState<string>("all")
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -87,9 +78,11 @@ export default function AdminUsersPage() {
     }
   }, [currentUser])
 
-  useEffect(() => {
-    filterUsers()
-  }, [users, searchQuery, roleFilter, statusFilter])
+  const filteredUsers = users.filter((user) => {
+    if (roleFilter !== "all" && user.role !== roleFilter) return false
+    if (statusFilter !== "all" && (statusFilter === "active" ? !user.isActive : user.isActive)) return false
+    return true
+  })
 
   const fetchUsers = async () => {
     try {
@@ -124,36 +117,6 @@ export default function AdminUsersPage() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const filterUsers = () => {
-    let filtered = [...users]
-
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (user) =>
-          user.name.toLowerCase().includes(query) ||
-          user.email.toLowerCase().includes(query) ||
-          user.phone.includes(query) ||
-          user.role.toLowerCase().includes(query)
-      )
-    }
-
-    // Role filter
-    if (roleFilter !== "all") {
-      filtered = filtered.filter((user) => user.role === roleFilter)
-    }
-
-    // Status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(
-        (user) => (statusFilter === "active" ? user.isActive : !user.isActive)
-      )
-    }
-
-    setFilteredUsers(filtered)
   }
 
   const handleCreateUser = () => {
@@ -401,19 +364,9 @@ export default function AdminUsersPage() {
         {/* Filters */}
         <Card className="mb-6 border-2 border-blue-200">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search users..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
+            <div className="flex flex-wrap items-center gap-4">
               <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger style={{ border: '2px solid lightblue' }}>
+                <SelectTrigger className="w-[180px]" style={{ border: "2px solid lightblue" }}>
                   <SelectValue placeholder="Filter by role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -426,7 +379,7 @@ export default function AdminUsersPage() {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger style={{ border: '2px solid lightblue' }}>
+                <SelectTrigger className="w-[180px]" style={{ border: "2px solid lightblue" }}>
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -435,22 +388,14 @@ export default function AdminUsersPage() {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery("")
-                  setRoleFilter("all")
-                  setStatusFilter("all")
-                }}
-                className="w-full"
-              >
+              <Button variant="outline" onClick={() => { setRoleFilter("all"); setStatusFilter("all") }}>
                 Clear Filters
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Users Table */}
+        {/* Users DataTable */}
         <Card className="border-2 border-blue-200">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-blue-900">
@@ -462,108 +407,100 @@ export default function AdminUsersPage() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
               </div>
-            ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>No users found</p>
-              </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.name}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-gray-400" />
-                            {user.email}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-gray-400" />
-                            {user.phone}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={
-                              user.role === "ADMIN" || user.role === "SUPER_ADMIN"
-                                ? "border-purple-300 text-purple-700"
-                                : "border-blue-300 text-blue-700"
-                            }
-                          >
-                            {user.role}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={user.isActive ? "default" : "secondary"}
-                            className={
-                              user.isActive
-                                ? "bg-green-100 text-green-800 hover:bg-green-100"
-                                : "bg-gray-100 text-gray-800 hover:bg-gray-100"
-                            }
-                          >
-                            {user.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Calendar className="h-4 w-4" />
-                            {format(new Date(user.createdAt), "MMM dd, yyyy")}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleUserStatus(user)}
-                              className="h-8 w-8 p-0"
-                            >
-                              {user.isActive ? (
-                                <X className="h-4 w-4 text-orange-600" />
-                              ) : (
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditUser(user)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Edit className="h-4 w-4 text-blue-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <DataTable
+                columns={[
+                  { accessorKey: "name", header: "Name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+                  {
+                    accessorKey: "email",
+                    header: "Email",
+                    cell: ({ row }) => (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-gray-400" />
+                        {row.original.email}
+                      </div>
+                    ),
+                  },
+                  {
+                    accessorKey: "phone",
+                    header: "Phone",
+                    cell: ({ row }) => (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-gray-400" />
+                        {row.original.phone || "-"}
+                      </div>
+                    ),
+                  },
+                  {
+                    accessorKey: "role",
+                    header: "Role",
+                    cell: ({ row }) => (
+                      <Badge
+                        variant="outline"
+                        className={
+                          row.original.role === "ADMIN" || row.original.role === "SUPER_ADMIN"
+                            ? "border-purple-300 text-purple-700"
+                            : "border-blue-300 text-blue-700"
+                        }
+                      >
+                        {row.original.role}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    accessorKey: "isActive",
+                    header: "Status",
+                    cell: ({ row }) => (
+                      <Badge
+                        variant={row.original.isActive ? "default" : "secondary"}
+                        className={
+                          row.original.isActive
+                            ? "bg-green-100 text-green-800 hover:bg-green-100"
+                            : "bg-gray-100 text-gray-800 hover:bg-gray-100"
+                        }
+                      >
+                        {row.original.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    accessorKey: "createdAt",
+                    header: "Created",
+                    cell: ({ row }) => (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="h-4 w-4" />
+                        {format(new Date(row.original.createdAt), "MMM dd, yyyy")}
+                      </div>
+                    ),
+                  },
+                  {
+                    id: "actions",
+                    header: () => <span className="text-right w-full block">Actions</span>,
+                    cell: ({ row }) => (
+                      <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="sm" onClick={() => toggleUserStatus(row.original)} className="h-8 w-8 p-0">
+                          {row.original.isActive ? <X className="h-4 w-4 text-orange-600" /> : <CheckCircle className="h-4 w-4 text-green-600" />}
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEditUser(row.original)} className="h-8 w-8 p-0">
+                          <Edit className="h-4 w-4 text-blue-600" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteUser(row.original.id)} className="h-8 w-8 p-0">
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </div>
+                    ),
+                  },
+                ]}
+                data={filteredUsers}
+                searchKey="search"
+                searchPlaceholder="Search users..."
+                emptyMessage="No users found"
+                emptyDescription="Try adjusting your search or filters"
+                entityName="users"
+                pageSize={10}
+                defaultSorting={[{ id: "name", desc: false }]}
+                onRowClick={(row) => handleEditUser(row)}
+              />
             )}
           </CardContent>
         </Card>

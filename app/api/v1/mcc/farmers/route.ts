@@ -18,15 +18,38 @@ export async function POST(req: NextRequest) {
     const user = await verifyAuthToken(authToken)
     console.log("User verified:", !!user, "Role:", user?.role)
     
-    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
+    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN" && user.role !== "MCC_MANAGER")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
     const data = await req.json()
     console.log("Request data:", data)
-    
+
+    // MCC_MANAGER can only create farmers for their own MCC
+    let mccId = data.mccId
+    if (user.role === "MCC_MANAGER") {
+      if (user.mccId) {
+        mccId = user.mccId
+      } else {
+        const { prisma } = await import("@/lib/prisma")
+        const mcc = await prisma.mccs.findFirst({
+          where: { managerUserId: user.id },
+          select: { id: true },
+        })
+        if (mcc) mccId = mcc.id
+      }
+      if (!mccId) {
+        return NextResponse.json(
+          { error: "MCC assignment required. Please contact admin." },
+          { status: 400 }
+        )
+      }
+    }
+
+    const farmerData = { ...data, mccId }
+
     // Validate required fields
-    if (!data.mccId || !data.name || !data.phone || !data.location) {
+    if (!farmerData.mccId || !farmerData.name || !farmerData.phone || !farmerData.location) {
       return NextResponse.json(
         { error: "Missing required fields: mccId, name, phone, location" },
         { status: 400 }
@@ -34,7 +57,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log("Creating farmer...")
-    const farmer = await MCCInventoryService.createFarmer(data)
+    const farmer = await MCCInventoryService.createFarmer(farmerData)
     console.log("Farmer created successfully:", farmer.id)
 
     return NextResponse.json({

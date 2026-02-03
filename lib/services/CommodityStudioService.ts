@@ -14,6 +14,7 @@ export interface CommodityInput {
   unitOfMeasure: string
   pricingMethod: "SPOT" | "GRADE_BASED" | "DEFERRED" | "POST_SALE"
   storageType: string
+  isPerishable?: boolean
   defaultCollectionCenterType?: string
   defaultCollectionFrequency?: string
   metadata?: Record<string, any>
@@ -143,6 +144,7 @@ export class CommodityStudioService {
         unitOfMeasure: data.unitOfMeasure,
         pricingMethod: data.pricingMethod,
         storageType: data.storageType,
+        isPerishable: data.isPerishable ?? false,
         defaultCollectionCenterType: data.defaultCollectionCenterType || null,
         defaultCollectionFrequency: data.defaultCollectionFrequency || null,
         metadata: data.metadata && Object.keys(data.metadata).length > 0 ? data.metadata : null,
@@ -206,6 +208,7 @@ export class CommodityStudioService {
         ...(data.unitOfMeasure && { unitOfMeasure: data.unitOfMeasure }),
         ...(data.pricingMethod && { pricingMethod: data.pricingMethod }),
         ...(data.storageType && { storageType: data.storageType }),
+        ...(data.isPerishable !== undefined && { isPerishable: data.isPerishable }),
         ...(data.defaultCollectionCenterType !== undefined && { defaultCollectionCenterType: data.defaultCollectionCenterType }),
         ...(data.defaultCollectionFrequency !== undefined && { defaultCollectionFrequency: data.defaultCollectionFrequency }),
         ...(data.metadata && { metadata: data.metadata }),

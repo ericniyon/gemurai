@@ -29,7 +29,8 @@ const nextConfig = {
     '@sendgrid/mail',
     'twilio',
     'bcryptjs',
-    'jsonwebtoken'
+    'jsonwebtoken',
+    '@react-pdf/renderer'
   ],
   webpack: (config, { isServer }) => {
     if (!isServer) {

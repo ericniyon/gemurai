@@ -302,6 +302,18 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Ensure MCC exists (avoids foreign key error)
+    const mccExists = await prisma.mccs.findUnique({
+      where: { id: targetMccId },
+      select: { id: true },
+    })
+    if (!mccExists) {
+      return NextResponse.json(
+        { error: "MCC not found. Your account may not be linked to a valid MCC." },
+        { status: 400 }
+      )
+    }
+
     // Check if mcc_customers table exists
     if (!prisma.mcc_customers) {
       // Table doesn't exist yet - return success but don't create record
@@ -341,23 +353,26 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Create customer record
-    const hasGeoLocation = gpsLatitude != null && gpsLongitude != null
+    const hasGeoLocation =
+      gpsLatitude != null &&
+      gpsLongitude != null &&
+      !Number.isNaN(Number(gpsLatitude)) &&
+      !Number.isNaN(Number(gpsLongitude))
+
     const customer = await prisma.mcc_customers.create({
       data: {
         mccId: targetMccId,
         name: trimmedName,
         contact: trimmedContact,
-        email: email && typeof email === "string" ? email.trim() || null : null,
-        address: address && typeof address === "string" ? address.trim() || null : null,
-        district: district && typeof district === "string" ? district.trim() || null : null,
-        contactPerson: contactPerson && typeof contactPerson === "string" ? contactPerson.trim() || null : null,
-        taxId: taxId && typeof taxId === "string" ? taxId.trim() || null : null,
-        notes: notes && typeof notes === "string" ? notes.trim() || null : null,
-        // Geo-location fields
-        gpsLatitude: gpsLatitude != null ? parseFloat(gpsLatitude) : null,
-        gpsLongitude: gpsLongitude != null ? parseFloat(gpsLongitude) : null,
-        geoConsent: geoConsent ?? hasGeoLocation,
+        email: email && typeof email === "string" ? (email.trim() || null) : null,
+        address: address && typeof address === "string" ? (address.trim() || null) : null,
+        district: district && typeof district === "string" ? (district.trim() || null) : null,
+        contactPerson: contactPerson && typeof contactPerson === "string" ? (contactPerson.trim() || null) : null,
+        taxId: taxId && typeof taxId === "string" ? (taxId.trim() || null) : null,
+        notes: notes && typeof notes === "string" ? (notes.trim() || null) : null,
+        gpsLatitude: hasGeoLocation ? Number(gpsLatitude) : null,
+        gpsLongitude: hasGeoLocation ? Number(gpsLongitude) : null,
+        geoConsent: Boolean(geoConsent ?? hasGeoLocation),
         geoConsentAt: hasGeoLocation ? new Date() : null,
         geoCreatedAt: hasGeoLocation ? new Date() : null,
       },
@@ -376,8 +391,10 @@ export async function POST(req: NextRequest) {
     })
   } catch (error) {
     console.error("Create customer error:", error)
+    const message = error instanceof Error ? error.message : "Failed to process customer"
+    const isDev = process.env.NODE_ENV === "development"
     return NextResponse.json(
-      { error: "Failed to process customer" },
+      { error: isDev ? message : "Failed to process customer" },
       { status: 500 }
     )
   }

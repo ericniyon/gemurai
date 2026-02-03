@@ -35,7 +35,7 @@ const languages: Language[] = [
 ]
 
 interface LanguageSwitcherProps {
-  variant?: "default" | "nav"
+  variant?: "default" | "nav" | "dark"
   className?: string
 }
 
@@ -96,10 +96,19 @@ export function LanguageSwitcher({ variant = "default", className }: LanguageSwi
     )
   }
 
+  const isDark = variant === "dark"
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className={cn("gap-2", className)}>
+        <Button
+          variant="outline"
+          className={cn(
+            "gap-2",
+            isDark && "border-white/40 text-white hover:bg-white/10 hover:text-white",
+            className
+          )}
+        >
           <Globe className="h-4 w-4" />
           <span className="text-lg">{currentLanguage.flag}</span>
           <span className="hidden sm:inline">{currentLanguage.name}</span>

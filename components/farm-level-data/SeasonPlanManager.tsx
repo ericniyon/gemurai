@@ -22,13 +22,14 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Plus, Calendar, TrendingUp } from "lucide-react"
+import { Plus, Calendar, TrendingUp, Loader2 } from "lucide-react"
 
 export function SeasonPlanManager() {
   const [farmers, setFarmers] = useState<any[]>([])
   const [commodities, setCommodities] = useState<any[]>([])
   const [seasonPlans, setSeasonPlans] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [formData, setFormData] = useState({
     farmerId: "",
@@ -45,17 +46,18 @@ export function SeasonPlanManager() {
   })
 
   useEffect(() => {
-    fetchData()
+    const controller = new AbortController()
+    fetchData(controller.signal)
+    return () => controller.abort()
   }, [])
 
-  const fetchData = async () => {
+  const fetchData = async (signal?: AbortSignal) => {
     try {
       const token = localStorage.getItem("Gemurai_token")
-      
+      const headers = { Authorization: `Bearer ${token}` }
+
       // Fetch farmers
-      const farmersRes = await fetch("/api/v1/mcc/farmers", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const farmersRes = await fetch("/api/v1/mcc/farmers", { headers, signal })
       if (farmersRes.ok) {
         const farmersData = await farmersRes.json()
         setFarmers(farmersData.data || [])
@@ -63,7 +65,8 @@ export function SeasonPlanManager() {
 
       // Fetch commodities
       const commoditiesRes = await fetch("/api/v1/admin/commodity-studio/commodities", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers,
+        signal,
       })
       if (commoditiesRes.ok) {
         const commoditiesData = await commoditiesRes.json()
@@ -71,26 +74,34 @@ export function SeasonPlanManager() {
       }
 
       // Fetch season plans
-      await fetchSeasonPlans()
+      await fetchSeasonPlans(signal)
     } catch (error) {
-      console.error("Error fetching data:", error)
+      if ((error as Error).name !== "AbortError") {
+        console.error("Error fetching data:", error)
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
-  const fetchSeasonPlans = async () => {
+  const fetchSeasonPlans = async (signal?: AbortSignal) => {
     try {
       const token = localStorage.getItem("Gemurai_token")
       const response = await fetch("/api/v1/farmers/season-plans", {
         headers: { Authorization: `Bearer ${token}` },
+        signal,
       })
       if (response.ok) {
         const data = await response.json()
-        setSeasonPlans(data.data || [])
+        const plans = data.data || []
+        // Deduplicate by id (defensive against API/race-condition duplicates)
+        const unique = [...new Map(plans.map((p: { id: string }) => [p.id, p])).values()]
+        setSeasonPlans(unique)
       }
     } catch (error) {
-      console.error("Error fetching season plans:", error)
+      if ((error as Error).name !== "AbortError") {
+        console.error("Error fetching season plans:", error)
+      }
     }
   }
 
@@ -104,6 +115,7 @@ export function SeasonPlanManager() {
       return
     }
 
+    setIsSubmitting(true)
     try {
       const token = localStorage.getItem("Gemurai_token")
       const response = await fetch("/api/v1/farmers/season-plans", {
@@ -131,6 +143,8 @@ export function SeasonPlanManager() {
     } catch (error) {
       console.error("Error creating season plan:", error)
       toast.error("Failed to create season plan")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -451,9 +465,17 @@ export function SeasonPlanManager() {
               </Button>
               <Button
                 type="submit"
+                disabled={isSubmitting}
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
               >
-                Create Season Plan
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Season Plan"
+                )}
               </Button>
             </DialogFooter>
           </form>

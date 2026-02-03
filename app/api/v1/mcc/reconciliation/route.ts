@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 import { ReconciliationService } from "@/lib/services/ReconciliationService"
 import { verifyAuthToken } from "@/lib/api-auth"
 
@@ -17,7 +18,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const data = await req.json()
+    let data: { mccId?: string; periodId?: string; type?: string }
+    try {
+      data = await req.json()
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+    }
     const { mccId, periodId, type } = data
 
     if (!mccId || !type) {
@@ -27,27 +33,47 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    let result
-    if (type === "COLLECTION") {
-      result = await ReconciliationService.reconcileCollections(mccId, periodId)
-    } else if (type === "INVENTORY") {
-      const warehouseId = data.warehouseId
-      result = await ReconciliationService.reconcileInventory(mccId, warehouseId)
-    } else {
+    // Verify MCC exists
+    const mcc = await prisma.mccs.findUnique({ where: { id: mccId } })
+    if (!mcc) {
       return NextResponse.json(
-        { error: "Invalid reconciliation type" },
+        { error: "MCC not found" },
         { status: 400 }
       )
     }
 
+    let result
+    try {
+      if (type === "COLLECTION") {
+        result = await ReconciliationService.reconcileCollections(mccId, periodId)
+      } else if (type === "INVENTORY") {
+        const warehouseId = data.warehouseId
+        result = await ReconciliationService.reconcileInventory(mccId, warehouseId)
+      } else {
+        return NextResponse.json(
+          { error: "Invalid reconciliation type" },
+          { status: 400 }
+        )
+      }
+    } catch (err: any) {
+      console.error("Reconciliation step error:", err)
+      throw new Error(`Reconciliation failed: ${err?.message || String(err)}`)
+    }
+
     // Create reconciliation record
-    const record = await ReconciliationService.createReconciliationRecord(
-      mccId,
-      periodId || null,
-      type,
-      result,
-      user.id
-    )
+    let record
+    try {
+      record = await ReconciliationService.createReconciliationRecord(
+        mccId,
+        periodId || null,
+        type,
+        result,
+        user.id
+      )
+    } catch (err: any) {
+      console.error("Create reconciliation record error:", err)
+      throw new Error(`Failed to save record: ${err?.message || String(err)}`)
+    }
 
     return NextResponse.json({
       success: true,
@@ -57,11 +83,18 @@ export async function POST(req: NextRequest) {
         record,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Run reconciliation error:", error)
+    const message = error?.message || String(error)
+    const isValidation =
+      /not found|foreign key|unique constraint|invalid/i.test(message) ||
+      message.includes("Record to update not found")
     return NextResponse.json(
-      { error: "Failed to run reconciliation" },
-      { status: 500 }
+      {
+        error: isValidation ? message : "Failed to run reconciliation",
+        details: message,
+      },
+      { status: isValidation ? 400 : 500 }
     )
   }
 }

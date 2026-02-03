@@ -1099,6 +1099,7 @@ model mccs {
   crop_periods                   crop_periods[]
   crop_processing                crop_processing[]
   commodity_collections          commodity_collections[]
+  inventory_batches              inventory_batches[]
   service_deliveries             service_deliveries[]
   reconciliation_records         reconciliation_records[]
 
@@ -1424,6 +1425,7 @@ enum UserRole {
   COOP_ADMIN
   FARMER
   ACCOUNTANT
+  REGULATOR // Read-only access for compliance & traceability dashboards
 }
 
 enum ApplicationStatus {
@@ -1735,27 +1737,30 @@ enum CommodityCollectionStatus {
 }
 
 model mcc_payments {
-  id               String           @id @default(cuid())
-  farmerId         String
-  collectionId     String
-  mccId            String
-  totalAmount      Float
-  deductions       Float            @default(0)
-  advances         Float            @default(0)
-  netPayment       Float
-  paymentMethod    PaymentMethod
-  paymentStatus    PaymentStatus    @default(pending)
-  paymentDate      DateTime
-  processedBy      String
-  notes            String           @default("")
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  farmers          farmers          @relation(fields: [farmerId], references: [id])
-  milk_collections milk_collections @relation(fields: [collectionId], references: [id])
-  mccs             mccs             @relation(fields: [mccId], references: [id])
+  id                    String                 @id @default(cuid())
+  farmerId              String
+  collectionId           String?                // For milk_collections (legacy)
+  commodityCollectionId  String?                // For commodity_collections (multi-commodity)
+  mccId                 String
+  totalAmount           Float
+  deductions            Float                  @default(0)
+  advances              Float                  @default(0)
+  netPayment            Float
+  paymentMethod         PaymentMethod
+  paymentStatus         PaymentStatus         @default(pending)
+  paymentDate           DateTime
+  processedBy           String
+  notes                 String                 @default("")
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  farmers               farmers                @relation(fields: [farmerId], references: [id])
+  milk_collections      milk_collections?      @relation(fields: [collectionId], references: [id])
+  commodity_collections commodity_collections? @relation(fields: [commodityCollectionId], references: [id])
+  mccs                  mccs                   @relation(fields: [mccId], references: [id])
 
   @@index([farmerId])
   @@index([collectionId])
+  @@index([commodityCollectionId])
   @@index([mccId])
   @@index([paymentDate])
   @@index([paymentStatus])
@@ -1905,17 +1910,23 @@ model assets {
   id                String    @id @default(cuid())
   serial            String    @unique
   name              String?
-  assetType         String? // tracker, milk_meter, chiller
+  assetType         String? // tracker, milk_meter, chiller, generator, solar, pump, other
   status            String    @default("available") // available, rented, maintenance
+  rentable          Boolean   @default(true) // whether this asset can be rented to farmers
   currentHolderType String? // farmer, mcc, vendor
   currentHolderId   String?
   purchasedAt       DateTime?
   notes             String?
+  // Type-specific: capacity (e.g. liters for chiller/tank), weight, extra specs (capacityKw, capacityW, measurements, etc.)
+  capacityLiters    Float?    // cooling/tank capacity in liters; pump flow can use specifications
+  weightKg          Float?
+  specifications    Json?    @default("{}") // measurements, capacityKw, capacityW, capacityLitersPerMin, dimensions, etc.
   createdAt         DateTime  @default(now())
   rentals           rentals[]
 
   @@index([status])
   @@index([assetType])
+  @@index([rentable])
 }
 
 // Rentals
@@ -2110,7 +2121,8 @@ model commodities {
   unitOfMeasure               String // liters, kg, bags
   pricingMethod               CommodityPricingMethod
   storageType                 String // tank, bags, silo, warehouse
-  defaultCollectionCenterType String? // MCC, coffee_washing_station, warehouse
+  isPerishable                Boolean                @default(false) // Perishable (dairy) vs non-perishable (cereals)
+  defaultCollectionCenterType  String? // MCC, coffee_washing_station, warehouse
   defaultCollectionFrequency  String? // daily, weekly, seasonal
   isActive                    Boolean                @default(true)
   metadata                    Json? // Additional commodity-specific config
@@ -2124,6 +2136,7 @@ model commodities {
   inputCatalog     input_catalog[]
   collections      commodity_collections[]
   agentPrepayments agent_prepayments[]
+  inventoryBatches inventory_batches[]
 
   @@index([code])
   @@index([categoryId])
@@ -2315,6 +2328,7 @@ model commodity_collections {
   stockMove        StockMove?          @relation(fields: [stockMoveId], references: [id])
   agent            User?               @relation("CommodityCollectionAgent", fields: [agentId], references: [id])
   agentPrepayments agent_prepayments[]
+  mcc_payments     mcc_payments[]
 
   @@index([commodityId])
   @@index([farmerId])
@@ -2323,6 +2337,31 @@ model commodity_collections {
   @@index([status])
   @@index([agentId])
   @@map("commodity_collections")
+}
+
+// Inventory Batch (Commodity-aware warehousing per spec)
+model inventory_batches {
+  id                String   @id @default(cuid())
+  commodityId       String
+  grade             String?  // Quality grade (A1, A2, B, etc.)
+  quantity          Float
+  unit              String
+  storageLocation   String?  // Warehouse/location reference
+  ownerType         String   // farmer | agent | mcc
+  financingStatus   String?  // PENDING, FINANCED, RELEASED, etc.
+  batchId           String?  // Link to collection batch for traceability
+  mccId             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  commodity commodities @relation(fields: [commodityId], references: [id])
+  mcc       mccs?       @relation(fields: [mccId], references: [id])
+
+  @@index([commodityId])
+  @@index([ownerType])
+  @@index([mccId])
+  @@index([financingStatus])
+  @@map("inventory_batches")
 }
 
 // Crop Types

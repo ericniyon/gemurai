@@ -75,14 +75,24 @@ export async function POST(req: NextRequest) {
       message: "Commodity collection recorded successfully",
       data: result,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Record commodity collection error:", error)
+    const message = error?.message || "Unknown error"
+    // Return 400 for known validation/business rule errors
+    const isValidationError =
+      message.includes("Cannot record collection") ||
+      message.includes("National ID not verified") ||
+      message.includes("verify farmer") ||
+      message.includes("Commodity not found") ||
+      message.includes("Farmer not found") ||
+      message.includes("MCC not found") ||
+      /not found/i.test(message)
     return NextResponse.json(
       {
-        error: "Failed to record commodity collection",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: isValidationError ? message : "Failed to record commodity collection",
+        details: process.env.NODE_ENV === "development" ? message : undefined,
       },
-      { status: 500 }
+      { status: isValidationError ? 400 : 500 }
     )
   }
 }
@@ -103,7 +113,11 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const mccId = searchParams.get("mccId")
+    let mccId = searchParams.get("mccId")
+    // For MCC_MANAGER, use their assigned mccId if not provided
+    if (!mccId && user.role === "MCC_MANAGER" && user.mccId) {
+      mccId = user.mccId
+    }
     const commodityId = searchParams.get("commodityId")
     const farmerId = searchParams.get("farmerId")
     const status = searchParams.get("status")

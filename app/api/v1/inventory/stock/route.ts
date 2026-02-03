@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { verifyAuthToken } from "@/lib/api-auth"
+import { checkMCCPermission } from "@/lib/mcc-auth"
 
 async function getAuthenticatedUser(request: NextRequest) {
   // Try NextAuth session first
@@ -30,8 +31,6 @@ async function checkInventoryPermission(userId: string, permission: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
-      role: true,
-      permissions: true,
       userRole: {
         select: {
           role: {
@@ -53,32 +52,21 @@ async function checkInventoryPermission(userId: string, permission: string) {
     }
   })
 
-  const roleName = user?.userRole?.role?.name || user?.role
-  const permissions = user?.userRole?.role?.rolePermissions?.map(rp => rp.permission.name) || []
-  const userPermissions = user?.permissions || []
-  
+  const roleName = user?.userRole?.role?.name ?? null
+  const permissions = user?.userRole?.role?.rolePermissions?.map(rp => rp.permission.name) ?? []
+
   // Super admin and employer have all permissions
   if (roleName === 'SUPER_ADMIN' || roleName === 'EMPLOYER') {
-    console.log(`✅ Access granted - ${roleName} role`)
     return true
   }
 
-  // ADMIN and other roles are NOT system users - deny access
-  console.log("❌ Access denied - Only SUPER_ADMIN can manage inventory system")
-  return false
-
-  // Check if user has wildcard permission
-  if (userPermissions.includes('*')) {
-    return true
-  }
-
-  // Check specific permission in database permissions
+  // Check if user has the specific permission via role
   if (permissions.includes(permission)) {
     return true
   }
 
-  // Check specific permission in user permissions
-  if (userPermissions.includes(permission)) {
+  // Check wildcard
+  if (permissions.includes('*')) {
     return true
   }
 
@@ -95,8 +83,19 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Check permission
-    const hasPermission = await checkInventoryPermission(auth.userId, "inventory.manage")
+    // Check permission: role-based inventory.manage OR MCC user with mcc.inventory.view / mcc.inventory.manage
+    let hasPermission = await checkInventoryPermission(auth.userId, "inventory.manage")
+    if (!hasPermission) {
+      const authHeader = request.headers.get("authorization")
+      const token = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null
+      if (token) {
+        const [viewRes, manageRes] = await Promise.all([
+          checkMCCPermission(token, "mcc.inventory.view"),
+          checkMCCPermission(token, "mcc.inventory.manage"),
+        ])
+        hasPermission = viewRes.authorized || manageRes.authorized
+      }
+    }
     if (!hasPermission) {
       return NextResponse.json(
         { success: false, message: "Permission denied" },
@@ -130,7 +129,7 @@ export async function GET(request: NextRequest) {
       where.product = {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
-          { sku: { contains: search, mode: 'insensitive' } }
+          { internalReference: { contains: search, mode: 'insensitive' } }
         ]
       }
     }
@@ -143,7 +142,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            sku: true,
+            internalReference: true,
             description: true,
             price: true,
             category: true
@@ -160,7 +159,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
-            type: true
+            locationType: true
           }
         }
       },

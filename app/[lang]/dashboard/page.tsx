@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, createElement } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
 import { 
   type LucideIcon,
-  Activity, ShoppingCart, Truck, UserPlus, BatteryCharging, GaugeCircle, Package, ClipboardList, PiggyBank, AlertTriangle, Wheat, Coffee, Settings, CheckCircle2, XCircle, DollarSign, Clock, Droplets, Users, Building2, Database, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, CheckSquare, Calendar
+  Activity, ShoppingCart, Truck, UserPlus, BatteryCharging, GaugeCircle, Package, ClipboardList, PiggyBank, AlertTriangle, Wheat, Coffee, Settings, CheckCircle2, XCircle, DollarSign, Clock, Droplets, Users, Building2, Database, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, CheckSquare, Calendar, Tractor, ShoppingBag
 } from "lucide-react"
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 import { GeoIntelligenceWidgets } from "@/components/dashboard/geo-intelligence-widgets"
@@ -158,8 +158,8 @@ export default function DashboardPage() {
                   "Authorization": `Bearer ${token}`
                 }
               }),
-              isMCCManager && user?.mccId
-                ? fetch(`/api/v1/mcc/commodities/collections?mccId=${user.mccId}`, {
+              isMCCManager
+                ? fetch(`/api/v1/mcc/commodities/collections${user?.mccId ? `?mccId=${user.mccId}` : ""}`, {
                     headers: {
                       "Authorization": `Bearer ${token}`
                     }
@@ -268,7 +268,7 @@ export default function DashboardPage() {
   const donutTotal = donutData.reduce((sum, item) => sum + item.value, 0)
   const collectionsPercentage = donutTotal > 0 ? ((donutData[0]?.value || 0) / donutTotal * 100).toFixed(2) : "0"
 
-  const COLORS = ["#2563eb", "#9ca3af"] // Blue for collections, grey for sales
+  const COLORS = ["#0099f2", "#9ca3af"] // Brand blue for collections, grey for sales
 
   // Type definition for accent colors
   type Accent = "primary" | "emerald" | "purple" | "amber"
@@ -300,11 +300,11 @@ export default function DashboardPage() {
           textColor: "text-primary",
           bar: "bg-primary",
           pill: "bg-primary/10 text-primary",
-          shadow: "hover:shadow-blue-500/10",
-          borderHover: "hover:border-blue-300/60",
-          gradientBg: "from-blue-50/50",
-          gradientBgHover: "from-blue-50/30",
-          gradientBar: "from-blue-500 via-blue-600 to-blue-500",
+          shadow: "hover:shadow-[#0099f2]/10",
+          borderHover: "hover:border-[#0099f2]/40",
+          gradientBg: "from-[#0099f2]/5",
+          gradientBgHover: "from-[#0099f2]/10",
+          gradientBar: "from-[#0099f2] via-[#0082d9] to-[#0099f2]",
         }
       case "emerald":
         return {
@@ -364,19 +364,27 @@ export default function DashboardPage() {
           textColor: "text-primary",
           bar: "bg-primary",
           pill: "bg-primary/10 text-primary",
-          shadow: "hover:shadow-blue-500/10",
-          borderHover: "hover:border-blue-300/60",
-          gradientBg: "from-blue-50/50",
-          gradientBgHover: "from-blue-50/30",
-          gradientBar: "from-blue-500 via-blue-600 to-blue-500",
+          shadow: "hover:shadow-[#0099f2]/10",
+          borderHover: "hover:border-[#0099f2]/40",
+          gradientBg: "from-[#0099f2]/5",
+          gradientBgHover: "from-[#0099f2]/10",
+          gradientBar: "from-[#0099f2] via-[#0082d9] to-[#0099f2]",
         }
     }
   }
 
   // MCC Dashboard rendering
   if (isMCCManager) {
+    // Map API response to expected structures (API returns lowStockAlerts, rentalAssetsOut, dailyVolume, payoutDue at top level)
+    const apiLowStock = mccDashboardData?.lowStockAlerts ?? []
+    const apiRentalAssets = mccDashboardData?.rentalAssetsOut ?? []
+    const dailyVolume = mccDashboardData?.dailyVolume ?? { liters: 0, collections: 0 }
+    const payoutDue = mccDashboardData?.payoutDue ?? { amount: 0, totalAmount: 0, collections: 0 }
+
     const collectionsVolume = mccDashboardData?.collections?.totalVolume ?? 0
     const collectionsCount = mccDashboardData?.collections?.total ?? 0
+    const collectionsPending = mccDashboardData?.collections?.pending ?? 0
+    const collectionsAccepted = mccDashboardData?.collections?.accepted ?? 0
     const salesLiters = mccDashboardData?.sales?.totalLiters ?? 0
     const salesCount = mccDashboardData?.sales?.totalSales ?? 0
     const salesRevenue = mccDashboardData?.sales?.totalRevenue ?? 0
@@ -384,8 +392,10 @@ export default function DashboardPage() {
     const suppliersTotal = mccDashboardData?.suppliers?.total ?? 0
     const customersActive = mccDashboardData?.customers?.active ?? 0
     const customersTotal = mccDashboardData?.customers?.total ?? 0
+    const farmersTotal = mccDashboardData?.farmers?.total ?? 0
+    const farmersActive = mccDashboardData?.farmers?.active ?? 0
     const recentActivity = mccDashboardData?.recentActivity ?? []
-    const collectionsRevenue = collectionsVolume * 385
+    const payoutAmount = payoutDue?.amount ?? 0
 
     const vehiclesData = mccDashboardData?.vehicles ?? {}
     const vehiclesSummary = {
@@ -465,13 +475,19 @@ export default function DashboardPage() {
     const rawLowStock =
       inventoryData?.lowStock ??
       inventoryData?.low_stock ??
-      []
+      apiLowStock
     const rawExpiring =
       inventoryData?.expiringSoon ??
       inventoryData?.expiring_soon ??
       []
     const lowStockProducts = Array.isArray(rawLowStock)
-      ? rawLowStock
+      ? rawLowStock.map((p: any) => ({
+          ...p,
+          stock_qty: p.currentStock ?? p.stock ?? p.stock_qty ?? p.stockQty ?? 0,
+          stockQty: p.currentStock ?? p.stock ?? p.stock_qty ?? p.stockQty ?? 0,
+          sku: p.barcode ?? p.sku,
+          name: p.name ?? "Product",
+        }))
       : []
     const expiringProducts = Array.isArray(rawExpiring)
       ? rawExpiring
@@ -493,16 +509,28 @@ export default function DashboardPage() {
     const rawActiveRentals =
       rentalsData?.active ??
       rentalsData?.activeRentals ??
-      []
+      apiRentalAssets
     const rawOverdueRentals =
       rentalsData?.overdue ??
       rentalsData?.overdueRentals ??
-      []
+      apiRentalAssets.filter((r: any) => (r.daysOut ?? 0) > 0)
     const activeRentals = Array.isArray(rawActiveRentals)
-      ? rawActiveRentals
+      ? rawActiveRentals.map((r: any) => ({
+          ...r,
+          asset_name: r.asset?.name ?? r.assetName ?? r.asset_name ?? "Asset",
+          farmer_name: r.farmer?.name ?? r.farmerName ?? r.farmer_name ?? "Farmer",
+          rent_end: r.rentEnd ?? r.rent_end,
+          rentEnd: r.rentEnd ?? r.rent_end,
+        }))
       : []
     const overdueRentals = Array.isArray(rawOverdueRentals)
-      ? rawOverdueRentals
+      ? rawOverdueRentals.map((r: any) => ({
+          ...r,
+          asset_name: r.asset?.name ?? r.assetName ?? r.asset_name ?? "Asset",
+          farmer_name: r.farmer?.name ?? r.farmerName ?? r.farmer_name ?? "Farmer",
+          rent_end: r.rentEnd ?? r.rent_end,
+          rentEnd: r.rentEnd ?? r.rent_end,
+        }))
       : []
     const rentalsSummary = {
       activeCount: activeRentals.length,
@@ -517,10 +545,12 @@ export default function DashboardPage() {
     const pendingPayments =
       financialData?.pendingPayments ??
       financialData?.pending_payments ??
+      payoutDue?.collections ??
       0
     const outstandingAmount =
       financialData?.outstandingAmount ??
       financialData?.outstanding_amount ??
+      payoutDue?.amount ??
       0
     const farmerBalance =
       financialData?.farmerBalance ??
@@ -556,7 +586,7 @@ export default function DashboardPage() {
       {
         title: "Collect Milk",
         href: `/${lang}/dashboard/mcc/collections`,
-        icon: Truck,
+        icon: Droplets,
         accent: "primary",
       },
       {
@@ -566,14 +596,14 @@ export default function DashboardPage() {
         accent: "primary",
       },
       {
-        title: "Add Supplier",
-        href: `/${lang}/dashboard/mcc/suppliers`,
-        icon: UserPlus,
+        title: "Process Payments",
+        href: `/${lang}/dashboard/mcc/payments`,
+        icon: DollarSign,
         accent: "primary",
       },
       {
-        title: "Add Customer",
-        href: `/${lang}/dashboard/mcc/customers`,
+        title: "Add Supplier",
+        href: `/${lang}/dashboard/mcc/suppliers`,
         icon: UserPlus,
         accent: "primary",
       },
@@ -590,38 +620,68 @@ export default function DashboardPage() {
       {
         label: "Milk Collections",
         value: `${collectionsVolume.toLocaleString(undefined, { maximumFractionDigits: 1 })}L`,
-        subtitle: `${collectionsCount} Collections`,
-        meta: `RF ${collectionsRevenue.toLocaleString()}`,
-        icon: Truck,
+        subtitle: `${collectionsCount} total · ${collectionsPending} pending`,
+        meta: `RF ${payoutAmount.toLocaleString()} due`,
+        icon: Droplets,
         accent: "primary",
       },
       {
         label: "Milk Sales",
         value: `${salesLiters.toLocaleString(undefined, { maximumFractionDigits: 1 })}L`,
-        subtitle: `${salesCount} Sales`,
-        meta: `RF ${salesRevenue.toLocaleString()}`,
+        subtitle: `${salesCount} sales`,
+        meta: `RF ${salesRevenue.toLocaleString()} revenue`,
         icon: ShoppingCart,
         accent: "emerald",
       },
       {
-        label: "Active Suppliers",
-        value: `${suppliersActive}`,
-        subtitle: `${Math.max(suppliersTotal - suppliersActive, 0)} Inactive`,
-        meta: `${suppliersTotal} Total`,
-        icon: UserPlus,
+        label: "Farmers",
+        value: `${farmersTotal}`,
+        subtitle: `${farmersActive} active (7d)`,
+        meta: `${suppliersTotal} suppliers`,
+        icon: Tractor,
         accent: "purple",
       },
       {
-        label: "Active Customers",
-        value: `${customersActive}`,
-        subtitle: `${Math.max(customersTotal - customersActive, 0)} Inactive`,
-        meta: `${customersTotal} Total`,
-        icon: UserPlus,
+        label: "Customers",
+        value: `${customersTotal}`,
+        subtitle: `${customersActive} active`,
+        meta: `RF ${(mccDashboardData?.customers?.totalRevenue ?? salesRevenue).toLocaleString()} revenue`,
+        icon: ShoppingBag,
         accent: "amber",
       },
     ]
 
-    // Render the MCC dashboard
+    // Loading state for MCC Manager
+    if (loading && !mccDashboardData) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
+          <div className="relative z-10 mx-auto w-full px-0 py-10">
+            <div className="mb-10 animate-pulse">
+              <div className="h-9 w-64 bg-slate-200 rounded-lg mb-2" />
+              <div className="h-5 w-96 bg-slate-100 rounded" />
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-36 rounded-3xl bg-slate-100/80 border border-slate-200/60 animate-pulse" />
+              ))}
+            </div>
+            <div className="mt-10 flex items-center justify-center gap-2 text-slate-500">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+              <span className="text-sm font-medium">Loading your MCC dashboard...</span>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // Render the MCC dashboard - design aligned with collections page
+    const cardConfig: Record<string, { border: string; gradient: string; iconBg: string; labelColor: string; iconColor: string }> = {
+      primary: { border: "border-blue-100", gradient: "from-blue-100/50 via-indigo-100/30 to-transparent", iconBg: "bg-blue-50", labelColor: "text-blue-600", iconColor: "text-blue-500" },
+      emerald: { border: "border-emerald-100", gradient: "from-emerald-100/50 via-teal-100/30 to-transparent", iconBg: "bg-emerald-50", labelColor: "text-emerald-600", iconColor: "text-emerald-500" },
+      purple: { border: "border-purple-100", gradient: "from-purple-100/50 via-indigo-100/30 to-transparent", iconBg: "bg-purple-50", labelColor: "text-purple-600", iconColor: "text-purple-500" },
+      amber: { border: "border-amber-100", gradient: "from-amber-100/50 via-orange-100/30 to-transparent", iconBg: "bg-amber-50", labelColor: "text-amber-600", iconColor: "text-amber-500" },
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
         <div className="relative">
@@ -634,72 +694,139 @@ export default function DashboardPage() {
             <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-3">
                 <div className="inline-flex items-center gap-3 rounded-full bg-white/80 px-4 py-1.5 shadow-sm ring-1 ring-gray-200">
-                  <Activity className="h-4 w-4 text-blue-600" />
+                  <Droplets className="h-4 w-4 text-blue-600" />
                   <span className="text-xs font-semibold uppercase tracking-wide text-blue-600">
                     MCC Manager • Dashboard
                   </span>
                 </div>
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                    Welcome back, {user?.name?.split(' ')[0] || 'Manager'}
+                  </h1>
+                  <p className="mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">
+                    Overview of your MCC operations, collections, and key metrics
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {quickActions.slice(0, 4).map((action) => (
+                    action.href ? (
+                      <Link key={action.title} href={action.href}>
+                        <Button
+                          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30"
+                        >
+                          {createElement(action.icon, { className: "h-4 w-4" })}
+                          {action.title}
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button
+                        key={action.title}
+                        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30"
+                        onClick={action.onClick}
+                      >
+                        {createElement(action.icon, { className: "h-4 w-4" })}
+                        {action.title}
+                      </Button>
+                    )
+                  ))}
+                </div>
               </div>
             </header>
-        
-        <div className="w-full px-2 sm:px-3 py-4 sm:py-6 space-y-4 sm:space-y-6">
-          {/* Summary Cards Section */}
-          <section className="relative mt-12">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {metricCards.map(({ label, value, subtitle, meta, icon: Icon, accent }) => {
-                const accentClasses = getAccentClasses(accent)
-                const borderColors = {
-                  primary: "border-blue-100",
-                  emerald: "border-emerald-100",
-                  purple: "border-purple-100",
-                  amber: "border-amber-100"
-                }
+
+            {/* Summary Cards - matching collections page style */}
+            <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <Card className="relative overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-b from-blue-100/50 via-indigo-100/30 to-transparent" />
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-sm font-semibold uppercase tracking-wide text-blue-600">
+                        Today&apos;s Collections
+                      </CardTitle>
+                      <p className="mt-1 text-3xl font-bold text-gray-900">
+                        {(dailyVolume?.liters ?? 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}<span className="text-lg text-gray-600">L</span>
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-blue-50 p-3">
+                      <Droplets className="h-6 w-6 text-blue-500" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                    <span><strong className="font-semibold text-gray-900">{dailyVolume?.collections ?? 0}</strong> collection{(dailyVolume?.collections ?? 0) !== 1 ? 's' : ''} today</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="relative overflow-hidden rounded-3xl border border-amber-100 bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-b from-amber-100/50 via-orange-100/30 to-transparent" />
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-sm font-semibold uppercase tracking-wide text-amber-600">
+                        Payout Due
+                      </CardTitle>
+                      <p className="mt-1 text-3xl font-bold text-gray-900">
+                        RF {(payoutDue?.amount ?? 0).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-amber-50 p-3">
+                      <DollarSign className="h-6 w-6 text-amber-500" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                    <span><strong className="font-semibold text-gray-900">{payoutDue?.collections ?? 0}</strong> collection{(payoutDue?.collections ?? 0) !== 1 ? 's' : ''} awaiting payment</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {metricCards.slice(0, 2).map(({ label, value, subtitle, meta, icon: Icon, accent }) => {
+                const config = cardConfig[accent] || cardConfig.primary
                 return (
-                  <Card key={label} className={`group relative overflow-hidden rounded-3xl ${borderColors[accent]} bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl`}>
-                    <div className={`absolute right-0 top-0 h-full w-24 bg-gradient-to-b ${accent === 'primary' ? 'from-blue-100/50 via-indigo-100/30' : accent === 'emerald' ? 'from-emerald-100/50 via-teal-100/30' : accent === 'purple' ? 'from-purple-100/60 via-indigo-100/30' : 'from-amber-100/50 via-orange-100/30'} to-transparent`} />
-                    
+                  <Card key={label} className={`relative overflow-hidden rounded-3xl border ${config.border} bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl`}>
+                    <div className={`absolute right-0 top-0 h-full w-24 bg-gradient-to-b ${config.gradient}`} />
                     <CardHeader className="pb-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <CardTitle className={`text-sm font-semibold uppercase tracking-wide ${accentClasses.textColor}`}>
+                          <CardTitle className={`text-sm font-semibold uppercase tracking-wide ${config.labelColor}`}>
                             {label}
                           </CardTitle>
                           <p className="mt-1 text-3xl font-bold text-gray-900">{value}</p>
                         </div>
-                        <div className={`rounded-2xl ${accent === 'primary' ? 'bg-blue-50' : accent === 'emerald' ? 'bg-emerald-50' : accent === 'purple' ? 'bg-purple-50' : 'bg-amber-50'} p-3`}>
-                          <Icon className={`h-6 w-6 ${accentClasses.icon}`} />
+                        <div className={`rounded-2xl ${config.iconBg} p-3`}>
+                          <Icon className={`h-6 w-6 ${config.iconColor}`} />
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-3 text-sm text-gray-600">
-                        <span>
-                          <strong className="font-semibold text-gray-900">{subtitle}</strong>
-                        </span>
-                        <span>
-                          <strong className={`font-semibold ${accentClasses.textColor}`}>{meta}</strong>
-                        </span>
+                        <span>{subtitle}</span>
+                        <span><strong className="font-semibold text-gray-900">{meta}</strong></span>
                       </div>
                     </CardContent>
                   </Card>
                 )
               })}
-            </div>
-          </section>
+            </section>
 
           {/* HarvestPlus Multi-Commodity Section */}
           {(user?.role === "MCC_MANAGER" || user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") && (
-            <section className="relative mt-12">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">HarvestPlus by GEMURA</h2>
-                  <p className="text-sm text-gray-600">Multi-Commodity Aggregation & Settlement Platform (Dairy, Coffee, Cereals & More)</p>
+            <section className="relative mt-12 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+                <div className="space-y-1">
+                  <h2 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-purple-600 via-indigo-600 to-[#0099f2] bg-clip-text text-transparent">
+                    HarvestPlus by GEMURA
+                  </h2>
+                  <p className="text-sm text-gray-600 font-medium">Multi-Commodity Aggregation & Settlement Platform</p>
                 </div>
                 <div className="flex gap-2">
                   {(user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") && (
                     <Link
                       href={`/${lang}/dashboard/admin/commodity-studio`}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl text-xs sm:text-sm font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 rounded-xl text-sm font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 border border-purple-500/20"
                     >
                       <Settings className="h-4 w-4" />
                       Commodity Studio
@@ -707,83 +834,107 @@ export default function DashboardPage() {
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {/* Commodity Stats Cards */}
-                <Card className="group bg-white border-2 border-purple-100 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
-                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500"></div>
-                  <CardHeader className="pb-3">
+                <Card className="relative overflow-hidden rounded-3xl border border-purple-100 bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                  <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-b from-purple-100/50 via-indigo-100/30 to-transparent" />
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-semibold text-gray-700">Total Commodities</CardTitle>
-                      <Wheat className="h-5 w-5 text-purple-600" />
+                      <div>
+                        <CardTitle className="text-sm font-semibold uppercase tracking-wide text-purple-600">Total Commodities</CardTitle>
+                        <p className="mt-1 text-3xl font-bold text-gray-900">{commodities.length}</p>
+                      </div>
+                      <div className="rounded-2xl bg-purple-50 p-3">
+                        <Wheat className="h-6 w-6 text-purple-500" />
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold text-gray-900">{commodities.length}</p>
-                    <p className="text-xs text-gray-500 mt-1">Active commodities</p>
+                    <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                      <span>Active commodities</span>
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card className="group bg-white border-2 border-emerald-100 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
-                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500"></div>
-                  <CardHeader className="pb-3">
+                <Card className="relative overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                  <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-b from-emerald-100/50 via-teal-100/30 to-transparent" />
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-semibold text-gray-700">Collections</CardTitle>
-                      <Package className="h-5 w-5 text-emerald-600" />
+                      <div>
+                        <CardTitle className="text-sm font-semibold uppercase tracking-wide text-emerald-600">Collections</CardTitle>
+                        <p className="mt-1 text-3xl font-bold text-gray-900">{commodityStats?.totalCollections || 0}</p>
+                      </div>
+                      <div className="rounded-2xl bg-emerald-50 p-3">
+                        <Package className="h-6 w-6 text-emerald-500" />
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold text-gray-900">{commodityStats?.totalCollections || 0}</p>
-                    <p className="text-xs text-gray-500 mt-1">Total recorded</p>
+                    <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                      <span>Total recorded</span>
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card className="group bg-white border-2 border-blue-100 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
-                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
-                  <CardHeader className="pb-3">
+                <Card className="relative overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                  <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-b from-blue-100/50 via-indigo-100/30 to-transparent" />
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-semibold text-gray-700">Total Volume</CardTitle>
-                      <Activity className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <CardTitle className="text-sm font-semibold uppercase tracking-wide text-blue-600">Total Volume</CardTitle>
+                        <p className="mt-1 text-3xl font-bold text-gray-900">
+                          {commodityStats?.totalVolume ? commodityStats.totalVolume.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "0"}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl bg-blue-50 p-3">
+                        <Activity className="h-6 w-6 text-blue-500" />
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold text-gray-900">
-                      {commodityStats?.totalVolume ? commodityStats.totalVolume.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "0"}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Units collected</p>
+                    <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                      <span>Units collected</span>
+                    </div>
                   </CardContent>
                 </Card>
 
-                <Card className="group bg-white border-2 border-amber-100 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2">
-                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500"></div>
-                  <CardHeader className="pb-3">
+                <Card className="relative overflow-hidden rounded-3xl border border-amber-100 bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                  <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-b from-amber-100/50 via-orange-100/30 to-transparent" />
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-semibold text-gray-700">Revenue</CardTitle>
-                      <DollarSign className="h-5 w-5 text-amber-600" />
+                      <div>
+                        <CardTitle className="text-sm font-semibold uppercase tracking-wide text-amber-600">Revenue</CardTitle>
+                        <p className="mt-1 text-3xl font-bold text-gray-900">
+                          RF {commodityStats?.totalRevenue ? commodityStats.totalRevenue.toLocaleString() : "0"}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl bg-amber-50 p-3">
+                        <DollarSign className="h-6 w-6 text-amber-500" />
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-3xl font-bold text-gray-900">
-                      RF {commodityStats?.totalRevenue ? commodityStats.totalRevenue.toLocaleString() : "0"}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">Total revenue</p>
+                    <div className="flex flex-wrap gap-3 text-sm text-gray-600">
+                      <span>Total revenue</span>
+                    </div>
                   </CardContent>
                 </Card>
               </div>
 
               {/* Commodity Breakdown */}
               {commodityStats?.byCommodity && Object.keys(commodityStats.byCommodity).length > 0 && (
-                <Card className="mt-6">
+                <Card className="mt-6 overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-lg">
                   <CardHeader>
-                    <CardTitle className="text-lg font-bold">Commodity Breakdown</CardTitle>
-                    <CardDescription>Collections by commodity type</CardDescription>
+                    <CardTitle className="text-lg font-bold text-slate-900">Commodity Breakdown</CardTitle>
+                    <CardDescription className="text-slate-600">Collections by commodity type</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
                       {Object.entries(commodityStats.byCommodity).map(([name, data]: [string, any]) => (
-                        <div key={name} className="flex items-center justify-between p-3 rounded-lg border border-gray-200 bg-gray-50">
+                        <div key={name} className="flex items-center justify-between p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-50/80 transition-colors">
                           <div className="flex items-center gap-3">
                             {name.toLowerCase().includes("milk") || name.toLowerCase().includes("dairy") ? (
-                              <Droplets className="h-5 w-5 text-blue-600" />
+                              <Droplets className="h-5 w-5 text-[#0099f2]" />
                             ) : name.toLowerCase().includes("coffee") ? (
                               <Coffee className="h-5 w-5 text-amber-600" />
                             ) : (
@@ -807,24 +958,28 @@ export default function DashboardPage() {
 
               {/* Collection Status */}
               {commodityStats && (
-                <Card className="mt-6">
+                <Card className="mt-6 overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-lg">
                   <CardHeader>
-                    <CardTitle className="text-lg font-bold">Collection Status</CardTitle>
+                    <CardTitle className="text-lg font-bold text-slate-900">Collection Status</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="flex items-center gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50">
-                        <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                      <div className="flex items-center gap-3 p-4 rounded-xl border border-[#0099f2]/20 bg-[#0099f2]/5 shadow-sm">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0099f2]/10">
+                          <CheckCircle2 className="h-5 w-5 text-[#0099f2]" />
+                        </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{commodityStats.approvedCollections || 0}</p>
-                          <p className="text-xs text-gray-500">Approved</p>
+                          <p className="text-xl font-bold text-slate-900">{commodityStats.approvedCollections || 0}</p>
+                          <p className="text-xs font-medium text-slate-600">Approved</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 p-3 rounded-lg border border-amber-200 bg-amber-50">
-                        <Clock className="h-5 w-5 text-amber-600" />
+                      <div className="flex items-center gap-3 p-4 rounded-xl border border-amber-200/80 bg-amber-50/80 shadow-sm">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100">
+                          <Clock className="h-5 w-5 text-amber-600" />
+                        </div>
                         <div>
-                          <p className="font-semibold text-gray-900">{commodityStats.pendingCollections || 0}</p>
-                          <p className="text-xs text-gray-500">Pending</p>
+                          <p className="text-xl font-bold text-slate-900">{commodityStats.pendingCollections || 0}</p>
+                          <p className="text-xs font-medium text-slate-600">Pending</p>
                         </div>
                       </div>
                     </div>
@@ -844,810 +999,7 @@ export default function DashboardPage() {
             </section>
           )}
 
-          {/* Geo-Intelligence Section */}
-          <section className="relative mt-12">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Geo-Intelligence</h2>
-                <p className="text-sm text-gray-600">Location-based insights and visualization</p>
-              </div>
-            </div>
-            <div className="space-y-6">
-              {geoStats ? (
-                <GeoIntelligenceWidgets stats={geoStats} isLoading={geoLoading} />
-              ) : (
-                <Card>
-                  <CardContent className="py-8 text-center">
-                    {geoLoading ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                        <p className="text-sm text-gray-500">Loading geo-intelligence data...</p>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <p className="text-sm text-gray-500">No geo-location data available</p>
-                        <p className="text-xs text-gray-400">Add geo-location data to entities to see insights</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-              {geoEntities.length > 0 ? (
-                <GeoMapViewer entities={geoEntities} height="600px" />
-              ) : !geoLoading && (
-                <Card>
-                  <CardContent className="py-8 text-center">
-                    <p className="text-sm text-gray-500">No entities with geo-location data found</p>
-                    <p className="text-xs text-gray-400 mt-1">Add geo-location to farmers, agents, or MCCs to see them on the map</p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </section>
-
-          {/* Operational Readiness Section */}
-          <section className="relative mt-12">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Operational Readiness</h2>
-                <p className="text-sm text-gray-600">Stay ahead on transport, power, and workforce capacity</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Vehicles Overview */}
-              <Card className="group bg-white border-2 border-slate-100 shadow-xl hover:shadow-2xl hover:shadow-blue-500/15 transition-all duration-500 transform hover:-translate-y-2 overflow-hidden relative">
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-sky-500 to-cyan-500"></div>
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-400 via-sky-400 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-                <CardHeader className="border-b-2 border-slate-100 pb-3 sm:pb-4 bg-gradient-to-r from-slate-50/80 to-sky-50/60">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-sky-500 to-cyan-500 text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
-                        <Truck className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base sm:text-lg font-bold text-gray-900">Fleet Status</CardTitle>
-                        <p className="text-xs font-semibold text-gray-500">Total vehicles: {vehiclesSummary.total}</p>
-                      </div>
-                    </div>
-                    <Badge className="bg-blue-500/10 text-blue-600 border border-blue-500/30 shadow-sm">
-                      Updated {formatDisplayDate(vehiclesSummary.updatedAt, "Recently")}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 sm:pt-5">
-                  <div className="grid grid-cols-2 gap-3 text-xs sm:text-sm font-semibold text-gray-700">
-                    <div className="rounded-xl border border-blue-100 bg-blue-50/40 px-3 py-2 shadow-sm">
-                      <p className="text-[11px] text-blue-500 font-bold uppercase tracking-wide">Available</p>
-                      <p className="text-lg sm:text-xl text-blue-700 font-black">{vehiclesSummary.available}</p>
-                    </div>
-                    <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 px-3 py-2 shadow-sm">
-                      <p className="text-[11px] text-indigo-500 font-bold uppercase tracking-wide">On Route</p>
-                      <p className="text-lg sm:text-xl text-indigo-700 font-black">{vehiclesSummary.onRoute}</p>
-                    </div>
-                    <div className="rounded-xl border border-amber-100 bg-amber-50/50 px-3 py-2 shadow-sm col-span-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-[11px] text-amber-500 font-bold uppercase tracking-wide">Under Maintenance</p>
-                          <p className="text-lg sm:text-xl text-amber-600 font-black">{vehiclesSummary.maintenance}</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="text-[11px] text-gray-500 font-semibold uppercase tracking-wide">Next Service</span>
-                          <span className="text-xs sm:text-sm font-bold text-gray-700">
-                            {formatDisplayDate(vehiclesSummary.nextService, "Schedule pending")}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Power Assets */}
-              <Card className="group bg-white border-2 border-slate-100 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/15 transition-all duration-500 transform hover:-translate-y-2 overflow-hidden relative">
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500"></div>
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-                <CardHeader className="border-b-2 border-slate-100 pb-3 sm:pb-4 bg-gradient-to-r from-emerald-50/80 to-teal-50/60">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
-                        <BatteryCharging className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base sm:text-lg font-bold text-gray-900">Power Assets</CardTitle>
-                        <p className="text-xs font-semibold text-gray-500">Total assets: {powerSummary.total}</p>
-                      </div>
-                    </div>
-                    <Badge className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 shadow-sm">
-                      Last Tested {formatDisplayDate(powerSummary.lastTested, "N/A")}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 sm:pt-5">
-                  <div className="space-y-3 text-xs sm:text-sm font-semibold text-gray-700">
-                    <div className="flex items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50/40 px-3 py-2 shadow-sm">
-                      <span className="text-emerald-600 uppercase tracking-wide text-[11px] font-bold">Operational</span>
-                      <span className="text-lg sm:text-xl font-black text-emerald-700">{powerSummary.operational}</span>
-                    </div>
-                    <div className="flex items-center justify-between rounded-xl border border-amber-100 bg-amber-50/40 px-3 py-2 shadow-sm">
-                      <span className="text-amber-600 uppercase tracking-wide text-[11px] font-bold">Maintenance Due</span>
-                      <span className="text-lg sm:text-xl font-black text-amber-600">{powerSummary.maintenanceDue}</span>
-                    </div>
-                    <div className="rounded-xl border border-gray-200 bg-white/60 px-3 py-2 shadow-sm">
-                      <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wide">Power Readiness</p>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        Reliable power keeps milk chilled and operations running. Track testing schedules to avoid downtime.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Capacity Snapshot */}
-              <Card className="group bg-white border-2 border-slate-100 shadow-xl hover:shadow-2xl hover:shadow-purple-500/15 transition-all duration-500 transform hover:-translate-y-2 overflow-hidden relative">
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500"></div>
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-400 via-indigo-400 to-blue-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-                <CardHeader className="border-b-2 border-slate-100 pb-3 sm:pb-4 bg-gradient-to-r from-purple-50/80 to-indigo-50/60">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
-                        <GaugeCircle className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base sm:text-lg font-bold text-gray-900">Capacity Snapshot</CardTitle>
-                        <p className="text-xs font-semibold text-gray-500">
-                          {capacitySummary?.assessedAt ? `Assessed ${formatDisplayDate(capacitySummary.assessedAt)}` : "No recent assessment"}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge className={`border ${capacitySummary?.powerOk ? "bg-green-500/10 text-green-600 border-green-500/40" : "bg-red-500/10 text-red-600 border-red-500/40"}`}>
-                      {capacitySummary?.powerOk ? "Power OK" : "Power Risk"}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 sm:pt-5">
-                  {capacitySummary ? (
-                    <div className="space-y-3 text-xs sm:text-sm font-semibold text-gray-700">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 px-3 py-2 shadow-sm">
-                          <p className="text-[11px] text-indigo-500 font-bold uppercase tracking-wide">Staff</p>
-                          <p className="text-lg sm:text-xl text-indigo-700 font-black">{capacitySummary.staffCount}</p>
-                          <p className="text-[11px] text-gray-500 font-semibold">Trained {trainedStaffPercentage}%</p>
-                        </div>
-                        <div className="rounded-xl border border-sky-100 bg-sky-50/40 px-3 py-2 shadow-sm">
-                          <p className="text-[11px] text-sky-500 font-bold uppercase tracking-wide">Transport</p>
-                          <p className="text-lg sm:text-xl text-sky-700 font-black">
-                            {(capacitySummary.transportCapacity ?? 0).toLocaleString()}
-                          </p>
-                          <p className="text-[11px] text-gray-500 font-semibold">Liters capacity</p>
-                        </div>
-                      </div>
-                      <div className="rounded-xl border border-purple-100 bg-purple-50/40 px-4 py-3 shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-[11px] text-purple-500 font-bold uppercase tracking-wide">Cooling Capacity</p>
-                            <p className="text-lg sm:text-xl text-purple-700 font-black">
-                              {(capacitySummary.coolingCapacity ?? 0).toLocaleString()} L
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-[11px] text-gray-500 font-semibold">Demand</p>
-                            <p className="text-sm sm:text-base text-gray-700 font-bold">
-                              {(capacitySummary.demand ?? 0).toLocaleString()} L
-                            </p>
-                          </div>
-                        </div>
-                        <p className={`mt-2 text-xs sm:text-sm font-bold ${coolingCapacityGap >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                          {coolingCapacityGap >= 0
-                            ? `Surplus of ${coolingCapacityGap.toLocaleString()} L`
-                            : `Gap of ${(Math.abs(coolingCapacityGap)).toLocaleString()} L`}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center text-sm text-gray-500 font-semibold">
-                      No capacity assessment recorded yet. Schedule one to unlock insights.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </section>
-
-          {/* Inventory & Rentals Section */}
-          <section className="relative mt-12">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Inventory & Rentals</h2>
-                <p className="text-sm text-gray-600">Keep stock healthy and equipment circulating smoothly</p>
-              </div>
-              <div className="flex gap-2">
-                <Link
-                  href={`/${lang}/dashboard/mcc/products`}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-xs sm:text-sm font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-                >
-                  Manage Inventory
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14m-7-7v14" />
-                  </svg>
-                </Link>
-                <Link
-                  href={`/${lang}/dashboard/mcc/assets`}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl text-xs sm:text-sm font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-                >
-                  View Rentals
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-              </div>
-            </div>
-            <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-              {/* Inventory Snapshot */}
-              <Card className="group bg-white border-2 border-slate-100 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/20 transition-all duration-500 transform hover:-translate-y-2 overflow-hidden relative">
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500"></div>
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-                <CardHeader className="border-b-2 border-slate-100 pb-4 bg-gradient-to-r from-emerald-50/80 to-teal-50/60">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
-                        <Package className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base sm:text-lg font-bold text-gray-900">Inventory Snapshot</CardTitle>
-                        <p className="text-xs font-semibold text-gray-500">
-                          {inventorySummary.totalProducts} products · {(inventorySummary.totalStock ?? 0).toLocaleString()} units
-                        </p>
-                      </div>
-                    </div>
-                    <Badge className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 shadow-sm">
-                      {inventorySummary.lowStockCount} low stock
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 sm:pt-6">
-                  <div className="grid gap-4">
-                    <div className="rounded-2xl border border-emerald-100 bg-white/70 shadow-sm p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Low Stock Alerts</h3>
-                        <Badge className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/30">
-                          {inventorySummary.lowStockCount}
-                        </Badge>
-                      </div>
-                      {lowStockProducts.length > 0 ? (
-                        <div className="space-y-3">
-                          {lowStockProducts.slice(0, 4).map((product: any, index: number) => (
-                            <div
-                              key={product?.id ?? product?.sku ?? index}
-                              className="flex items-start justify-between rounded-xl border border-emerald-100/60 bg-emerald-50/40 px-3 py-2 shadow-sm"
-                            >
-                              <div>
-                                <p className="text-sm font-bold text-emerald-700">{product?.name ?? "Product"}</p>
-                                <p className="text-xs text-gray-500 font-semibold">
-                                  {product?.sku ? `SKU ${product.sku}` : "SKU pending"}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-lg font-black text-emerald-600">
-                                  {(product?.stock_qty ?? product?.stockQty ?? 0).toLocaleString()}
-                                </p>
-                                <p className="text-[11px] text-gray-500 font-semibold uppercase">Stock</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-500 font-semibold text-center py-4">
-                          All products are above reorder thresholds.
-                        </p>
-                      )}
-                    </div>
-                    <div className="rounded-2xl border border-amber-100 bg-amber-50/50 shadow-sm p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Expiring Soon</h3>
-                        <Badge className="bg-amber-500/10 text-amber-600 border border-amber-500/30">
-                          {inventorySummary.expiringCount}
-                        </Badge>
-                      </div>
-                      {expiringProducts.length > 0 ? (
-                        <div className="space-y-3">
-                          {expiringProducts.slice(0, 4).map((product: any, index: number) => (
-                            <div
-                              key={product?.id ?? product?.sku ?? `exp-${index}`}
-                              className="flex items-center justify-between rounded-xl border border-amber-100 bg-white/70 px-3 py-2 shadow-sm"
-                            >
-                              <div>
-                                <p className="text-sm font-bold text-amber-700">{product?.name ?? "Product"}</p>
-                                <p className="text-xs text-gray-500 font-semibold">
-                                  {product?.expiry_date ?? product?.expiryDate
-                                    ? `Expires ${formatDisplayDate(product?.expiry_date ?? product?.expiryDate)}`
-                                    : "No expiry date"}
-                                </p>
-                              </div>
-                              <Badge className="bg-amber-500/10 text-amber-600 border border-amber-500/30">
-                                {(product?.stock_qty ?? product?.stockQty ?? 0).toLocaleString()} units
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-500 font-semibold text-center py-4">
-                          No products nearing expiry.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Rentals Overview */}
-              <Card className="group bg-white border-2 border-slate-100 shadow-xl hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-500 transform hover:-translate-y-2 overflow-hidden relative">
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500"></div>
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-indigo-400 via-purple-400 to-rose-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-                <CardHeader className="border-b-2 border-slate-100 pb-4 bg-gradient-to-r from-indigo-50/80 to-purple-50/60">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-rose-500 text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
-                        <ClipboardList className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base sm:text-lg font-bold text-gray-900">Equipment Rentals</CardTitle>
-                        <p className="text-xs font-semibold text-gray-500">
-                          {rentalsSummary.activeCount} active · {rentalsSummary.overdueCount} overdue
-                        </p>
-                      </div>
-                    </div>
-                    <Badge className="bg-indigo-500/10 text-indigo-600 border border-indigo-500/30 shadow-sm">
-                      {rentalsSummary.returnedToday} returned today
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 sm:pt-6">
-                  <div className="space-y-4">
-                    <div className="rounded-2xl border border-indigo-100 bg-white/80 shadow-sm p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Active Rentals</h3>
-                        <Badge className="bg-indigo-500/10 text-indigo-600 border border-indigo-500/30">
-                          {activeRentals.length}
-                        </Badge>
-                      </div>
-                      {activeRentals.length > 0 ? (
-                        <div className="space-y-3">
-                          {activeRentals.slice(0, 4).map((rental: any, index: number) => (
-                            <div
-                              key={rental?.id ?? `rental-${index}`}
-                              className="flex items-start justify-between rounded-xl border border-indigo-100/60 bg-indigo-50/40 px-3 py-2 shadow-sm"
-                            >
-                              <div>
-                                <p className="text-sm font-bold text-indigo-700">
-                                  {rental?.asset_name ?? rental?.assetName ?? "Asset"}
-                                </p>
-                                <p className="text-xs text-gray-500 font-semibold">
-                                  Holder: {rental?.farmer_name ?? rental?.farmerName ?? rental?.holder ?? "Farmer"}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-xs text-gray-500 font-semibold uppercase">Due</p>
-                                <p className="text-sm font-bold text-indigo-700">
-                                  {formatDisplayDate(rental?.rent_end ?? rental?.rentEnd, "Open")}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-500 font-semibold text-center py-4">
-                          No active rentals currently issued.
-                        </p>
-                      )}
-                    </div>
-                    <div className="rounded-2xl border border-rose-100 bg-rose-50/60 shadow-sm p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Overdue Returns</h3>
-                        <Badge className="bg-rose-500/10 text-rose-600 border border-rose-500/30">
-                          {overdueRentals.length}
-                        </Badge>
-                      </div>
-                      {overdueRentals.length > 0 ? (
-                        <div className="space-y-3">
-                          {overdueRentals.slice(0, 3).map((rental: any, index: number) => (
-                            <div
-                              key={rental?.id ?? `overdue-${index}`}
-                              className="flex items-start justify-between rounded-xl border border-rose-100 bg-white/70 px-3 py-2 shadow-sm"
-                            >
-                              <div>
-                                <p className="text-sm font-bold text-rose-700">
-                                  {rental?.asset_name ?? rental?.assetName ?? "Asset"}
-                                </p>
-                                <p className="text-xs text-gray-500 font-semibold">
-                                  Holder: {rental?.farmer_name ?? rental?.farmerName ?? rental?.holder ?? "Farmer"}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-xs text-gray-500 font-semibold uppercase">Overdue</p>
-                                <p className="text-sm font-bold text-rose-700">
-                                  {formatDisplayDate(rental?.rent_end ?? rental?.rentEnd, "Check")}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-500 font-semibold text-center py-4">
-                          No overdue rentals. Great job!
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </section>
-
-          {/* Charts Section */}
-          <section className="relative mt-12">
-            <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
-              {/* Bar Chart */}
-              <Card className="group bg-white border-2 border-gray-100 shadow-xl hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-500 lg:col-span-2 transform hover:-translate-y-2 overflow-hidden relative">
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-500"></div>
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-                <CardHeader className="border-b-2 border-gray-100 pb-6 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 relative">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                    <div>
-                      <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
-                        Milk Collection & Sales Trends
-                      </CardTitle>
-                      <p className="text-sm text-gray-600">Track your daily performance</p>
-                    </div>
-                    <div className="flex gap-1 bg-white/80 backdrop-blur-sm p-1 sm:p-1.5 rounded-xl border border-gray-200/60 shadow-lg">
-                      {(['7D', '30D', '90D'] as const).map((period) => (
-                        <Button
-                          key={period}
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setTrendPeriod(period)}
-                          className={
-                            trendPeriod === period
-                              ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-500/40 font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm'
-                              : 'text-gray-600 hover:bg-gray-100/80 hover:text-gray-900 font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 text-xs sm:text-sm'
-                          }
-                        >
-                          {period}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-              </CardHeader>
-              <CardContent className="pt-4 sm:pt-6">
-                <ResponsiveContainer width="100%" height={250} className="sm:!h-[300px]">
-                  <RechartsBarChart data={formatTrendData()}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
-                    <XAxis dataKey="day" stroke="#9ca3af" fontSize={11} tick={{ fill: '#9ca3af' }} />
-                    <YAxis
-                      stroke="#9ca3af"
-                      fontSize={11}
-                      tick={{ fill: '#9ca3af' }}
-                      label={{ value: 'Liters', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#9ca3af' } }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-                        padding: '12px',
-                      }}
-                    />
-                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ color: '#6b7280', paddingTop: 12 }} />
-                    <Bar dataKey="collections" fill="url(#collectionsGradient)" name="Collections" radius={[8, 8, 0, 0]} />
-                    <Bar dataKey="sales" fill="url(#salesGradient)" name="Sales" radius={[8, 8, 0, 0]} />
-                    <defs>
-                      <linearGradient id="collectionsGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
-                        <stop offset="100%" stopColor="#2563eb" stopOpacity={0.8} />
-                      </linearGradient>
-                      <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#9ca3af" stopOpacity={1} />
-                        <stop offset="100%" stopColor="#6b7280" stopOpacity={0.8} />
-                      </linearGradient>
-                    </defs>
-                  </RechartsBarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-              {/* Donut Chart */}
-              <Card className="group bg-white border-2 border-gray-100 shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 transform hover:-translate-y-2 overflow-hidden relative">
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500 via-pink-600 to-rose-500"></div>
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-400 via-pink-500 to-rose-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-                <CardHeader className="border-b-2 border-gray-100 pb-4 sm:pb-6 bg-gradient-to-r from-purple-50/50 to-pink-50/50 relative">
-                  <div>
-                    <CardTitle className="text-lg sm:text-xl font-bold text-gray-900 mb-1">
-                      Collection vs Sales Distribution
-                    </CardTitle>
-                    <p className="text-sm text-gray-600">Volume breakdown analysis</p>
-                  </div>
-                </CardHeader>
-              <CardContent className="pt-4 sm:pt-6">
-                <div className="relative">
-                  <ResponsiveContainer width="100%" height={220} className="sm:!h-[260px]">
-                    <PieChart>
-                      <Pie
-                        data={donutData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={70}
-                        outerRadius={100}
-                        paddingAngle={3}
-                        dataKey="value"
-                      >
-                        {donutData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={index === 0 ? "url(#collectionsPieGradient)" : "url(#salesPieGradient)"} 
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#ffffff',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '12px',
-                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                          padding: '12px',
-                        }}
-                      />
-                      <defs>
-                        <linearGradient id="collectionsPieGradient" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#3b82f6" stopOpacity={1} />
-                          <stop offset="100%" stopColor="#2563eb" stopOpacity={1} />
-                        </linearGradient>
-                        <linearGradient id="salesPieGradient" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#9ca3af" stopOpacity={1} />
-                          <stop offset="100%" stopColor="#6b7280" stopOpacity={1} />
-                        </linearGradient>
-                      </defs>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total</p>
-                      <p className="text-2xl font-bold text-gray-800 mt-1">{donutTotal.toLocaleString(undefined, { maximumFractionDigits: 2 })} L</p>
-                      <p className="text-sm font-semibold text-blue-600 mt-1">{collectionsPercentage}% Collections</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-6 flex justify-center gap-8 pt-6 border-t border-gray-100/80">
-                  <div className="flex items-center gap-3 group/legend">
-                    <div className="h-4 w-4 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg group-hover/legend:scale-110 transition-transform duration-200"></div>
-                    <span className="text-sm font-semibold text-gray-700 group-hover/legend:text-blue-600 transition-colors">Collections</span>
-                  </div>
-                  <div className="flex items-center gap-3 group/legend">
-                    <div className="h-4 w-4 rounded-full bg-gradient-to-r from-gray-400 to-gray-500 shadow-lg group-hover/legend:scale-110 transition-transform duration-200"></div>
-                    <span className="text-sm font-semibold text-gray-700 group-hover/legend:text-gray-600 transition-colors">Sales</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-          </div>
-          </section>
-
-          {/* Recent Activity Section */}
-          <section className="relative mt-12">
-            <Card className="group bg-white border-2 border-gray-100 shadow-xl hover:shadow-2xl hover:shadow-amber-500/20 transition-all duration-500 transform hover:-translate-y-2 overflow-hidden relative">
-              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-orange-600 to-yellow-500"></div>
-              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-400 via-orange-500 to-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-              <CardHeader className="border-b-2 border-gray-100 pb-3 sm:pb-4 bg-gradient-to-r from-amber-50/50 to-orange-50/50 relative">
-                <div className="flex justify-end">
-                  <Link
-                    href={`/${lang}/dashboard/mcc/collections`}
-                    className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 border-2 border-blue-700 rounded-xl text-xs sm:text-sm font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 group/link"
-                  >
-                    View All Activities
-                    <svg className="w-4 h-4 group-hover/link:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-4 sm:pt-6">
-                <div className="space-y-3 sm:space-y-4">
-                  {recentActivity.length > 0 ? (
-                    recentActivity.slice(0, 5).map((activity: any, index: number) => {
-                      const activityDate = activity?.date || activity?.created_at || activity?.createdAt
-                      return (
-                        <div
-                          key={activity?.id || index}
-                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-2xl border-2 border-gray-100 bg-gradient-to-r from-white to-gray-50/30 p-5 sm:px-6 sm:py-5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50/30 hover:border-blue-200 transition-all duration-500 group/item transform hover:scale-[1.02] hover:-translate-y-1 shadow-md hover:shadow-xl gap-4 relative overflow-hidden"
-                        >
-                          {/* Decorative accent line */}
-                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-indigo-600 opacity-0 group-hover/item:opacity-100 transition-opacity duration-300"></div>
-                          
-                          <div className="flex items-center gap-4 sm:gap-5 flex-1 min-w-0">
-                            <div className="relative">
-                              <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 text-white shadow-xl group-hover/item:scale-110 group-hover/item:rotate-12 transition-all duration-500 border-2 border-white flex-shrink-0">
-                                <Truck className="h-6 w-6 sm:h-7 sm:w-7 relative z-10" />
-                              </div>
-                              <div className="absolute -inset-1 bg-gradient-to-br from-blue-400 to-purple-400 rounded-2xl opacity-0 group-hover/item:opacity-30 blur-md transition-opacity duration-500"></div>
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-base sm:text-lg font-bold text-gray-900 group-hover/item:text-blue-700 transition-colors truncate mb-1">
-                                {activity?.description || activity?.type || 'Collection recorded'}
-                              </p>
-                              {activityDate ? (
-                                <p className="text-xs sm:text-sm text-gray-600 font-semibold flex items-center gap-2">
-                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  <span className="truncate">{activityDate}</span>
-                                </p>
-                              ) : null}
-                            </div>
-                          </div>
-                          <div className="text-left sm:text-right flex-shrink-0 pl-16 sm:pl-0">
-                            <p className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 group-hover/item:from-blue-700 group-hover/item:to-indigo-700 transition-all mb-1">
-                              RF {(activity?.amount || 0).toLocaleString()}
-                            </p>
-                            {activity?.liters ? (
-                              <p className="text-xs sm:text-sm font-bold text-gray-700 bg-gradient-to-r from-gray-100 to-gray-200 px-3 py-1.5 rounded-full inline-block border-2 border-gray-200 shadow-sm">{activity.liters} L</p>
-                            ) : null}
-                          </div>
-                        </div>
-                      )
-                    })
-                  ) : (
-                    <div className="py-16 text-center">
-                      <div className="mx-auto mb-6 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-gray-100 to-gray-200 shadow-lg border border-gray-200/60">
-                        <Truck className="h-10 w-10 text-gray-400" />
-                      </div>
-                      <p className="text-lg font-bold text-gray-700 mb-2">No recent activity yet</p>
-                      <p className="text-sm text-gray-500 max-w-sm mx-auto">New transactions and updates will appear here automatically as they occur.</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Financial & Quality Section */}
-          <section className="relative mt-12">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Financial & Quality</h2>
-                <p className="text-sm text-gray-600">Track cash flow and maintain quality standards</p>
-              </div>
-              <div className="flex gap-2">
-                <Link
-                  href={`/${lang}/dashboard/mcc/payments`}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl text-xs sm:text-sm font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-                >
-                  Review Payments
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-                <Link
-                  href={`/${lang}/dashboard/mcc/quality`}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl text-xs sm:text-sm font-bold text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-                >
-                  Quality Logs
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </Link>
-              </div>
-            </div>
-            <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-              {/* Financial Overview */}
-              <Card className="group bg-white border-2 border-slate-100 shadow-xl hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-500 transform hover:-translate-y-2 overflow-hidden relative">
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-                <CardHeader className="border-b-2 border-slate-100 pb-4 bg-gradient-to-r from-blue-50/80 to-indigo-50/60">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
-                        <PiggyBank className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base sm:text-lg font-bold text-gray-900">Financial Overview</CardTitle>
-                        <p className="text-xs font-semibold text-gray-500">Stay current on payouts and balances</p>
-                      </div>
-                    </div>
-                    <Badge className="bg-blue-500/10 text-blue-600 border border-blue-500/30 shadow-sm">
-                      {pendingPayments} pending
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 sm:pt-6">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 text-xs sm:text-sm font-semibold text-gray-700">
-                    <div className="rounded-2xl border border-blue-100 bg-blue-50/40 px-4 py-3 shadow-sm">
-                      <p className="text-[11px] text-blue-500 font-bold uppercase tracking-wide">Pending Payments</p>
-                      <p className="text-lg sm:text-2xl text-blue-700 font-black">
-                        RF {Number(outstandingAmount ?? 0).toLocaleString()}
-                      </p>
-                      <p className="text-[11px] text-gray-500 font-semibold">Awaiting disbursement</p>
-                    </div>
-                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 px-4 py-3 shadow-sm">
-                      <p className="text-[11px] text-emerald-500 font-bold uppercase tracking-wide">Farmer Balances</p>
-                      <p className="text-lg sm:text-2xl text-emerald-700 font-black">
-                        RF {Number(farmerBalance ?? 0).toLocaleString()}
-                      </p>
-                      <p className="text-[11px] text-gray-500 font-semibold">Current credit balance</p>
-                    </div>
-                    <div className="rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 shadow-sm sm:col-span-2">
-                      <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wide">Next Steps</p>
-                      <p className="text-xs sm:text-sm text-gray-600">
-                        Keep farmer balances within agreed limits and confirm MOMO/bank payments promptly to maintain trust.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Quality Alerts */}
-              <Card className="group bg-white border-2 border-slate-100 shadow-xl hover:shadow-2xl hover:shadow-rose-500/20 transition-all duration-500 transform hover:-translate-y-2 overflow-hidden relative">
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500"></div>
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-rose-400 via-orange-400 to-amber-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"></div>
-                <CardHeader className="border-b-2 border-slate-100 pb-4 bg-gradient-to-r from-rose-50/80 to-orange-50/60">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-orange-500 to-amber-500 text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
-                        <AlertTriangle className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base sm:text-lg font-bold text-gray-900">Quality & Compliance</CardTitle>
-                        <p className="text-xs font-semibold text-gray-500">
-                          Rejection rate {Number(rejectionRate ?? 0).toFixed(2)}%
-                        </p>
-                      </div>
-                    </div>
-                    <Badge className={rejectionRate > 5 ? "bg-rose-500/10 text-rose-600 border border-rose-500/30 shadow-sm" : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/30 shadow-sm"}>
-                      {rejectionRate > 5 ? "Attention" : "Healthy"}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 sm:pt-6">
-                  {formattedQualityAlerts.length > 0 ? (
-                    <div className="space-y-3">
-                      {formattedQualityAlerts.slice(0, 5).map((alert: any, index: number) => (
-                        <div
-                          key={alert?.id ?? `quality-${index}`}
-                          className="flex items-start justify-between rounded-2xl border border-rose-100 bg-white/70 px-4 py-3 shadow-sm"
-                        >
-                          <div>
-                            <p className="text-sm font-bold text-rose-700">
-                              {alert?.title ?? alert?.type ?? "Quality Alert"}
-                            </p>
-                            <p className="text-xs text-gray-500 font-semibold">
-                              {alert?.message ?? alert?.description ?? "Check lab results and take corrective action."}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xs text-gray-500 font-semibold uppercase">Logged</p>
-                            <p className="text-sm font-bold text-gray-700">
-                              {formatDisplayDate(alert?.created_at ?? alert?.createdAt, "Today")}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center">
-                      <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 text-emerald-500">
-                        <AlertTriangle className="h-8 w-8" />
-                      </div>
-                      <p className="text-sm font-bold text-emerald-600">No quality alerts right now.</p>
-                      <p className="text-xs text-gray-500 font-semibold">
-                        Continue validating milk samples to maintain this standard.
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </section>
         </div>
-          </div>
         </div>
       </div>
     )
@@ -1658,30 +1010,32 @@ export default function DashboardPage() {
     return <AdminDashboard lang={lang} />
   }
 
-  // For other users, show a simplified dashboard
+  // For other users, show a simplified dashboard - matches admin users style
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center py-16 animate-fade-in space-y-6">
-          <div className="inline-flex items-center justify-center p-8 bg-primary/10 rounded-3xl shadow-lg shadow-primary/10">
-            <Activity className="h-20 w-20 text-primary" />
-          </div>
-          <h1 className="text-4xl font-bold text-foreground">
-            Welcome to Dashboard
-          </h1>
-          <p className="text-muted-foreground max-w-md mx-auto text-lg">
-            Your dashboard is being prepared. Please check back soon.
-          </p>
-          <Badge className="bg-primary text-primary-foreground px-6 py-2.5 text-sm font-semibold shadow-lg shadow-primary/20">
-            {user.role}
-          </Badge>
+    <div className="min-h-screen bg-gray-50">
+      <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Welcome to Dashboard</h1>
+          <p className="text-gray-600 mt-1">Your dashboard is being prepared. Please check back soon.</p>
         </div>
+        <Card className="border-2 border-blue-200 max-w-2xl">
+          <CardContent className="pt-8 pb-8">
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                <Activity className="h-8 w-8 text-blue-600" />
+              </div>
+              <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 border-0">
+                {user.role}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
 }
 
-// Admin Dashboard Component
+// Admin Dashboard Component - Redesigned
 function AdminDashboard({ lang }: { lang: string }) {
   const { user } = useAuth()
   const [dashboardData, setDashboardData] = useState<any>(null)
@@ -1718,10 +1072,12 @@ function AdminDashboard({ lang }: { lang: string }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-blue-700 font-medium">Loading dashboard...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="mx-auto w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-200 border-t-blue-600" />
+          </div>
+          <p className="text-gray-600 font-medium">Loading dashboard...</p>
         </div>
       </div>
     )
@@ -1738,231 +1094,176 @@ function AdminDashboard({ lang }: { lang: string }) {
   }
 
   const statCards = [
-    {
-      title: "Total Users",
-      value: data.overview.totalUsers,
-      icon: Users,
-      gradient: "from-blue-500 to-blue-600",
-      bgGradient: "from-blue-50 to-blue-100",
-    },
-    {
-      title: "MCCs",
-      value: data.overview.totalMCCs,
-      icon: Building2,
-      gradient: "from-indigo-500 to-indigo-600",
-      bgGradient: "from-indigo-50 to-indigo-100",
-    },
-    {
-      title: "Commodities",
-      value: data.overview.totalCommodities,
-      icon: Wheat,
-      gradient: "from-cyan-500 to-cyan-600",
-      bgGradient: "from-cyan-50 to-cyan-100",
-    },
-    {
-      title: "Farmers",
-      value: data.overview.totalFarmers,
-      icon: UserPlus,
-      gradient: "from-sky-500 to-sky-600",
-      bgGradient: "from-sky-50 to-sky-100",
-    },
-    {
-      title: "Collections",
-      value: data.collections.total,
-      icon: Package,
-      gradient: "from-blue-600 to-indigo-600",
-      bgGradient: "from-blue-50 to-indigo-50",
-      subtitle: `${data.collections.today} today`,
-      change: data.collections.growth,
-    },
-    {
-      title: "Total Revenue",
-      value: `RWF ${(data.revenue.total || 0).toLocaleString()}`,
-      icon: DollarSign,
-      gradient: "from-indigo-600 to-purple-600",
-      bgGradient: "from-indigo-50 to-purple-50",
-      subtitle: `RWF ${(data.revenue.thisMonth || 0).toLocaleString()} this month`,
-    },
+    { title: "Total Users", value: data.overview.totalUsers, icon: Users, color: "primary" },
+    { title: "MCCs", value: data.overview.totalMCCs, icon: Building2, color: "indigo" },
+    { title: "Commodities", value: data.overview.totalCommodities, icon: Wheat, color: "emerald" },
+    { title: "Farmers", value: data.overview.totalFarmers, icon: UserPlus, color: "sky" },
+    { title: "Collections", value: data.collections.total, icon: Package, color: "violet", subtitle: `${data.collections.today} today`, change: data.collections.growth },
+    { title: "Total Revenue", value: `RWF ${(data.revenue.total || 0).toLocaleString()}`, icon: DollarSign, color: "amber", subtitle: `RWF ${(data.revenue.thisMonth || 0).toLocaleString()} this month` },
   ]
 
+  const colorMap: Record<string, { bg: string; icon: string; border: string }> = {
+    primary: { bg: "bg-primary/5", icon: "text-primary", border: "border-primary/20" },
+    indigo: { bg: "bg-indigo-500/5", icon: "text-indigo-600", border: "border-indigo-200/60" },
+    emerald: { bg: "bg-emerald-500/5", icon: "text-emerald-600", border: "border-emerald-200/60" },
+    sky: { bg: "bg-sky-500/5", icon: "text-sky-600", border: "border-sky-200/60" },
+    violet: { bg: "bg-violet-500/5", icon: "text-violet-600", border: "border-violet-200/60" },
+    amber: { bg: "bg-amber-500/5", icon: "text-amber-600", border: "border-amber-200/60" },
+  }
+
+  const statCardBorders: Record<string, string> = {
+    primary: "border-blue-200 hover:border-blue-400",
+    indigo: "border-indigo-200 hover:border-indigo-400",
+    emerald: "border-green-200 hover:border-green-400",
+    sky: "border-sky-200 hover:border-sky-400",
+    violet: "border-purple-200 hover:border-purple-400",
+    amber: "border-orange-200 hover:border-orange-400",
+  }
+
+  const statCardValues: Record<string, string> = {
+    primary: "text-blue-900",
+    indigo: "text-indigo-900",
+    emerald: "text-green-900",
+    sky: "text-sky-900",
+    violet: "text-purple-900",
+    amber: "text-orange-900",
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg">
-              <Activity className="h-8 w-8 text-white" />
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
+        {/* Header - matches admin users */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Admin Dashboard
-              </h1>
-              <p className="text-blue-700 mt-1 font-medium">HarvestPlus by GEMURA - System Overview</p>
+              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-1">System overview and key metrics at a glance</p>
             </div>
           </div>
         </div>
 
-        {/* Main Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Stats Cards - matches admin users style */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
           {statCards.map((stat, index) => {
             const Icon = stat.icon
+            const borderClass = statCardBorders[stat.color] || statCardBorders.primary
+            const valueClass = statCardValues[stat.color] || statCardValues.primary
             return (
-              <Card key={index} className="border-2 border-blue-200 hover:border-blue-400 transition-all shadow-lg hover:shadow-xl bg-white overflow-hidden">
-                <div className={`h-1 bg-gradient-to-r ${stat.gradient}`} />
-                <CardContent className="p-6">
+              <Card
+                key={index}
+                className={`border-2 ${borderClass} transition-all shadow-sm hover:shadow-md`}
+              >
+                <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-blue-700 mb-1 uppercase tracking-wide">{stat.title}</p>
-                      <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-                      {stat.subtitle && (
-                        <p className="text-xs text-blue-600 mt-2 font-medium">{stat.subtitle}</p>
-                      )}
-                      {stat.change && (
-                        <div className="flex items-center gap-1 mt-2">
-                          {parseFloat(stat.change) >= 0 ? (
-                            <ArrowUpRight className="h-4 w-4 text-blue-600" />
-                          ) : (
-                            <ArrowDownRight className="h-4 w-4 text-red-500" />
-                          )}
-                          <span className={`text-xs font-semibold ${parseFloat(stat.change) >= 0 ? "text-blue-600" : "text-red-500"}`}>
-                            {Math.abs(parseFloat(stat.change))}%
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className={`p-4 rounded-xl bg-gradient-to-br ${stat.bgGradient} border-2 border-blue-200 relative`}>
-                      <Icon className={`h-7 w-7 text-blue-600`} />
-                    </div>
+                    <CardTitle className="text-sm font-medium text-gray-600">{stat.title}</CardTitle>
+                    <Icon className={`h-5 w-5 ${colorMap[stat.color]?.icon || "text-blue-600"}`} />
                   </div>
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-bold ${valueClass}`}>{stat.value}</div>
+                  {stat.subtitle && <p className="text-xs text-gray-500 mt-1">{stat.subtitle}</p>}
+                  {stat.change !== undefined && (
+                    <div className="flex items-center gap-1 mt-2">
+                      {parseFloat(stat.change) >= 0 ? (
+                        <ArrowUpRight className="h-3.5 w-3.5 text-green-600" />
+                      ) : (
+                        <ArrowDownRight className="h-3.5 w-3.5 text-red-500" />
+                      )}
+                      <span className={`text-xs font-medium ${parseFloat(stat.change) >= 0 ? "text-green-600" : "text-red-600"}`}>
+                        {Math.abs(parseFloat(stat.change))}%
+                      </span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )
           })}
         </div>
 
-        {/* Secondary Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white hover:shadow-lg transition-all">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Categories</p>
-                  <p className="text-2xl font-bold text-blue-900 mt-1">{data.overview.totalCategories}</p>
-                </div>
-                <Database className="h-6 w-6 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-white hover:shadow-lg transition-all">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-indigo-700 uppercase tracking-wide">Agents</p>
-                  <p className="text-2xl font-bold text-indigo-900 mt-1">{data.overview.totalAgents}</p>
-                </div>
-                <UserPlus className="h-6 w-6 text-indigo-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-2 border-cyan-200 bg-gradient-to-br from-cyan-50 to-white hover:shadow-lg transition-all">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-cyan-700 uppercase tracking-wide">Quality Fields</p>
-                  <p className="text-2xl font-bold text-cyan-900 mt-1">{data.system.totalQualityFields}</p>
-                </div>
-                <CheckSquare className="h-6 w-6 text-cyan-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-white hover:shadow-lg transition-all">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-sky-700 uppercase tracking-wide">Season Plans</p>
-                  <p className="text-2xl font-bold text-sky-900 mt-1">{data.system.totalSeasonPlans}</p>
-                </div>
-                <Calendar className="h-6 w-6 text-sky-500" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Secondary metrics - matches admin users card style */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[
+            { label: "Categories", value: data.overview.totalCategories, icon: Database, border: "border-blue-200 hover:border-blue-400", valueClass: "text-blue-900", iconClass: "text-blue-600" },
+            { label: "Agents", value: data.overview.totalAgents, icon: UserPlus, border: "border-indigo-200 hover:border-indigo-400", valueClass: "text-indigo-900", iconClass: "text-indigo-600" },
+            { label: "Quality Fields", value: data.system.totalQualityFields, icon: CheckSquare, border: "border-green-200 hover:border-green-400", valueClass: "text-green-900", iconClass: "text-green-600" },
+            { label: "Season Plans", value: data.system.totalSeasonPlans, icon: Calendar, border: "border-purple-200 hover:border-purple-400", valueClass: "text-purple-900", iconClass: "text-purple-600" },
+          ].map((item, i) => {
+            const Icon = item.icon
+            return (
+              <Card key={i} className={`border-2 ${item.border} transition-all shadow-sm hover:shadow-md`}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium text-gray-600">{item.label}</CardTitle>
+                    <Icon className={`h-5 w-5 ${item.iconClass}`} />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-bold ${item.valueClass}`}>{item.value}</div>
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
 
-        {/* Collections Status - Blue Theme */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-blue-100 hover:shadow-xl transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-blue-800 uppercase tracking-wide">Pending Collections</p>
-                  <p className="text-4xl font-bold text-blue-900 mt-3">{data.collections.pending}</p>
-                  <p className="text-xs text-blue-700 mt-2">Awaiting approval</p>
-                </div>
-                <div className="p-4 bg-blue-200 rounded-xl">
-                  <Clock className="h-8 w-8 text-blue-700" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-2 border-indigo-300 bg-gradient-to-br from-indigo-50 to-indigo-100 hover:shadow-xl transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-indigo-800 uppercase tracking-wide">Approved Collections</p>
-                  <p className="text-4xl font-bold text-indigo-900 mt-3">{data.collections.approved}</p>
-                  <p className="text-xs text-indigo-700 mt-2">Ready for payment</p>
-                </div>
-                <div className="p-4 bg-indigo-200 rounded-xl">
-                  <CheckCircle2 className="h-8 w-8 text-indigo-700" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-2 border-cyan-300 bg-gradient-to-br from-cyan-50 to-cyan-100 hover:shadow-xl transition-all">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-cyan-800 uppercase tracking-wide">This Month</p>
-                  <p className="text-4xl font-bold text-cyan-900 mt-3">{data.collections.thisMonth}</p>
-                  <p className="text-xs text-cyan-700 mt-2">Current period</p>
-                </div>
-                <div className="p-4 bg-cyan-200 rounded-xl">
-                  <TrendingUp className="h-8 w-8 text-cyan-700" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Collections status - matches admin users card style */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {[
+            { label: "Pending Collections", value: data.collections.pending, desc: "Awaiting approval", icon: Clock, border: "border-blue-200 hover:border-blue-400", valueClass: "text-blue-900", iconClass: "text-blue-600" },
+            { label: "Approved Collections", value: data.collections.approved, desc: "Ready for payment", icon: CheckCircle2, border: "border-green-200 hover:border-green-400", valueClass: "text-green-900", iconClass: "text-green-600" },
+            { label: "This Month", value: data.collections.thisMonth, desc: "Current period", icon: TrendingUp, border: "border-orange-200 hover:border-orange-400", valueClass: "text-orange-900", iconClass: "text-orange-600" },
+          ].map((item, i) => {
+            const Icon = item.icon
+            return (
+              <Card key={i} className={`border-2 ${item.border} transition-all shadow-sm hover:shadow-md`}>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm font-medium text-gray-600">{item.label}</CardTitle>
+                    <Icon className={`h-5 w-5 ${item.iconClass}`} />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-2xl font-bold ${item.valueClass}`}>{item.value}</div>
+                  <p className="text-xs text-gray-500 mt-1">{item.desc}</p>
+                </CardContent>
+              </Card>
+            )
+          })}
         </div>
 
-        {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Card className="border-2 border-blue-200 bg-white shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-white">
+        {/* Recent activity - matches admin users table card style */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          {/* Recent Collections */}
+          <Card className="lg:col-span-2 border-2 border-blue-200">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-blue-900 flex items-center gap-2">
                 <Package className="h-5 w-5" />
                 Recent Collections
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent>
               {data.recent.collections.length > 0 ? (
                 <div className="space-y-3">
                   {data.recent.collections.slice(0, 5).map((collection: any) => (
-                    <div key={collection.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200 hover:border-blue-400 transition-all">
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900">{collection.commodity}</p>
-                        <p className="text-sm text-blue-700 font-medium">{collection.farmer} • {collection.mcc}</p>
-                        <p className="text-xs text-blue-600 mt-1">
+                    <div
+                      key={collection.id}
+                      className="flex items-center justify-between p-4 rounded-lg border-2 border-blue-100 bg-blue-50/50 hover:border-blue-200 transition-all"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-gray-900 truncate">{collection.commodity}</p>
+                        <p className="text-sm text-gray-600 truncate">{collection.farmer} • {collection.mcc}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
                           {new Date(collection.date).toLocaleDateString()} • {collection.quantity} units
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right shrink-0 ml-4">
                         <p className="font-bold text-blue-900">RWF {collection.amount?.toLocaleString() || 0}</p>
-                        <Badge className={`mt-2 border-2 ${
-                          collection.status === "APPROVED" ? "bg-green-100 text-green-800 border-green-300" :
-                          collection.status === "PENDING" ? "bg-yellow-100 text-yellow-800 border-yellow-300" :
-                          "bg-blue-100 text-blue-800 border-blue-300"
-                        }`}>
+                        <Badge
+                          className={`mt-1.5 text-xs ${
+                            collection.status === "APPROVED" ? "bg-green-100 text-green-800 hover:bg-green-100" :
+                            collection.status === "PENDING" ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100" :
+                            "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                          }`}
+                        >
                           {collection.status}
                         </Badge>
                       </div>
@@ -1970,71 +1271,79 @@ function AdminDashboard({ lang }: { lang: string }) {
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-blue-600 py-8 font-medium">No recent collections</p>
+                <div className="text-center py-12 text-gray-500">
+                  <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>No recent collections</p>
+                </div>
               )}
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-blue-200 bg-white shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-white">
+          {/* Recent Users */}
+          <Card className="border-2 border-blue-200">
+            <CardHeader>
+              <CardTitle className="text-xl font-bold text-blue-900 flex items-center gap-2">
                 <Users className="h-5 w-5" />
                 Recent Users
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent>
               {data.recent.users.length > 0 ? (
                 <div className="space-y-3">
-                  {data.recent.users.map((user: any) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200 hover:border-blue-400 transition-all">
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900">{user.name || "Unknown"}</p>
-                        <p className="text-sm text-blue-700 font-medium">{user.email || "No email"}</p>
-                        <p className="text-xs text-blue-600 mt-1">
-                          {new Date(user.createdAt).toLocaleDateString()}
-                        </p>
+                  {data.recent.users.map((u: any) => (
+                    <div
+                      key={u.id}
+                      className="flex items-center justify-between p-4 rounded-lg border-2 border-blue-100 bg-blue-50/50 hover:border-blue-200 transition-all"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-gray-900 truncate">{u.name || "Unknown"}</p>
+                        <p className="text-sm text-gray-600 truncate">{u.email || "No email"}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{new Date(u.createdAt).toLocaleDateString()}</p>
                       </div>
-                      <Badge className="bg-blue-100 text-blue-800 border-2 border-blue-300 font-semibold">
-                        {user.role}
+                      <Badge variant="outline" className="shrink-0 ml-2 border-blue-300 text-blue-700">
+                        {u.role}
                       </Badge>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-blue-600 py-8 font-medium">No recent users</p>
+                <div className="text-center py-12 text-gray-500">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p>No recent users</p>
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <Card className="border-2 border-blue-200 bg-white shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-            <CardTitle className="text-white">Quick Actions</CardTitle>
-            <CardDescription className="text-blue-100">Access frequently used features</CardDescription>
+        {/* Quick Actions - matches admin users Add User button style */}
+        <Card className="border-2 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-blue-900">Quick Actions</CardTitle>
+            <CardDescription className="text-gray-600">Access frequently used features</CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Link href={`/${lang}/dashboard/admin/users`}>
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all border-2 border-blue-500">
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
                   <Users className="h-4 w-4 mr-2" />
                   Manage Users
                 </Button>
               </Link>
               <Link href={`/${lang}/dashboard/admin/mccs`}>
-                <Button className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white shadow-lg hover:shadow-xl transition-all border-2 border-indigo-500">
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
                   <Building2 className="h-4 w-4 mr-2" />
                   Manage MCCs
                 </Button>
               </Link>
               <Link href={`/${lang}/dashboard/admin/commodity-studio`}>
-                <Button className="w-full bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white shadow-lg hover:shadow-xl transition-all border-2 border-cyan-500">
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
                   <Wheat className="h-4 w-4 mr-2" />
                   Commodity Studio
                 </Button>
               </Link>
               <Link href={`/${lang}/dashboard/admin/reports`}>
-                <Button className="w-full bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-700 hover:to-sky-800 text-white shadow-lg hover:shadow-xl transition-all border-2 border-sky-500">
+                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   View Reports
                 </Button>

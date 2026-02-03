@@ -133,6 +133,18 @@ export default function PaymentsPage() {
     notes: "",
   })
 
+  // Pre-fill amount with net payment when opening dialog
+  useEffect(() => {
+    if (paymentDialogOpen && paymentSummary && paymentSummary.payment.netAmount > 0) {
+      setPaymentForm((prev) => ({
+        ...prev,
+        amount: String(paymentSummary.payment.netAmount),
+      }))
+    } else if (paymentDialogOpen) {
+      setPaymentForm((prev) => ({ ...prev, amount: "" }))
+    }
+  }, [paymentDialogOpen, paymentSummary])
+
   // Fetch farmers
   const fetchFarmers = async () => {
     try {

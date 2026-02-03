@@ -132,14 +132,25 @@ export class CropCollectionService {
       // Calculate amounts
       const totalAmount = data.quantity * data.pricePerUnit
 
-      // Calculate deductions
-      const deductions = data.deductions || {}
-      const productDeductionsTotal = deductions.products
-        ? deductions.products.reduce((sum, p) => sum + (p.totalPrice || 0), 0)
-        : 0
-      const othersTotal = deductions.others
-        ? Object.values(deductions.others).reduce((sum: number, amount: any) => sum + (amount || 0), 0)
-        : 0
+      // Calculate deductions (ensure plain object for Prisma Json)
+      const rawDeductions = data.deductions && typeof data.deductions === "object" ? data.deductions : {}
+      const deductions =
+        typeof rawDeductions === "object" && rawDeductions !== null
+          ? (JSON.parse(JSON.stringify(rawDeductions)) as Record<string, unknown>)
+          : {}
+      const productDeductionsTotal =
+        Array.isArray(deductions.products) &&
+        deductions.products.every((p: any) => typeof p === "object" && p !== null)
+          ? (deductions.products as any[]).reduce((sum, p) => sum + (p.totalPrice || 0), 0)
+          : 0
+      const othersTotal =
+        deductions.others && typeof deductions.others === "object" && !Array.isArray(deductions.others)
+          ? Object.values(deductions.others as Record<string, unknown>).reduce(
+              (sum: number,
+              amount: unknown) => sum + (typeof amount === "number" ? amount : 0),
+              0
+            )
+          : 0
       const totalDeductions = productDeductionsTotal + othersTotal
       const advances = data.advances || 0
       const netPayment = totalAmount - totalDeductions - advances
@@ -151,28 +162,34 @@ export class CropCollectionService {
         ? "APPROVED"
         : "PENDING"
 
+      // Normalize qualityTests for Prisma Json
+      const qualityTestsJson =
+        data.qualityTests && typeof data.qualityTests === "object"
+          ? (JSON.parse(JSON.stringify(data.qualityTests)) as Record<string, unknown>)
+          : {}
+
       // Create crop collection
       const collection = await tx.crop_collections.create({
         data: {
           farmerId: data.farmerId,
           mccId: data.mccId,
-          cropPeriodId: data.cropPeriodId,
+          cropPeriodId: data.cropPeriodId ?? null,
           collectionDate: data.collectionDate,
           cropTypeId: data.cropTypeId,
           quantity: data.quantity,
           unit: data.unit,
-          qualityTests: data.qualityTests || {},
+          qualityTests: qualityTestsJson,
           pricePerUnit: data.pricePerUnit,
           totalAmount,
-          deductions: deductions,
+          deductions,
           advances,
           totalDeductions,
           netPayment,
           status,
-          warehouseId: data.warehouseId,
-          locationId: data.locationId,
-          productId: data.productId,
-          notes: data.notes,
+          warehouseId: data.warehouseId ?? null,
+          locationId: data.locationId ?? null,
+          productId: data.productId ?? null,
+          notes: data.notes ?? null,
         },
         include: {
           farmer: true,
@@ -187,13 +204,13 @@ export class CropCollectionService {
         },
       })
 
-      // Create stock move if warehouse/product specified
-      if (data.warehouseId && data.productId) {
+      // Create stock move only when warehouse, product, and createdByUserId are provided (createdBy must be User id)
+      if (data.warehouseId && data.productId && (data as any).createdByUserId) {
         const stockMove = await tx.stockMove.create({
           data: {
             productId: data.productId,
             warehouseId: data.warehouseId,
-            locationId: data.locationId,
+            locationId: data.locationId ?? null,
             quantity: data.quantity,
             unitPrice: data.pricePerUnit,
             moveType: "INCOMING",
@@ -201,11 +218,9 @@ export class CropCollectionService {
             date: data.collectionDate,
             reference: `CROP-${collection.id}`,
             notes: `Crop collection: ${cropType.name}`,
-            createdBy: data.farmerId, // Will be updated by API with actual user ID
+            createdBy: (data as any).createdByUserId,
           },
         })
-
-        // Update collection with stock move ID
         await tx.crop_collections.update({
           where: { id: collection.id },
           data: { stockMoveId: stockMove.id },
@@ -312,6 +327,16 @@ export class CropCollectionService {
         },
       },
       orderBy: { collectionDate: "desc" },
+    })
+  }
+
+  /**
+   * List crop periods for an MCC
+   */
+  static async getCropPeriods(mccId: string) {
+    return await prisma.crop_periods.findMany({
+      where: { mccId },
+      orderBy: [{ startDate: "desc" }, { periodNumber: "desc" }],
     })
   }
 

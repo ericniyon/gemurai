@@ -37,6 +37,7 @@ export function CommoditiesManager() {
     unitOfMeasure: "",
     pricingMethod: "SPOT",
     storageType: "",
+    isPerishable: false,
     defaultCollectionCenterType: "",
     defaultCollectionFrequency: "",
     isActive: true,
@@ -113,6 +114,7 @@ export function CommoditiesManager() {
           unitOfMeasure: "",
           pricingMethod: "SPOT",
           storageType: "",
+          isPerishable: false,
           defaultCollectionCenterType: "",
           defaultCollectionFrequency: "",
           isActive: true,
@@ -206,8 +208,11 @@ export function CommoditiesManager() {
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <span className="text-gray-600 font-medium">Storage:</span>
-                      <span className="font-semibold text-gray-800 capitalize">{commodity.storageType.replace('_', ' ')}</span>
+                      <span className="font-semibold text-gray-800 capitalize">{commodity.storageType?.replace('_', ' ') || '-'}</span>
                     </div>
+                    {commodity.isPerishable && (
+                      <Badge variant="outline" className="border-amber-300 text-amber-700 font-semibold">Perishable</Badge>
+                    )}
                     {commodity.defaultCollectionFrequency && (
                       <div className="flex items-center gap-2 text-sm">
                         <span className="text-gray-600 font-medium">Frequency:</span>
@@ -333,6 +338,19 @@ export function CommoditiesManager() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="isPerishable"
+                checked={formData.isPerishable}
+                onChange={(e) => setFormData({ ...formData, isPerishable: e.target.checked })}
+                className="rounded border-indigo-300"
+              />
+              <Label htmlFor="isPerishable" className="text-base font-semibold text-gray-700">
+                Perishable (e.g. Dairy - requires cold chain)
+              </Label>
             </div>
 
             <div className="space-y-2">

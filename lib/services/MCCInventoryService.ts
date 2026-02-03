@@ -63,25 +63,31 @@ export interface FarmerData {
   name: string
   phone: string
   location: string
-  // Additional fields for future use (will be stored in notes or other fields)
   gender?: string
   email?: string
   nationalId?: string
+  nfcId?: string
   district?: string
   sector?: string
   cell?: string
   village?: string
+  address?: string
+  herdSize?: number
   isCooperativeMember?: boolean
   cooperativeName?: string
   emergencyContact?: string
   emergencyPhone?: string
-  bankAccount?: string
+  paymentMethod?: "cash" | "mobile_money" | "bank_transfer" | "ikofi"
+  bankAccountNumber?: string
   bankName?: string
   notes?: string
-  // Geo-location fields
   gpsLatitude?: number | null
   gpsLongitude?: number | null
   geoConsent?: boolean
+  /** Default collection center (MCC) for this farmer */
+  defaultCollectionCenterId?: string
+  /** Agent IDs to assign to this farmer */
+  assignedAgentIds?: string[]
 }
 
 export class MCCInventoryService {
@@ -573,14 +579,21 @@ export class MCCInventoryService {
         name: data.name,
         phone: data.phone,
         location: fullLocation,
+        village: data.village ?? undefined,
         isActive: true,
-        // Enhanced fields
         email: data.email,
         nationalId: data.nationalId,
-        village: data.village,
-        address: fullLocation,
-        emergencyContact: data.emergencyContact,
-        // Geo-location fields
+        nfcId: data.nfcId || undefined,
+        address: data.address || fullLocation,
+        district: data.district,
+        sector: data.sector,
+        cell: data.cell || undefined,
+        herdSize: data.herdSize ?? undefined,
+        emergencyContact: data.emergencyContact || data.emergencyPhone || undefined,
+        paymentMethod: data.paymentMethod || undefined,
+        bankAccountNumber: data.bankAccountNumber || undefined,
+        bankName: data.bankName || undefined,
+        defaultCollectionCenterId: data.defaultCollectionCenterId || data.mccId,
         gpsLatitude: data.gpsLatitude ?? null,
         gpsLongitude: data.gpsLongitude ?? null,
         geoConsent: data.geoConsent ?? (data.gpsLatitude != null && data.gpsLongitude != null),
@@ -593,6 +606,17 @@ export class MCCInventoryService {
       const farmer = await prisma.farmers.create({
         data: farmerData
       })
+
+      if (data.assignedAgentIds && data.assignedAgentIds.length > 0) {
+        await prisma.farmer_agent_assignments.createMany({
+          data: data.assignedAgentIds.map((agentId) => ({
+            farmerId: farmer.id,
+            agentId,
+            assignedBy: undefined,
+            isActive: true,
+          })),
+        })
+      }
       
       console.log("Farmer created successfully:", farmer)
       return farmer

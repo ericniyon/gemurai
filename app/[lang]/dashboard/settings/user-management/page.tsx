@@ -1,7 +1,7 @@
 "use client"
 
-// User Management Settings Page - Wrapper that redirects to main users page
-// This maintains the Settings menu structure while using the existing users page
+// User Management Settings Page - Redirects to main users page
+// Maintains Settings menu structure while using the existing users page
 
 import { useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
@@ -14,17 +14,16 @@ export default function UserManagementSettingsPage() {
   const lang = (params?.lang as string) || "en"
 
   useEffect(() => {
-    // Redirect to the main users page which has full CRUD functionality
     router.push(`/${lang}/dashboard/admin/users`)
   }, [router, lang])
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <Card className="max-w-md border-2 border-blue-200">
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <Card className="max-w-md border-slate-200">
         <CardContent className="pt-6">
           <div className="text-center space-y-4">
-            <Loader2 className="h-8 w-8 mx-auto text-blue-600 animate-spin" />
-            <p className="text-blue-700 font-medium">Redirecting to User Management...</p>
+            <Loader2 className="h-8 w-8 mx-auto text-slate-600 animate-spin" />
+            <p className="text-slate-600 font-medium">Redirecting to User Management...</p>
           </div>
         </CardContent>
       </Card>

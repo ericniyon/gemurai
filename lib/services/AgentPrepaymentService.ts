@@ -303,6 +303,62 @@ export class AgentPrepaymentService {
   }
 
   /**
+   * Get all prepayments for farmers in an MCC
+   */
+  static async getPrepaymentsByMcc(mccId: string, filters?: { status?: string }) {
+    const farmers = await prisma.farmers.findMany({
+      where: { mccId },
+      select: { id: true },
+    })
+    const farmerIds = farmers.map((f) => f.id)
+
+    const where: any = { farmerId: { in: farmerIds } }
+    if (filters?.status) where.status = filters.status
+
+    return await prisma.agent_prepayments.findMany({
+      where,
+      include: {
+        farmer: {
+          select: {
+            id: true,
+            name: true,
+            nationalId: true,
+            phone: true,
+          },
+        },
+        agent: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+          },
+        },
+        commodity: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+        batch: {
+          select: {
+            id: true,
+            createdAt: true,
+          },
+        },
+        collection: {
+          select: {
+            id: true,
+            collectionDate: true,
+            quantity: true,
+          },
+        },
+      },
+      orderBy: { recordedAt: "desc" },
+    })
+  }
+
+  /**
    * Get all prepayments for an agent
    */
   static async getAgentPrepayments(agentId: string, filters?: {

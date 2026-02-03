@@ -1,34 +1,44 @@
 import { NextRequest, NextResponse } from "next/server"
 import { MCCInventoryService } from "@/lib/services/MCCInventoryService"
-import { verifyAuthToken } from "@/lib/api-auth"
+import { checkMCCPermission } from "@/lib/mcc-auth"
+import { prisma } from "@/lib/prisma"
 
 // POST /api/v1/mcc/processing - Process milk from raw to processed
 export async function POST(req: NextRequest) {
   try {
     const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
-    if (!authToken) {
-      return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
-    }
+    const { authorized, user, error } = await checkMCCPermission(
+      authToken,
+      "mcc.inventory.manage"
+    )
 
-    const user = await verifyAuthToken(authToken)
-    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    if (!authorized || !user) {
+      return NextResponse.json({ error: error || "Unauthorized" }, { status: 401 })
     }
 
     const data = await req.json()
-    
+    let targetMccId = data.mccId
+    if (!targetMccId && user.role === "MCC_MANAGER" && user.mccId) {
+      targetMccId = user.mccId
+    }
+
     // Validate required fields
-    if (!data.mccId || !data.rawMilkProductId || !data.processedProductId || 
+    if (!targetMccId || !data.rawMilkProductId || !data.processedProductId ||
         !data.inputQuantity || !data.outputQuantity) {
       return NextResponse.json(
-        { error: "Missing required fields: mccId, rawMilkProductId, processedProductId, inputQuantity, outputQuantity" },
+        { error: "Missing required fields: mccId (or user MCC), rawMilkProductId, processedProductId, inputQuantity, outputQuantity" },
         { status: 400 }
       )
     }
 
-    // Add processedBy field
+    // MCC_MANAGER can only process for their own MCC
+    if (user.role === "MCC_MANAGER" && user.mccId && targetMccId !== user.mccId) {
+      return NextResponse.json({ error: "Access denied to this MCC" }, { status: 403 })
+    }
+
     const processingData = {
       ...data,
+      mccId: targetMccId,
       processingDate: data.processingDate ? new Date(data.processingDate) : new Date(),
       processedBy: user.id
     }
@@ -49,35 +59,81 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// GET /api/v1/mcc/processing - Get processing history
+// GET /api/v1/mcc/processing - Get processing history and products for form
 export async function GET(req: NextRequest) {
   try {
     const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
-    if (!authToken) {
-      return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
-    }
+    const { authorized, user, error } = await checkMCCPermission(
+      authToken,
+      "mcc.inventory.view"
+    )
 
-    const user = await verifyAuthToken(authToken)
-    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    if (!authorized || !user) {
+      return NextResponse.json({ error: error || "Unauthorized" }, { status: 401 })
     }
 
     const { searchParams } = new URL(req.url)
-    const mccId = searchParams.get("mccId")
-    const limit = parseInt(searchParams.get("limit") || "10")
+    let mccId = searchParams.get("mccId")
+    if (!mccId && user.role === "MCC_MANAGER" && user.mccId) {
+      mccId = user.mccId
+    }
+    const limit = parseInt(searchParams.get("limit") || "50")
 
     if (!mccId) {
       return NextResponse.json(
-        { error: "mccId parameter is required" },
+        { error: "mccId parameter required, or user must be assigned to an MCC" },
         { status: 400 }
       )
     }
 
-    const processingHistory = await MCCInventoryService.getMCCProcessingHistory(mccId, limit)
+    // MCC_MANAGER can only access their own MCC
+    if (user.role === "MCC_MANAGER" && user.mccId && mccId !== user.mccId) {
+      return NextResponse.json({ error: "Access denied to this MCC" }, { status: 403 })
+    }
+
+    const [processingHistoryRaw, warehouses] = await Promise.all([
+      prisma.milk_processing.findMany({
+        where: { mccId },
+        include: {
+          products_milk_processing_rawMilkProductIdToproducts: true,
+          products_milk_processing_processedProductIdToproducts: true
+        },
+        orderBy: { processingDate: "desc" },
+        take: limit
+      }),
+      prisma.mcc_warehouses.findMany({
+        where: { mccId, isActive: true },
+        include: {
+          products: {
+            where: {
+              mccProductType: { in: ["RAW_MILK", "PROCESSED_MILK"] },
+              isActive: true
+            }
+          }
+        }
+      })
+    ])
+
+    const processingHistory = processingHistoryRaw.map((r) => {
+      const { products_milk_processing_rawMilkProductIdToproducts, products_milk_processing_processedProductIdToproducts, ...rest } = r
+      return {
+        ...rest,
+        rawMilkProduct: products_milk_processing_rawMilkProductIdToproducts,
+        processedProduct: products_milk_processing_processedProductIdToproducts
+      }
+    })
+
+    const allProducts = warehouses.flatMap((w) => w.products || [])
+    const rawMilkProducts = allProducts.filter((p) => p.mccProductType === "RAW_MILK")
+    const processedMilkProducts = allProducts.filter((p) => p.mccProductType === "PROCESSED_MILK")
 
     return NextResponse.json({
       success: true,
-      data: processingHistory
+      data: processingHistory,
+      products: {
+        rawMilk: rawMilkProducts.map((p) => ({ id: p.id, name: p.name, unit: p.unitOfMeasure || "Liters" })),
+        processedMilk: processedMilkProducts.map((p) => ({ id: p.id, name: p.name, unit: p.unitOfMeasure || "Liters" }))
+      }
     })
   } catch (error) {
     console.error("Get processing history error:", error)

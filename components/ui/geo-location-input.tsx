@@ -22,6 +22,10 @@ interface GeoLocationInputProps {
   onLocationChange: (latitude: number | null, longitude: number | null) => void
   disabled?: boolean
   required?: boolean
+  /** When true, automatically capture GPS location on mount if not already set */
+  autoCapture?: boolean
+  /** When true, hide all UI and only run auto-capture in background */
+  minimal?: boolean
 }
 
 export function GeoLocationInput({
@@ -30,6 +34,8 @@ export function GeoLocationInput({
   onLocationChange,
   disabled = false,
   required = false,
+  autoCapture = false,
+  minimal = false,
 }: GeoLocationInputProps) {
   const [lat, setLat] = useState<string>(
     latitude != null ? latitude.toString() : ""
@@ -50,6 +56,29 @@ export function GeoLocationInput({
     setLat(latitude != null ? latitude.toString() : "")
     setLng(longitude != null ? longitude.toString() : "")
   }, [latitude, longitude])
+
+  // Auto-capture location on mount when autoCapture is true and no location set
+  useEffect(() => {
+    if (!autoCapture || disabled || latitude != null || longitude != null || isCapturing) return
+    if (!navigator.geolocation) return
+
+    setIsCapturing(true)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const capturedLat = position.coords.latitude
+        const capturedLng = position.coords.longitude
+        if (validateCoordinates(capturedLat, capturedLng)) {
+          setLat(capturedLat.toString())
+          setLng(capturedLng.toString())
+          onLocationChange(capturedLat, capturedLng)
+          if (!minimal) toast.success("Location captured automatically")
+        }
+        setIsCapturing(false)
+      },
+      () => setIsCapturing(false),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    )
+  }, [autoCapture, disabled, minimal])
 
   const handleCaptureLocation = () => {
     if (!navigator.geolocation) {
@@ -164,6 +193,10 @@ export function GeoLocationInput({
   }
 
   const hasValidLocation = latitude != null && longitude != null
+
+  if (minimal) {
+    return null
+  }
 
   return (
     <div className="space-y-3">

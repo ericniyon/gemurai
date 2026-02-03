@@ -6,36 +6,23 @@ import { cookies } from "next/headers"
 // Get all roles with their permissions and user counts
 export async function GET(request: NextRequest) {
   try {
-    console.log("🔍 Roles API called")
-    
-    // Check environment variables
-    const jwtSecret = process.env.JWT_SECRET
-    console.log("🔑 JWT_SECRET available:", !!jwtSecret)
-    console.log("🔑 JWT_SECRET length:", jwtSecret?.length || 0)
-    
-    // Verify superadmin authentication
+    // Verify admin authentication (cookie or Bearer token)
     const cookieStore = await cookies()
-    const token = cookieStore.get("Gemurai_token")
-
-    console.log("🍪 Gemurai_token cookie found:", !!token)
-    if (token) {
-      console.log("🍪 Token length:", token.value.length)
-      console.log("🍪 Token starts with:", token.value.substring(0, 20) + "...")
-    }
+    const cookieToken = cookieStore.get("Gemurai_token")
+    const authHeader = request.headers.get("Authorization")
+    const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
+    const token = cookieToken?.value || bearerToken
 
     if (!token) {
-      console.log("❌ No token found")
       return NextResponse.json(
         { success: false, message: "Unauthorized - No token found" },
         { status: 401 }
       )
     }
 
-    console.log("🔍 Attempting token verification...")
-    const user = await verifyAuthToken(token.value)
-    console.log("🔍 Token verification result:", user ? "SUCCESS" : "FAILED")
+    const user = await verifyAuthToken(token)
 
-    if (!user || user.role !== "SUPER_ADMIN") {
+    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
       return NextResponse.json(
         { success: false, message: "Access denied" },
         { status: 403 }
@@ -108,9 +95,12 @@ export async function GET(request: NextRequest) {
 // Create a new role
 export async function POST(request: NextRequest) {
   try {
-    // Verify superadmin authentication
+    // Verify admin authentication (cookie or Bearer token)
     const cookieStore = await cookies()
-    const token = cookieStore.get("Gemurai_token")
+    const cookieToken = cookieStore.get("Gemurai_token")
+    const authHeader = request.headers.get("Authorization")
+    const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
+    const token = cookieToken?.value || bearerToken
 
     if (!token) {
       return NextResponse.json(
@@ -119,9 +109,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const user = await verifyAuthToken(token.value)
+    const user = await verifyAuthToken(token)
 
-    if (!user || user.role !== "SUPER_ADMIN") {
+    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
       return NextResponse.json(
         { success: false, message: "Access denied" },
         { status: 403 }

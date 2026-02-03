@@ -61,6 +61,7 @@ import {
   BarChart3,
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 
 type InventorySummary = {
@@ -80,6 +81,7 @@ type AssetRecord = {
   name?: string | null
   assetType?: string | null
   status: string
+  rentable?: boolean
   currentHolderType?: string | null
   currentHolderId?: string | null
   purchasedAt?: string | null
@@ -144,6 +146,64 @@ const assetTypes = [
   { value: "pump", label: "Milk Pump" },
   { value: "other", label: "Other Asset" },
 ]
+
+/** Specification fields per asset type. key = form/API field name; useForCapacityLiters = send value as top-level capacityLiters */
+type AssetSpecField = {
+  key: string
+  label: string
+  type: "number" | "text"
+  placeholder?: string
+  unit?: string
+  useForCapacityLiters?: boolean
+}
+const ASSET_TYPE_SPECS: Record<string, AssetSpecField[]> = {
+  tracker: [
+    { key: "weightKg", label: "Weight", type: "number", unit: "kg", placeholder: "e.g. 0.5" },
+    { key: "batteryHours", label: "Battery life", type: "number", unit: "hours", placeholder: "e.g. 24" },
+    { key: "accuracyM", label: "GPS accuracy", type: "number", unit: "m", placeholder: "e.g. 5" },
+    { key: "dimensions", label: "Dimensions", type: "text", placeholder: "e.g. 10×5×3 cm" },
+  ],
+  milk_meter: [
+    { key: "weightKg", label: "Weight", type: "number", unit: "kg", placeholder: "e.g. 2" },
+    { key: "capacityLiters", label: "Capacity", type: "number", unit: "L", placeholder: "e.g. 20", useForCapacityLiters: true },
+    { key: "flowRateLitersPerMin", label: "Flow rate", type: "number", unit: "L/min", placeholder: "e.g. 30" },
+    { key: "accuracyPercent", label: "Accuracy", type: "number", unit: "±%", placeholder: "e.g. 2" },
+    { key: "dimensions", label: "Dimensions", type: "text", placeholder: "e.g. 30×20×15 cm" },
+  ],
+  chiller: [
+    { key: "weightKg", label: "Weight", type: "number", unit: "kg", placeholder: "e.g. 45" },
+    { key: "capacityLiters", label: "Cooling capacity", type: "number", unit: "L", placeholder: "e.g. 500", useForCapacityLiters: true },
+    { key: "coolingTempMin", label: "Min. temp", type: "number", unit: "°C", placeholder: "e.g. 2" },
+    { key: "coolingTempMax", label: "Max. temp", type: "number", unit: "°C", placeholder: "e.g. 6" },
+    { key: "powerConsumptionW", label: "Power consumption", type: "number", unit: "W", placeholder: "e.g. 350" },
+    { key: "dimensions", label: "Dimensions", type: "text", placeholder: "e.g. 120×80×90 cm" },
+  ],
+  generator: [
+    { key: "weightKg", label: "Weight", type: "number", unit: "kg", placeholder: "e.g. 80" },
+    { key: "capacityKw", label: "Rated output", type: "number", unit: "kW", placeholder: "e.g. 5" },
+    { key: "fuelType", label: "Fuel type", type: "text", placeholder: "e.g. Diesel, Petrol" },
+    { key: "tankCapacityL", label: "Tank capacity", type: "number", unit: "L", placeholder: "e.g. 25" },
+    { key: "dimensions", label: "Dimensions", type: "text", placeholder: "e.g. 80×50×60 cm" },
+  ],
+  solar: [
+    { key: "weightKg", label: "Weight", type: "number", unit: "kg", placeholder: "e.g. 15" },
+    { key: "capacityW", label: "Panel output", type: "number", unit: "W", placeholder: "e.g. 300" },
+    { key: "batteryCapacityAh", label: "Battery capacity", type: "number", unit: "Ah", placeholder: "e.g. 100" },
+    { key: "dimensions", label: "Dimensions", type: "text", placeholder: "e.g. 100×60×5 cm" },
+  ],
+  pump: [
+    { key: "weightKg", label: "Weight", type: "number", unit: "kg", placeholder: "e.g. 8" },
+    { key: "flowRateLitersPerMin", label: "Flow rate", type: "number", unit: "L/min", placeholder: "e.g. 30" },
+    { key: "headHeightM", label: "Max. head height", type: "number", unit: "m", placeholder: "e.g. 10" },
+    { key: "powerW", label: "Power", type: "number", unit: "W", placeholder: "e.g. 750" },
+    { key: "dimensions", label: "Dimensions", type: "text", placeholder: "e.g. 40×25×20 cm" },
+  ],
+  other: [
+    { key: "weightKg", label: "Weight", type: "number", unit: "kg", placeholder: "e.g. 10" },
+    { key: "capacityLiters", label: "Capacity (if applicable)", type: "number", unit: "L", placeholder: "e.g. 100", useForCapacityLiters: true },
+    { key: "dimensions", label: "Dimensions", type: "text", placeholder: "e.g. 50×30×20 cm" },
+  ],
+}
 
 const conditionOptions = [
   { value: "good", label: "Good Condition" },
@@ -214,6 +274,7 @@ export default function InventoryRentalsPage() {
   const [availableAssets, setAvailableAssets] = useState<AssetRecord[]>([])
 
   const [assetDialogOpen, setAssetDialogOpen] = useState(false)
+  const [assetSaveLoading, setAssetSaveLoading] = useState(false)
   const [rentalDialogOpen, setRentalDialogOpen] = useState(false)
   const [returnDialogOpen, setReturnDialogOpen] = useState(false)
 
@@ -251,6 +312,8 @@ export default function InventoryRentalsPage() {
     assetType: "",
     purchasedAt: "",
     notes: "",
+    rentable: true,
+    specValues: {} as Record<string, string>,
   })
 
   const [newRentalForm, setNewRentalForm] = useState({
@@ -601,7 +664,8 @@ export default function InventoryRentalsPage() {
 
       if (assetsRes.ok) {
         const assetsData = await assetsRes.json()
-        const availableList = Array.isArray(assetsData?.data) ? assetsData.data : []
+        const rawList = Array.isArray(assetsData?.data) ? assetsData.data : []
+        const availableList = rawList.filter((a: AssetRecord) => a.rentable !== false)
         setAvailableAssets(availableList)
       } else {
         setAvailableAssets([])
@@ -780,6 +844,7 @@ export default function InventoryRentalsPage() {
       return
     }
 
+    setAssetSaveLoading(true)
     try {
       const response = await fetch("/api/v1/mcc/assets", {
         method: "POST",
@@ -793,6 +858,35 @@ export default function InventoryRentalsPage() {
           assetType: newAssetForm.assetType,
           purchasedAt: newAssetForm.purchasedAt ? new Date(newAssetForm.purchasedAt).toISOString() : null,
           notes: newAssetForm.notes.trim() || null,
+          rentable: newAssetForm.rentable,
+          ...((() => {
+            const typeSpecs = ASSET_TYPE_SPECS[newAssetForm.assetType] || []
+            let capacityLiters: number | null = null
+            const specifications: Record<string, string | number> = {}
+            for (const field of typeSpecs) {
+              const raw = newAssetForm.specValues[field.key]?.trim()
+              if (!raw) continue
+              if (field.useForCapacityLiters && field.type === "number") {
+                const n = parseFloat(raw)
+                if (!Number.isNaN(n)) capacityLiters = n
+                continue
+              }
+              if (field.key === "weightKg") continue
+              if (field.type === "number") {
+                const n = parseFloat(raw)
+                if (!Number.isNaN(n)) specifications[field.key] = n
+              } else {
+                specifications[field.key === "dimensions" ? "measurements" : field.key] = raw
+              }
+            }
+            const weightRaw = newAssetForm.specValues.weightKg?.trim()
+            const weightKg = weightRaw && !Number.isNaN(parseFloat(weightRaw)) ? parseFloat(weightRaw) : null
+            return {
+              weightKg,
+              capacityLiters: capacityLiters ?? null,
+              ...(Object.keys(specifications).length > 0 ? { specifications } : {}),
+            }
+          })()),
         }),
       })
 
@@ -809,11 +903,15 @@ export default function InventoryRentalsPage() {
         assetType: "",
         purchasedAt: "",
         notes: "",
+        rentable: true,
+        specValues: {},
       })
       await Promise.all([fetchAssetsData({ page: 1 }), fetchAssetSummary(), fetchFarmersAndAvailableAssets()])
     } catch (error) {
       console.error("Asset creation error:", error)
       toast.error(error instanceof Error ? error.message : "Unable to create asset.")
+    } finally {
+      setAssetSaveLoading(false)
     }
   }
 
@@ -3115,6 +3213,62 @@ export default function InventoryRentalsPage() {
               </div>
             </div>
 
+            {/* Type-specific specifications — fields depend on selected Asset Type */}
+            {newAssetForm.assetType && (
+              <div className="space-y-4 rounded-xl border border-[#bfdbfe] bg-slate-50/30 px-4 py-3">
+                <p className="text-sm font-semibold text-gray-700">
+                  Specifications — {assetTypes.find((t) => t.value === newAssetForm.assetType)?.label || newAssetForm.assetType}
+                </p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {(ASSET_TYPE_SPECS[newAssetForm.assetType] || []).map((field) => (
+                    <div key={field.key} className="space-y-2">
+                      <Label htmlFor={`spec-${field.key}`} className="text-sm font-medium text-gray-600">
+                        {field.label}
+                        {field.unit && <span className="ml-1 font-normal text-gray-500">({field.unit})</span>}
+                      </Label>
+                      <Input
+                        id={`spec-${field.key}`}
+                        type={field.type}
+                        min={field.type === "number" ? 0 : undefined}
+                        step={field.type === "number" ? field.key === "accuracyPercent" ? 0.1 : 0.1 : undefined}
+                        placeholder={field.placeholder}
+                        value={newAssetForm.specValues[field.key] ?? ""}
+                        onChange={(e) =>
+                          setNewAssetForm((prev) => ({
+                            ...prev,
+                            specValues: { ...prev.specValues, [field.key]: e.target.value },
+                          }))
+                        }
+                        className={commonInputClasses}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center space-x-3 rounded-xl border border-[#bfdbfe] bg-slate-50/50 px-4 py-3">
+              <Checkbox
+                id="rentable"
+                checked={newAssetForm.rentable}
+                onCheckedChange={(checked) =>
+                  setNewAssetForm((prev) => ({ ...prev, rentable: checked === true }))
+                }
+                className="h-4 w-4 rounded border-blue-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+              />
+              <div className="grid gap-0.5 leading-none">
+                <Label
+                  htmlFor="rentable"
+                  className="text-sm font-semibold text-gray-700 cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Can be rented
+                </Label>
+                <p className="text-xs text-gray-500">
+                  Allow this asset to be rented to farmers. Uncheck for MCC-only or non-rental equipment.
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="notes" className="text-sm font-semibold text-gray-700">
                 Notes
@@ -3140,9 +3294,17 @@ export default function InventoryRentalsPage() {
             </Button>
             <Button
               onClick={handleAssetSubmit}
-              className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30"
+              disabled={assetSaveLoading}
+              className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30 disabled:opacity-70 disabled:pointer-events-none"
             >
-              Save Asset
+              {assetSaveLoading ? (
+                <>
+                  <span className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Saving…
+                </>
+              ) : (
+                "Save Asset"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

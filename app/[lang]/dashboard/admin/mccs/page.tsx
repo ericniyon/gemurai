@@ -5,14 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { DataTable } from "@/components/ui/data-table"
+import { ColumnDef } from "@tanstack/react-table"
 import {
   Dialog,
   DialogContent,
@@ -33,7 +27,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import {
   Building2,
-  Search,
   Plus,
   Edit,
   Trash2,
@@ -47,7 +40,11 @@ import {
   Mail,
   Phone,
   Activity,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { GeoLocationInput } from "@/components/ui/geo-location-input"
 import { useAuth } from "@/hooks/use-auth"
 import { format } from "date-fns"
 
@@ -59,6 +56,10 @@ interface MCC {
   region: string | null
   address: string | null
   managerUserId: string | null
+  contactInfo?: { phone?: string; email?: string }
+  gpsLatitude?: number | null
+  gpsLongitude?: number | null
+  isActive?: boolean
   manager?: {
     id: string
     name: string
@@ -85,22 +86,25 @@ interface User {
 export default function AdminMCCsPage() {
   const { user: currentUser } = useAuth()
   const [mccs, setMccs] = useState<MCC[]>([])
-  const [filteredMCCs, setFilteredMCCs] = useState<MCC[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
   const [regionFilter, setRegionFilter] = useState<string>("all")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingMCC, setEditingMCC] = useState<MCC | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const [formStep, setFormStep] = useState(1)
   const [formData, setFormData] = useState({
     name: "",
-    code: "",
     location: "",
     region: "",
     address: "",
+    phone: "",
+    email: "",
     managerUserId: "none",
+    gpsLatitude: null as number | null,
+    gpsLongitude: null as number | null,
+    isActive: true,
   })
 
   useEffect(() => {
@@ -110,9 +114,9 @@ export default function AdminMCCsPage() {
     }
   }, [currentUser])
 
-  useEffect(() => {
-    filterMCCs()
-  }, [mccs, searchQuery, regionFilter])
+  const filteredMCCs = regionFilter === "all"
+    ? mccs
+    : mccs.filter((mcc) => mcc.region === regionFilter)
 
   const fetchMCCs = async () => {
     try {
@@ -168,52 +172,39 @@ export default function AdminMCCsPage() {
     }
   }
 
-  const filterMCCs = () => {
-    let filtered = [...mccs]
-
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (mcc) =>
-          mcc.name.toLowerCase().includes(query) ||
-          mcc.code?.toLowerCase().includes(query) ||
-          mcc.location.toLowerCase().includes(query) ||
-          mcc.region?.toLowerCase().includes(query) ||
-          mcc.address?.toLowerCase().includes(query)
-      )
-    }
-
-    // Region filter
-    if (regionFilter !== "all") {
-      filtered = filtered.filter((mcc) => mcc.region === regionFilter)
-    }
-
-    setFilteredMCCs(filtered)
-  }
-
   const handleCreateMCC = () => {
     setEditingMCC(null)
+    setFormStep(1)
     setFormData({
       name: "",
-      code: "",
       location: "",
       region: "",
       address: "",
+      phone: "",
+      email: "",
       managerUserId: "none",
+      gpsLatitude: null,
+      gpsLongitude: null,
+      isActive: true,
     })
     setIsDialogOpen(true)
   }
 
   const handleEditMCC = (mcc: MCC) => {
     setEditingMCC(mcc)
+    setFormStep(1)
+    const mccAny = mcc as any
     setFormData({
       name: mcc.name,
-      code: mcc.code || "",
       location: mcc.location,
       region: mcc.region || "",
       address: mcc.address || "",
+      phone: (mccAny.contactInfo as any)?.phone || "",
+      email: (mccAny.contactInfo as any)?.email || "",
       managerUserId: mcc.managerUserId || "none",
+      gpsLatitude: mccAny.gpsLatitude ?? null,
+      gpsLongitude: mccAny.gpsLongitude ?? null,
+      isActive: mccAny.isActive !== false,
     })
     setIsDialogOpen(true)
   }
@@ -257,11 +248,17 @@ export default function AdminMCCsPage() {
 
       const payload: any = {
         name: formData.name,
-        code: formData.code || undefined,
         location: formData.location,
         region: formData.region || undefined,
         address: formData.address || undefined,
         managerUserId: formData.managerUserId && formData.managerUserId !== "none" ? formData.managerUserId : undefined,
+        contactInfo: {
+          ...(formData.phone && { phone: formData.phone }),
+          ...(formData.email && { email: formData.email }),
+        },
+        gpsLatitude: formData.gpsLatitude ?? undefined,
+        gpsLongitude: formData.gpsLongitude ?? undefined,
+        isActive: formData.isActive,
       }
 
       if (editingMCC) {
@@ -398,19 +395,9 @@ export default function AdminMCCsPage() {
         {/* Filters */}
         <Card className="mb-6 border-2 border-blue-200">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search MCCs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
+            <div className="flex flex-wrap items-center gap-4">
               <Select value={regionFilter} onValueChange={setRegionFilter}>
-                <SelectTrigger style={{ border: '2px solid lightblue' }}>
+                <SelectTrigger className="w-[200px]" style={{ border: "2px solid lightblue" }}>
                   <SelectValue placeholder="Filter by region" />
                 </SelectTrigger>
                 <SelectContent>
@@ -424,11 +411,7 @@ export default function AdminMCCsPage() {
               </Select>
               <Button
                 variant="outline"
-                onClick={() => {
-                  setSearchQuery("")
-                  setRegionFilter("all")
-                }}
-                className="w-full"
+                onClick={() => setRegionFilter("all")}
               >
                 Clear Filters
               </Button>
@@ -436,7 +419,7 @@ export default function AdminMCCsPage() {
           </CardContent>
         </Card>
 
-        {/* MCCs Table */}
+        {/* MCCs DataTable */}
         <Card className="border-2 border-blue-200">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-blue-900">
@@ -448,107 +431,113 @@ export default function AdminMCCsPage() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
               </div>
-            ) : filteredMCCs.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <Building2 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>No MCCs found</p>
-              </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Code</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>Region</TableHead>
-                      <TableHead>Manager</TableHead>
-                      <TableHead>Farmers</TableHead>
-                      <TableHead>Collections</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredMCCs.map((mcc) => (
-                      <TableRow key={mcc.id}>
-                        <TableCell className="font-medium">{mcc.name}</TableCell>
-                        <TableCell>
-                          {mcc.code ? (
-                            <Badge variant="outline" className="border-blue-300 text-blue-700">
-                              {mcc.code}
-                            </Badge>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-gray-400" />
-                            {mcc.location}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {mcc.region ? (
-                            <Badge variant="outline" className="border-green-300 text-green-700">
-                              {mcc.region}
-                            </Badge>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {mcc.manager ? (
-                            <div className="flex flex-col">
-                              <span className="font-medium">{mcc.manager.name}</span>
-                              <span className="text-xs text-gray-500">{mcc.manager.email}</span>
-                            </div>
-                          ) : (
-                            <span className="text-gray-400">No manager</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-gray-400" />
-                            {mcc._count?.farmers || 0}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Activity className="h-4 w-4 text-gray-400" />
-                            {mcc._count?.milk_collections || 0}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditMCC(mcc)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Edit className="h-4 w-4 text-blue-600" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteMCC(mcc.id)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <DataTable
+                columns={[
+                  { accessorKey: "name", header: "Name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+                  {
+                    accessorKey: "code",
+                    header: "Code",
+                    cell: ({ row }) =>
+                      row.original.code ? (
+                        <Badge variant="outline" className="border-blue-300 text-blue-700">{row.original.code}</Badge>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      ),
+                  },
+                  {
+                    accessorKey: "location",
+                    header: "Location",
+                    cell: ({ row }) => (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-gray-400" />
+                        {row.original.location}
+                      </div>
+                    ),
+                  },
+                  {
+                    accessorKey: "region",
+                    header: "Region",
+                    cell: ({ row }) =>
+                      row.original.region ? (
+                        <Badge variant="outline" className="border-green-300 text-green-700">{row.original.region}</Badge>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      ),
+                  },
+                  {
+                    id: "manager",
+                    accessorFn: (row) => row.manager?.name || "",
+                    header: "Manager",
+                    cell: ({ row }) =>
+                      row.original.manager ? (
+                        <div className="flex flex-col">
+                          <span className="font-medium">{row.original.manager.name}</span>
+                          <span className="text-xs text-gray-500">{row.original.manager.email}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">No manager</span>
+                      ),
+                  },
+                  {
+                    id: "farmers",
+                    accessorFn: (row) => row._count?.farmers || 0,
+                    header: "Farmers",
+                    cell: ({ row }) => (
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-gray-400" />
+                        {row.original._count?.farmers || 0}
+                      </div>
+                    ),
+                  },
+                  {
+                    id: "collections",
+                    accessorFn: (row) => row._count?.milk_collections || 0,
+                    header: "Collections",
+                    cell: ({ row }) => (
+                      <div className="flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-gray-400" />
+                        {row.original._count?.milk_collections || 0}
+                      </div>
+                    ),
+                  },
+                  {
+                    id: "actions",
+                    header: () => <span className="text-right w-full block">Actions</span>,
+                    cell: ({ row }) => (
+                      <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="sm" onClick={() => handleEditMCC(row.original)} className="h-8 w-8 p-0">
+                          <Edit className="h-4 w-4 text-blue-600" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteMCC(row.original.id)} className="h-8 w-8 p-0">
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </div>
+                    ),
+                  },
+                ]}
+                data={filteredMCCs}
+                searchKey="search"
+                searchPlaceholder="Search MCCs..."
+                emptyMessage="No MCCs found"
+                emptyDescription="Try adjusting your search or filters"
+                entityName="MCCs"
+                pageSize={10}
+                defaultSorting={[{ id: "name", desc: false }]}
+                onRowClick={(row) => handleEditMCC(row)}
+              />
             )}
           </CardContent>
         </Card>
 
-        {/* Create/Edit MCC Dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        {/* Create/Edit MCC Dialog - Multi-step form */}
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open)
+            if (!open) setFormStep(1)
+          }}
+        >
           <DialogContent className="bg-white opacity-100 max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-blue-900">
@@ -560,119 +549,282 @@ export default function AdminMCCsPage() {
                   : "Add a new Milk Collection Center to the system"}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit}>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-base font-semibold text-gray-700">
-                      MCC Name *
-                    </Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
-                      style={{ border: '2px solid lightblue' }}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="code" className="text-base font-semibold text-gray-700">
-                      MCC Code
-                    </Label>
-                    <Input
-                      id="code"
-                      value={formData.code}
-                      onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                      placeholder="e.g., MCC-001"
-                      style={{ border: '2px solid lightblue' }}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="location" className="text-base font-semibold text-gray-700">
-                      Location *
-                    </Label>
-                    <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      required
-                      style={{ border: '2px solid lightblue' }}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="region" className="text-base font-semibold text-gray-700">
-                      Region
-                    </Label>
-                    <Input
-                      id="region"
-                      value={formData.region}
-                      onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                      placeholder="e.g., Northern Province"
-                      style={{ border: '2px solid lightblue' }}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address" className="text-base font-semibold text-gray-700">
-                    Address
-                  </Label>
-                  <Textarea
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    placeholder="Full address details"
-                    rows={3}
-                    style={{ border: '2px solid lightblue' }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="managerUserId" className="text-base font-semibold text-gray-700">
-                    Manager
-                  </Label>
-                  <Select
-                    value={formData.managerUserId}
-                    onValueChange={(value) => setFormData({ ...formData, managerUserId: value })}
-                  >
-                    <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                      <SelectValue placeholder="Select manager (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No Manager</SelectItem>
-                      {users.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.name} ({user.email})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+
+            {/* Step indicator */}
+            <div className="space-y-2 py-2">
+              <div className="flex items-center justify-between text-sm font-medium text-gray-600">
+                <span>Step {formStep} of 4</span>
+                <span className="text-blue-600">
+                  {formStep === 1 && "Basic Information"}
+                  {formStep === 2 && "Contact & Address"}
+                  {formStep === 3 && "Manager & Location"}
+                  {formStep === 4 && "Review & Confirm"}
+                </span>
               </div>
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : editingMCC ? (
-                    "Update MCC"
+              <Progress value={(formStep / 4) * 100} className="h-2" />
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <div className="min-h-[280px] py-4">
+                {/* Step 1: Basic Information */}
+                {formStep === 1 && (
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-base font-semibold text-gray-700">
+                        MCC Name *
+                      </Label>
+                      <Input
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        required
+                        placeholder="e.g., Nyagatare MCC"
+                        className="border-2 border-blue-200"
+                      />
+                      <p className="text-xs text-gray-500">MCC Code will be auto-generated (e.g., MCC001)</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="location" className="text-base font-semibold text-gray-700">
+                          Location *
+                        </Label>
+                        <Input
+                          id="location"
+                          value={formData.location}
+                          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                          required
+                          placeholder="e.g., Nyagatare District"
+                          className="border-2 border-blue-200"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="region" className="text-base font-semibold text-gray-700">
+                          Region / Province
+                        </Label>
+                        <Input
+                          id="region"
+                          value={formData.region}
+                          onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                          placeholder="e.g., Eastern Province"
+                          className="border-2 border-blue-200"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Contact & Address */}
+                {formStep === 2 && (
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="address" className="text-base font-semibold text-gray-700">
+                        Full Address
+                      </Label>
+                      <Textarea
+                        id="address"
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        placeholder="Street, sector, cell, village..."
+                        rows={3}
+                        className="border-2 border-blue-200"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="text-base font-semibold text-gray-700 flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          Contact Phone
+                        </Label>
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="e.g., +250 788 123 456"
+                          className="border-2 border-blue-200"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="text-base font-semibold text-gray-700 flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          Contact Email
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="e.g., mcc@example.com"
+                          className="border-2 border-blue-200"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Manager & Location */}
+                {formStep === 3 && (
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="managerUserId" className="text-base font-semibold text-gray-700 flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        MCC Manager
+                      </Label>
+                      <Select
+                        value={formData.managerUserId}
+                        onValueChange={(value) => setFormData({ ...formData, managerUserId: value })}
+                      >
+                        <SelectTrigger className="border-2 border-blue-200">
+                          <SelectValue placeholder="Select manager (optional)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Manager</SelectItem>
+                          {users.map((user) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              {user.name} ({user.email})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-base font-semibold text-gray-700 flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        GPS Coordinates (Optional)
+                      </Label>
+                      <GeoLocationInput
+                        latitude={formData.gpsLatitude}
+                        longitude={formData.gpsLongitude}
+                        onLocationChange={(lat, lng) =>
+                          setFormData({ ...formData, gpsLatitude: lat, gpsLongitude: lng })
+                        }
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="isActive"
+                        checked={formData.isActive}
+                        onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                      />
+                      <Label htmlFor="isActive" className="text-sm font-medium text-gray-700 cursor-pointer">
+                        MCC is active
+                      </Label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Review */}
+                {formStep === 4 && (
+                  <div className="space-y-4 rounded-lg border-2 border-blue-100 bg-blue-50/30 p-4">
+                    <h4 className="font-semibold text-gray-900">Review your MCC details</h4>
+                    <dl className="grid grid-cols-1 gap-3 text-sm">
+                      <div>
+                        <dt className="font-medium text-gray-500">Name</dt>
+                        <dd className="font-semibold text-gray-900">{formData.name || "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500">Code</dt>
+                        <dd className="font-semibold text-gray-900">
+                          {editingMCC?.code || "Auto-generated on save (e.g., MCC001)"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500">Location</dt>
+                        <dd className="font-semibold text-gray-900">{formData.location || "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500">Region</dt>
+                        <dd className="font-semibold text-gray-900">{formData.region || "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500">Address</dt>
+                        <dd className="font-semibold text-gray-900">{formData.address || "—"}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500">Contact</dt>
+                        <dd className="font-semibold text-gray-900">
+                          {[formData.phone, formData.email].filter(Boolean).join(" • ") || "—"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500">Manager</dt>
+                        <dd className="font-semibold text-gray-900">
+                          {formData.managerUserId && formData.managerUserId !== "none"
+                            ? users.find((u) => u.id === formData.managerUserId)?.name || "—"
+                            : "No manager"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500">GPS Coordinates</dt>
+                        <dd className="font-semibold text-gray-900">
+                          {formData.gpsLatitude != null && formData.gpsLongitude != null
+                            ? `${formData.gpsLatitude.toFixed(6)}, ${formData.gpsLongitude.toFixed(6)}`
+                            : "—"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-medium text-gray-500">Status</dt>
+                        <dd className="font-semibold text-gray-900">{formData.isActive ? "Active" : "Inactive"}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter className="flex justify-between sm:justify-between">
+                <div className="flex gap-2">
+                  {formStep > 1 ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setFormStep((s) => s - 1)}
+                      className="gap-1"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Back
+                    </Button>
                   ) : (
-                    "Create MCC"
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
                   )}
-                </Button>
+                </div>
+                <div className="flex gap-2">
+                  {formStep < 4 ? (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        if (formStep === 1 && (!formData.name.trim() || !formData.location.trim())) {
+                          toast.error("MCC Name and Location are required")
+                          return
+                        }
+                        setFormStep((s) => s + 1)
+                      }}
+                      className="gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : editingMCC ? (
+                        "Update MCC"
+                      ) : (
+                        "Create MCC"
+                      )}
+                    </Button>
+                  )}
+                </div>
               </DialogFooter>
             </form>
           </DialogContent>

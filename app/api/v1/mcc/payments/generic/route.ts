@@ -358,86 +358,41 @@ export async function POST(req: NextRequest) {
       // You might want to create rental payment records separately
 
       // Get current farmer account balance
-      let currentBalance = farmerBalance
+      // netPayment = amount paid TO farmer (after deducting medicine/rentals)
+      // farmer_account.balance = what we owe from collections; paying reduces it
+      const amountSettlingBalance = netPayment
 
-      // Add payment amount to account
+      // Deduct net payment from account (when we pay farmer, we reduce what we owe them)
       const farmerAccount = await tx.farmer_accounts.upsert({
         where: { farmerId: farmerId },
         create: {
           farmerId: farmerId,
-          balance: amount,
+          balance: -amountSettlingBalance, // Advance: we paid them before they had earnings
         },
         update: {
           balance: {
-            increment: amount,
+            decrement: amountSettlingBalance,
           },
           lastUpdated: new Date(),
         },
       })
 
-      currentBalance = farmerAccount.balance
+      const currentBalance = farmerAccount.balance
 
-      // Create ledger entry for payment
+      // Create ledger entry for payment (negative = outflow / disbursement to farmer)
       await tx.farmer_ledger.create({
         data: {
           farmerId: farmerId,
           type: "PAYMENT",
-          amount: amount,
+          amount: -amountSettlingBalance,
           balanceAfter: currentBalance,
           refId: payment.id,
-          notes: `Payment via ${method}${notes ? ` - ${notes}` : ""}`,
+          notes: `Payment via ${method} (net: ${netPayment}, deductions: ${totalDeductions})${notes ? ` - ${notes}` : ""}`,
         },
       })
 
-      // Deduct medicine deductions
-      if (medicineDeductions > 0) {
-        currentBalance -= medicineDeductions
-        await tx.farmer_accounts.update({
-          where: { farmerId: farmerId },
-          data: {
-            balance: {
-              decrement: medicineDeductions,
-            },
-            lastUpdated: new Date(),
-          },
-        })
-
-        await tx.farmer_ledger.create({
-          data: {
-            farmerId: farmerId,
-            type: "DEDUCTION",
-            amount: -medicineDeductions,
-            balanceAfter: currentBalance,
-            refId: payment.id,
-            notes: `Medicine deductions (${unpaidSales.length} sales)`,
-          },
-        })
-      }
-
-      // Deduct asset rental deductions
-      if (assetDeductions > 0) {
-        currentBalance -= assetDeductions
-        await tx.farmer_accounts.update({
-          where: { farmerId: farmerId },
-          data: {
-            balance: {
-              decrement: assetDeductions,
-            },
-            lastUpdated: new Date(),
-          },
-        })
-
-        await tx.farmer_ledger.create({
-          data: {
-            farmerId: farmerId,
-            type: "DEDUCTION",
-            amount: -assetDeductions,
-            balanceAfter: currentBalance,
-            refId: payment.id,
-            notes: `Asset rental deductions (${activeRentals.length} rentals)`,
-          },
-        })
-      }
+      // Medicine and asset deductions are separate obligations - we mark sales/rentals as paid
+      // but they don't affect farmer_account.balance (that only tracks collection earnings)
 
       // Get final account balance
       const finalAccount = await tx.farmer_accounts.findUnique({

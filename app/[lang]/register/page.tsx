@@ -2,14 +2,13 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useSearchParams, useRouter, useParams } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Rocket, Target, Heart, Eye, EyeOff } from "lucide-react"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Loader2, Rocket, Target, Heart, Eye, EyeOff, User, UserPlus, Mail, Phone, Lock, Building, Hash } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { AuthHeader } from "@/components/auth-header"
@@ -18,7 +17,6 @@ import { ClientOnly } from "@/components/client-only"
 import { registerTranslations } from "../translations/auth"
 
 function RegisterContent() {
-  const searchParams = useSearchParams()
   const router = useRouter()
   const params = useParams()
   const lang = (params?.lang as string) || "en"
@@ -66,10 +64,6 @@ function RegisterContent() {
     if (fieldErrors[name as keyof typeof fieldErrors]) {
       setFieldErrors(prev => ({ ...prev, [name]: "" }))
     }
-  }
-
-  const handleRoleChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, role: value }))
   }
 
   const handleTabChange = (value: string) => {
@@ -334,225 +328,199 @@ function RegisterContent() {
     }
   }
 
+  const inputBaseClass = "h-12 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 hover:border-slate-300 focus:border-[#0099f2] focus:ring-2 focus:ring-[#0099f2]/20 focus:outline-none transition-all duration-200"
+  const inputStyle = { paddingLeft: 48, paddingRight: 20, paddingTop: 14, paddingBottom: 14 }
+  const inputStylePassword = { paddingLeft: 48, paddingRight: 48, paddingTop: 14, paddingBottom: 14 }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
-      <div className="relative">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-400/10 to-purple-400/10 blur-3xl" />
-          <div className="absolute bottom-[-160px] left-[-160px] h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-400/15 via-sky-400/10 to-blue-400/5 blur-3xl" />
-        </div>
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      <AuthHeader />
 
-        <div className="relative z-10">
-          <AuthHeader />
-        </div>
+      <div className="flex-1 flex flex-col lg:flex-row min-h-[calc(100vh-80px)]">
+        {/* Left - Blue Brand Panel (matches login) */}
+        <div className="hidden lg:flex lg:w-[42%] xl:w-[45%] relative overflow-hidden bg-[#0099f2]">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0099f2] via-[#0082d9] to-[#006bb8]" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_20%_80%,rgba(255,255,255,0.12),transparent)]" />
+          <div className="relative z-10 flex flex-col justify-center p-12 xl:p-20 w-full">
+            <div className="max-w-md">
+              <Link href={`/${lang}`} className="inline-block mb-12">
+                <div className="relative w-40 h-12">
+                  <Image src="/yden.png" alt="HarvestPlus by GEMURA" fill className="object-contain brightness-0 invert opacity-95" priority />
+                </div>
+              </Link>
+              <h2 className="text-3xl xl:text-4xl font-bold text-white tracking-tight mb-4 leading-tight">
+                {t.hero.title}
+              </h2>
+              <p className="text-white/90 text-lg leading-relaxed mb-12">
+                {t.hero.subtitle}
+              </p>
 
-        <div className="relative z-10 flex-1 flex flex-col lg:flex-row gap-y-8">
-          {/* Left Side - Branding & Vision */}
-          <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden" style={{ backgroundColor: '#0249ad' }}>
-            <div className="relative z-10 flex flex-col justify-center px-12 text-white">
-              <div className="max-w-lg">
-                <h1 className="text-4xl font-bold mb-6">{t.hero.title}</h1>
-                <p className="text-xl mb-8 text-white/90">{t.hero.subtitle}</p>
-
-                {/* Vision & Values */}
-                <div className="space-y-6">
-                  <div className="flex items-start space-x-4 group">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-all duration-300 shadow-md">
-                      <Rocket className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2">{t.hero.values.innovation.title}</h3>
-                      <p className="text-white/80">{t.hero.values.innovation.description}</p>
-                    </div>
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+                    <Rocket className="w-5 h-5 text-white" />
                   </div>
-
-                  <div className="flex items-start space-x-4 group">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-all duration-300 shadow-md">
-                      <Target className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2">{t.hero.values.impact.title}</h3>
-                      <p className="text-white/80">{t.hero.values.impact.description}</p>
-                    </div>
+                  <div>
+                    <h3 className="font-semibold text-white mb-1">{t.hero.values.innovation.title}</h3>
+                    <p className="text-white/80 text-sm leading-relaxed">{t.hero.values.innovation.description}</p>
                   </div>
-
-                  <div className="flex items-start space-x-4 group">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-white/30 transition-all duration-300 shadow-md">
-                      <Heart className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg mb-2">{t.hero.values.inclusion.title}</h3>
-                      <p className="text-white/80">{t.hero.values.inclusion.description}</p>
-                    </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+                    <Target className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white mb-1">{t.hero.values.impact.title}</h3>
+                    <p className="text-white/80 text-sm leading-relaxed">{t.hero.values.impact.description}</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+                    <Heart className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white mb-1">{t.hero.values.inclusion.title}</h3>
+                    <p className="text-white/80 text-sm leading-relaxed">{t.hero.values.inclusion.description}</p>
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Decorative Elements */}
-            <div className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-            <div className="absolute bottom-20 right-32 w-20 h-20 bg-white/10 rounded-full blur-2xl"></div>
-            <div className="absolute top-1/2 right-10 w-16 h-16 bg-white/10 rounded-full blur-2xl"></div>
           </div>
+        </div>
 
-          {/* Right Side - Registration Form */}
-          <div className="w-full lg:w-1/2 flex items-center justify-center p-8 px-4 pt-8 pb-8 min-h-[calc(100vh-80px)] overflow-y-auto">
-            <Card className="w-full max-w-2xl border-2 border-blue-100 rounded-3xl shadow-xl bg-white/90 backdrop-blur-sm">
-              <CardHeader className="pb-6">
-                <CardTitle className="text-2xl font-bold text-gray-900">{t.form.title}</CardTitle>
-                <CardDescription className="text-gray-600 mt-2">{t.form.subtitle}</CardDescription>
+        {/* Right - Registration Form */}
+        <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16 bg-gradient-to-b from-slate-50 to-white overflow-y-auto">
+          <div className="w-full max-w-full">
+            {/* Mobile Brand */}
+            <div className="lg:hidden text-center mb-8">
+              <Link href={`/${lang}`} className="inline-block mb-4">
+                <div className="relative w-32 h-10 mx-auto">
+                  <Image src="/yden.png" alt="HarvestPlus by GEMURA" fill className="object-contain" priority />
+                </div>
+              </Link>
+              <h1 className="text-xl font-bold text-slate-900">{t.hero.title}</h1>
+              <p className="text-slate-500 text-sm mt-1">{t.hero.subtitle}</p>
+            </div>
+
+            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/60 overflow-hidden ring-1 ring-slate-900/5">
+              <div className="relative px-8 py-8 overflow-hidden bg-gradient-to-br from-white via-[#0099f2]/[0.03] to-[#0099f2]/[0.06]">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#0099f2] via-[#0082d9] to-[#006bb8]" />
+                <div className="absolute top-0 right-0 w-48 h-48 bg-[#0099f2]/[0.08] rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+                <div className="relative flex items-start gap-4">
+                  <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0099f2]/25 to-[#0099f2]/10 flex items-center justify-center ring-1 ring-[#0099f2]/20 shadow-sm">
+                    <UserPlus className="h-7 w-7 text-[#0099f2]" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t.form.title}</h2>
+                    <p className="text-slate-500 text-sm mt-1.5 leading-relaxed">{t.form.subtitle}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-8 pt-6 border-t border-slate-100/80">
                 {errorMessage && (
-                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div className="ml-3">
-                        <h3 className="text-sm font-medium text-red-800">
-                          Validation Error
-                        </h3>
-                        <div className="mt-2 text-sm text-red-700">
-                          {errorMessage}
-                        </div>
-                      </div>
-                    </div>
+                  <div className="mb-5 p-4 rounded-2xl border border-red-200/80 bg-red-50/95">
+                    <p className="text-sm font-medium text-red-800">{errorMessage}</p>
                   </div>
                 )}
-              </CardHeader>
-              <CardContent>
                 <Tabs defaultValue="individual" onValueChange={handleTabChange} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-xl">
+                  <TabsList className="grid w-full grid-cols-2 h-12 p-1.5 bg-slate-100/80 rounded-2xl mb-6">
                     <TabsTrigger 
                       value="individual" 
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-lg transition-all duration-200"
+                      className="rounded-xl text-sm font-medium text-slate-600 data-[state=active]:bg-white data-[state=active]:text-[#0099f2] data-[state=active]:shadow-md data-[state=active]:shadow-slate-200/50 data-[state=active]:border-0 transition-all duration-200 flex items-center justify-center gap-2"
                     >
+                      <User className="h-4 w-4" />
                       {t.form.tabs.individual}
                     </TabsTrigger>
                     <TabsTrigger 
                       value="company" 
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-lg transition-all duration-200"
+                      className="rounded-xl text-sm font-medium text-slate-600 data-[state=active]:bg-white data-[state=active]:text-[#0099f2] data-[state=active]:shadow-md data-[state=active]:shadow-slate-200/50 data-[state=active]:border-0 transition-all duration-200 flex items-center justify-center gap-2"
                     >
+                      <Building className="h-4 w-4" />
                       {t.form.tabs.company}
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="individual">
-                    <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          Personal Information
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2">
-                        <Label htmlFor="fullName" className="text-sm font-semibold text-gray-700">{t.form.fullName.label}</Label>
-                        <Input
-                          id="fullName"
-                          name="fullName"
-                          type="text"
-                          placeholder={t.form.fullName.placeholder}
-                          value={formData.fullName}
-                          onChange={handleInputChange}
-                          className="h-11 rounded-lg"
-                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                        />
-                        {fieldErrors.fullName && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.fullName}</p>
-                        )}
+                        <Label htmlFor="fullName" className="text-sm font-medium text-slate-700">{t.form.fullName.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <User className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="fullName" name="fullName" type="text" placeholder={t.form.fullName.placeholder} value={formData.fullName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                        </div>
+                        {fieldErrors.fullName && <p className="text-sm text-red-500 mt-1">{fieldErrors.fullName}</p>}
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-semibold text-gray-700">{t.form.email.label}</Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          placeholder={t.form.email.placeholder}
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="h-11 rounded-lg"
-                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                        />
-                        {fieldErrors.email && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>
-                        )}
+                        <Label htmlFor="email" className="text-sm font-medium text-slate-700">{t.form.email.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <Mail className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="email" name="email" type="email" placeholder={t.form.email.placeholder} value={formData.email} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                        </div>
+                        {fieldErrors.email && <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>}
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="phone" className="text-sm font-semibold text-gray-700">{t.form.phone.label}</Label>
-                        <Input
-                          id="phone"
-                          name="phone"
-                          type="tel"
-                          placeholder={t.form.phone.placeholder}
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className="h-11 rounded-lg"
-                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                        />
-                        {fieldErrors.phone && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>
-                        )}
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="phone" className="text-sm font-medium text-slate-700">{t.form.phone.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <Phone className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="phone" name="phone" type="tel" placeholder={t.form.phone.placeholder} value={formData.phone} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                        </div>
+                        {fieldErrors.phone && <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>}
+                      </div>
+                        </div>
                       </div>
 
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          Account Details
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2">
-                        <Label htmlFor="password" className="text-sm font-semibold text-gray-700">{t.form.password.label}</Label>
-                        <div className="relative">
-                          <Input
-                            id="password"
-                            name="password"
-                            type={showPassword ? "text" : "password"}
-                            placeholder={t.form.password.placeholder}
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            className="h-11 rounded-lg pr-10"
-                            style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                          />
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                            onClick={() => setShowPassword(!showPassword)}
-                            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowPassword(!showPassword) }}
-                            tabIndex={-1}
-                            aria-label={showPassword ? "Hide password" : "Show password"}
-                          >
-                            {showPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                        <Label htmlFor="password" className="text-sm font-medium text-slate-700">{t.form.password.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <Lock className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="password" name="password" type={showPassword ? "text" : "password"} placeholder={t.form.password.placeholder} value={formData.password} onChange={handleInputChange} style={inputStylePassword} className={inputBaseClass} />
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0099f2] p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label={showPassword ? "Hide password" : "Show password"}>
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
-                        {fieldErrors.password && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>
-                        )}
+                        {fieldErrors.password && <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>}
+                        <p className="text-xs text-slate-500">Must be at least 6 characters</p>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">{t.form.confirmPassword.label}</Label>
-                        <div className="relative">
-                          <Input
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder={t.form.confirmPassword.placeholder}
-                            value={formData.confirmPassword}
-                            onChange={handleInputChange}
-                            className="h-11 rounded-lg pr-10"
-                            style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                          />
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowConfirmPassword(!showConfirmPassword) }}
-                            tabIndex={-1}
-                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                          >
-                            {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                        <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">{t.form.confirmPassword.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <Lock className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder={t.form.confirmPassword.placeholder} value={formData.confirmPassword} onChange={handleInputChange} style={inputStylePassword} className={inputBaseClass} />
+                          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0099f2] p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label={showConfirmPassword ? "Hide password" : "Show password"}>
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
-                        {fieldErrors.confirmPassword && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>
-                        )}
+                        {fieldErrors.confirmPassword && <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>}
+                      </div>
+                        </div>
                       </div>
 
-                      <Button 
-                        type="submit" 
-                        className="w-full mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300" 
-                        disabled={isLoading}
-                      >
+                      <Button type="submit" className="w-full h-12 rounded-2xl font-semibold text-white bg-gradient-to-r from-[#0099f2] to-[#0082d9] shadow-lg shadow-[#0099f2]/30 hover:shadow-xl hover:shadow-[#0099f2]/40 hover:from-[#0082d9] hover:to-[#006bb8] transition-all duration-200" disabled={isLoading}>
                         {isLoading ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -565,150 +533,104 @@ function RegisterContent() {
                     </form>
                   </TabsContent>
                   <TabsContent value="company">
-                    <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          Company Information
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2">
-                        <Label htmlFor="companyName" className="text-sm font-semibold text-gray-700">{t.form.companyName.label}</Label>
-                        <Input
-                          id="companyName"
-                          name="companyName"
-                          type="text"
-                          placeholder={t.form.companyName.placeholder}
-                          value={formData.companyName}
-                          onChange={handleInputChange}
-                          className="h-11 rounded-lg"
-                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                        />
-                        {fieldErrors.companyName && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.companyName}</p>
-                        )}
+                        <Label htmlFor="companyName" className="text-sm font-medium text-slate-700">{t.form.companyName.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <Building className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="companyName" name="companyName" type="text" placeholder={t.form.companyName.placeholder} value={formData.companyName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                        </div>
+                        {fieldErrors.companyName && <p className="text-sm text-red-500 mt-1">{fieldErrors.companyName}</p>}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="contactName" className="text-sm font-semibold text-gray-700">{t.form.contactName.label}</Label>
-                        <Input
-                          id="contactName"
-                          name="contactName"
-                          type="text"
-                          placeholder={t.form.contactName.placeholder}
-                          value={formData.contactName}
-                          onChange={handleInputChange}
-                          className="h-11 rounded-lg"
-                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                        />
-                        {fieldErrors.contactName && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.contactName}</p>
-                        )}
+                        <Label htmlFor="contactName" className="text-sm font-medium text-slate-700">{t.form.contactName.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <User className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="contactName" name="contactName" type="text" placeholder={t.form.contactName.placeholder} value={formData.contactName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                        </div>
+                        {fieldErrors.contactName && <p className="text-sm text-red-500 mt-1">{fieldErrors.contactName}</p>}
+                      </div>
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="tinNumber" className="text-sm font-medium text-slate-700">{t.form.tinNumber.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <Hash className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="tinNumber" name="tinNumber" type="text" placeholder={t.form.tinNumber.placeholder} value={formData.tinNumber} onChange={handleInputChange} minLength={9} maxLength={9} style={inputStyle} className={inputBaseClass} />
+                        </div>
+                        {fieldErrors.tinNumber && <p className="text-sm text-red-500 mt-1">{fieldErrors.tinNumber}</p>}
+                        <p className="text-xs text-slate-500">9 digits required</p>
+                      </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          Account Details
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="email-company" className="text-sm font-medium text-slate-700">{t.form.email.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <Mail className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="email-company" name="email" type="email" placeholder={t.form.email.placeholder} value={formData.email} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                        </div>
+                        {fieldErrors.email && <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="tinNumber" className="text-sm font-semibold text-gray-700">{t.form.tinNumber.label}</Label>
-                        <Input
-                          id="tinNumber"
-                          name="tinNumber"
-                          type="text"
-                          placeholder={t.form.tinNumber.placeholder}
-                          value={formData.tinNumber}
-                          onChange={handleInputChange}
-                          minLength={9}
-                          maxLength={9}
-                          className="h-11 rounded-lg"
-                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                        />
-                        {fieldErrors.tinNumber && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.tinNumber}</p>
-                        )}
+                        <Label htmlFor="phone-company" className="text-sm font-medium text-slate-700">{t.form.phone.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <Phone className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="phone-company" name="phone" type="tel" placeholder={t.form.phone.placeholder} value={formData.phone} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                        </div>
+                        {fieldErrors.phone && <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-semibold text-gray-700">{t.form.email.label}</Label>
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          placeholder={t.form.email.placeholder}
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="h-11 rounded-lg"
-                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                        />
-                        {fieldErrors.email && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone" className="text-sm font-semibold text-gray-700">{t.form.phone.label}</Label>
-                        <Input
-                          id="phone"
-                          name="phone"
-                          type="tel"
-                          placeholder={t.form.phone.placeholder}
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className="h-11 rounded-lg"
-                          style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                        />
-                        {fieldErrors.phone && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="password" className="text-sm font-semibold text-gray-700">{t.form.password.label}</Label>
-                        <div className="relative">
-                          <Input
-                            id="password"
-                            name="password"
-                            type={showPassword ? "text" : "password"}
-                            placeholder={t.form.password.placeholder}
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            className="h-11 rounded-lg pr-10"
-                            style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                          />
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                            onClick={() => setShowPassword(!showPassword)}
-                            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowPassword(!showPassword) }}
-                            tabIndex={-1}
-                            aria-label={showPassword ? "Hide password" : "Show password"}
-                          >
-                            {showPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                        <Label htmlFor="password-company" className="text-sm font-medium text-slate-700">{t.form.password.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <Lock className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="password-company" name="password" type={showPassword ? "text" : "password"} placeholder={t.form.password.placeholder} value={formData.password} onChange={handleInputChange} style={inputStylePassword} className={inputBaseClass} />
+                          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0099f2] p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label={showPassword ? "Hide password" : "Show password"}>
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
-                        {fieldErrors.password && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>
-                        )}
+                        {fieldErrors.password && <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>}
+                        <p className="text-xs text-slate-500">Must be at least 6 characters</p>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-700">{t.form.confirmPassword.label}</Label>
-                        <div className="relative">
-                          <Input
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder={t.form.confirmPassword.placeholder}
-                            value={formData.confirmPassword}
-                            onChange={handleInputChange}
-                            className="h-11 rounded-lg pr-10"
-                            style={{ border: '1px solid rgb(191, 219, 254)', borderWidth: '1px', paddingLeft: '1rem' }}
-                          />
-                          <button
-                            type="button"
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setShowConfirmPassword(!showConfirmPassword) }}
-                            tabIndex={-1}
-                            aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                          >
-                            {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-500" /> : <Eye className="h-5 w-5 text-gray-500" />}
+                        <Label htmlFor="confirmPassword-company" className="text-sm font-medium text-slate-700">{t.form.confirmPassword.label}</Label>
+                        <div className="relative group">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                            <Lock className="h-5 w-5" strokeWidth={2} />
+                          </div>
+                          <Input id="confirmPassword-company" name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder={t.form.confirmPassword.placeholder} value={formData.confirmPassword} onChange={handleInputChange} style={inputStylePassword} className={inputBaseClass} />
+                          <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0099f2] p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label={showConfirmPassword ? "Hide password" : "Show password"}>
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
                         </div>
-                        {fieldErrors.confirmPassword && (
-                          <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>
-                        )}
+                        {fieldErrors.confirmPassword && <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>}
                       </div>
-                      <Button 
-                        type="submit" 
-                        className="w-full mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300" 
-                        disabled={isLoading}
-                      >
+                        </div>
+                      </div>
+
+                      <Button type="submit" className="w-full h-12 rounded-2xl font-semibold text-white bg-gradient-to-r from-[#0099f2] to-[#0082d9] shadow-lg shadow-[#0099f2]/30 hover:shadow-xl hover:shadow-[#0099f2]/40 hover:from-[#0082d9] hover:to-[#006bb8] transition-all duration-200" disabled={isLoading}>
                         {isLoading ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -721,30 +643,36 @@ function RegisterContent() {
                     </form>
                   </TabsContent>
                 </Tabs>
-              </CardContent>
-              <CardFooter className="flex justify-center pt-6">
-                <p className="text-sm text-gray-600">
-                  {t.form.login.text}{" "}
-                  <Link href={`/${lang}/login`} className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">
+              </div>
+
+              <div className="px-8 py-5 border-t border-slate-100">
+                <p className="text-center text-sm text-slate-600">
+                  <span>{t.form.login.text} </span>
+                  <Link href={`/${lang}/login`} className="font-semibold text-[#0099f2] hover:text-[#0082d9] transition-colors">
                     {t.form.login.link}
                   </Link>
                 </p>
-              </CardFooter>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div className="relative z-10">
-          <AuthFooter />
-        </div>
       </div>
+
+      <AuthFooter />
     </div>
   )
 }
 
 export default function Register() {
   return (
-    <ClientOnly>
+    <ClientOnly fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-[#0099f2]"></div>
+          <p className="text-sm text-slate-500">Loading...</p>
+        </div>
+      </div>
+    }>
       <RegisterContent />
     </ClientOnly>
   )

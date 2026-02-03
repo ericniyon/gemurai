@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/hooks/use-auth"
 import { useParams } from "next/navigation"
-import { FileText, Search, Download, Filter, Calendar } from "lucide-react"
+import { FileText, Search, Download, Filter } from "lucide-react"
+import { SettingsPageHeader } from "@/components/settings/settings-page-header"
 import { toast } from "sonner"
 import {
   Select,
@@ -146,44 +147,36 @@ export default function AuditLogsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 mb-2">
-              <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg">
-                <FileText className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  Audit Logs
-                </h1>
-                <p className="text-blue-700 mt-1 font-medium">View system activity and security audit trail</p>
-              </div>
-            </div>
-            <Button
-              onClick={handleExport}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export Logs
-            </Button>
-          </div>
-        </div>
+    <div className="max-w-7xl mx-auto">
+      <div className="flex items-start justify-between gap-4 mb-8">
+        <SettingsPageHeader
+          title="Audit Logs"
+          description="View system activity and security audit trail"
+          icon={FileText}
+          lang={lang}
+        />
+        <Button
+          onClick={handleExport}
+          variant="outline"
+          className="shrink-0 border-slate-200 hover:bg-slate-50"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Export Logs
+        </Button>
+      </div>
 
-        {/* Filters */}
-        <Card className="border-2 border-blue-200 bg-white shadow-lg mb-6">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Filter className="h-5 w-5" />
-              Filters
-            </CardTitle>
-          </CardHeader>
+      {/* Filters */}
+      <Card className="border-slate-200/80 mb-6">
+        <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+          <CardTitle className="flex items-center gap-2 text-slate-900">
+            <Filter className="h-5 w-5 text-slate-600" />
+            Filters
+          </CardTitle>
+        </CardHeader>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-gray-700">Action Type</Label>
+                <Label className="text-sm font-medium text-slate-700">Action Type</Label>
                 <Select
                   value={filters.action}
                   onValueChange={(value) => {
@@ -191,7 +184,7 @@ export default function AuditLogsPage() {
                     setPagination({ ...pagination, page: 1 })
                   }}
                 >
-                  <SelectTrigger className="border-2 border-blue-200 focus:border-blue-500">
+                  <SelectTrigger className="border-slate-200 focus:border-primary focus:ring-primary/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -207,7 +200,7 @@ export default function AuditLogsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-gray-700">Date From</Label>
+                <Label className="text-sm font-medium text-slate-700">Date From</Label>
                 <Input
                   type="date"
                   value={filters.dateFrom}
@@ -215,12 +208,12 @@ export default function AuditLogsPage() {
                     setFilters({ ...filters, dateFrom: e.target.value })
                     setPagination({ ...pagination, page: 1 })
                   }}
-                  className="border-2 border-blue-200 focus:border-blue-500"
+                  className="border-slate-200 focus:border-primary focus:ring-primary/20"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-gray-700">Date To</Label>
+                <Label className="text-sm font-medium text-slate-700">Date To</Label>
                 <Input
                   type="date"
                   value={filters.dateTo}
@@ -228,12 +221,12 @@ export default function AuditLogsPage() {
                     setFilters({ ...filters, dateTo: e.target.value })
                     setPagination({ ...pagination, page: 1 })
                   }}
-                  className="border-2 border-blue-200 focus:border-blue-500"
+                  className="border-slate-200 focus:border-primary focus:ring-primary/20"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-semibold text-gray-700">Search</Label>
+                <Label className="text-sm font-medium text-slate-700">Search</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <Input
@@ -243,7 +236,7 @@ export default function AuditLogsPage() {
                       setFilters({ ...filters, search: e.target.value })
                       setPagination({ ...pagination, page: 1 })
                     }}
-                    className="border-2 border-blue-200 focus:border-blue-500 pl-10"
+                    className="border-slate-200 focus:border-primary focus:ring-primary/20 pl-10"
                   />
                 </div>
               </div>
@@ -251,53 +244,53 @@ export default function AuditLogsPage() {
           </CardContent>
         </Card>
 
-        {/* Audit Logs Table */}
-        <Card className="border-2 border-blue-200 bg-white shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-            <CardTitle className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Audit Logs
-              </div>
-              <Badge className="bg-blue-100 text-blue-800 border-2 border-blue-300">
-                {pagination.total} total
-              </Badge>
-            </CardTitle>
-          </CardHeader>
+      {/* Audit Logs Table */}
+      <Card className="border-slate-200/80">
+        <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+          <CardTitle className="flex items-center justify-between text-slate-900">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-slate-600" />
+              Audit Logs
+            </div>
+            <Badge variant="secondary" className="bg-slate-100 text-slate-700 border border-slate-200">
+              {pagination.total} total
+            </Badge>
+          </CardTitle>
+        </CardHeader>
           <CardContent className="p-0">
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <p className="mt-4 text-blue-700">Loading audit logs...</p>
+                <p className="mt-4 text-slate-600">Loading audit logs...</p>
               </div>
             ) : auditLogs.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600">No audit logs found</p>
+                <p className="text-slate-600">No audit logs found</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-blue-50">
-                      <TableHead className="font-semibold text-blue-900">Timestamp</TableHead>
-                      <TableHead className="font-semibold text-blue-900">User</TableHead>
-                      <TableHead className="font-semibold text-blue-900">Action</TableHead>
-                      <TableHead className="font-semibold text-blue-900">Entity</TableHead>
-                      <TableHead className="font-semibold text-blue-900">Details</TableHead>
-                      <TableHead className="font-semibold text-blue-900">IP Address</TableHead>
+                    <TableRow className="bg-slate-50/50">
+                      <TableHead className="font-medium text-slate-700">Timestamp</TableHead>
+                      <TableHead className="font-medium text-slate-700">User</TableHead>
+                      <TableHead className="font-medium text-slate-700">Action</TableHead>
+                      <TableHead className="font-medium text-slate-700">Entity</TableHead>
+                      <TableHead className="font-medium text-slate-700">Details</TableHead>
+                      <TableHead className="font-medium text-slate-700">IP Address</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {auditLogs.map((log) => (
-                      <TableRow key={log.id} className="hover:bg-blue-50">
+                      <TableRow key={log.id} className="hover:bg-slate-50/50">
                         <TableCell className="font-medium">
                           {new Date(log.timestamp || log.createdAt).toLocaleString()}
                         </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium">{log.user?.name || "System"}</p>
-                            <p className="text-xs text-gray-500">{log.user?.email || ""}</p>
+                            <p className="text-xs text-slate-500">{log.user?.email || ""}</p>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -309,10 +302,10 @@ export default function AuditLogsPage() {
                           <span className="text-sm">{log.entityType || "N/A"}</span>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-gray-600">{log.description || log.details || "—"}</span>
+                          <span className="text-sm text-slate-600">{log.description || log.details || "—"}</span>
                         </TableCell>
                         <TableCell>
-                          <span className="text-xs font-mono text-gray-500">{log.ipAddress || "N/A"}</span>
+                          <span className="text-xs font-mono text-slate-500">{log.ipAddress || "N/A"}</span>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -323,8 +316,8 @@ export default function AuditLogsPage() {
 
             {/* Pagination */}
             {pagination.total > pagination.limit && (
-              <div className="flex items-center justify-between p-4 border-t-2 border-blue-200 bg-blue-50">
-                <p className="text-sm text-blue-700">
+              <div className="flex items-center justify-between p-4 border-t border-slate-200 bg-slate-50/50">
+                <p className="text-sm text-slate-600">
                   Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
                   {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} logs
                 </p>
@@ -334,7 +327,7 @@ export default function AuditLogsPage() {
                     size="sm"
                     onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
                     disabled={pagination.page === 1}
-                    className="border-2 border-blue-200 hover:border-blue-400"
+                    className="border-slate-200 hover:border-slate-400"
                   >
                     Previous
                   </Button>
@@ -343,16 +336,15 @@ export default function AuditLogsPage() {
                     size="sm"
                     onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
                     disabled={pagination.page * pagination.limit >= pagination.total}
-                    className="border-2 border-blue-200 hover:border-blue-400"
+                    className="border-slate-200 hover:border-slate-400"
                   >
                     Next
                   </Button>
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

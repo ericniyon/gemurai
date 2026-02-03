@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server"
 import { CropCollectionService } from "@/lib/services/CropCollectionService"
 import { verifyAuthToken } from "@/lib/api-auth"
 
+function normalizeJson(value: unknown): Record<string, unknown> | undefined {
+  if (value == null) return undefined
+  if (typeof value !== "object") return undefined
+  try {
+    return JSON.parse(JSON.stringify(value)) as Record<string, unknown>
+  } catch {
+    return undefined
+  }
+}
+
 /**
  * POST /api/v1/mcc/crops/collections - Record crop collection
  */
@@ -44,18 +54,28 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    const quantityNum = typeof quantity === "number" ? quantity : parseFloat(String(quantity))
+    const priceNum = typeof pricePerUnit === "number" ? pricePerUnit : parseFloat(String(pricePerUnit))
+    const advancesNum = advances != null ? (typeof advances === "number" ? advances : parseFloat(String(advances))) : 0
+    if (Number.isNaN(quantityNum) || quantityNum <= 0) {
+      return NextResponse.json({ error: "Invalid quantity" }, { status: 400 })
+    }
+    if (Number.isNaN(priceNum) || priceNum < 0) {
+      return NextResponse.json({ error: "Invalid pricePerUnit" }, { status: 400 })
+    }
+
     const result = await CropCollectionService.recordCollection({
       farmerId,
       mccId,
       cropPeriodId,
       collectionDate: collectionDate ? new Date(collectionDate) : new Date(),
       cropTypeId,
-      quantity: parseFloat(quantity),
+      quantity: quantityNum,
       unit: unit || "kg",
-      qualityTests,
-      pricePerUnit: parseFloat(pricePerUnit),
-      deductions,
-      advances: advances ? parseFloat(advances) : 0,
+      qualityTests: normalizeJson(qualityTests),
+      pricePerUnit: priceNum,
+      deductions: normalizeJson(deductions),
+      advances: Number.isNaN(advancesNum) ? 0 : advancesNum,
       warehouseId,
       locationId,
       productId,
@@ -69,10 +89,11 @@ export async function POST(req: NextRequest) {
     })
   } catch (error) {
     console.error("Record crop collection error:", error)
+    const message = error instanceof Error ? error.message : "Unknown error"
     return NextResponse.json(
       {
         error: "Failed to record crop collection",
-        details: error instanceof Error ? error.message : "Unknown error",
+        details: process.env.NODE_ENV === "development" ? message : undefined,
       },
       { status: 500 }
     )

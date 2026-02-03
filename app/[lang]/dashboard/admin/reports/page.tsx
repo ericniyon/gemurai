@@ -5,14 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { DataTable } from "@/components/ui/data-table"
+import { ColumnDef } from "@tanstack/react-table"
 import {
   Dialog,
   DialogContent,
@@ -61,6 +55,10 @@ interface Report {
   format: string
   downloadUrl?: string
   status: "completed" | "generating" | "failed"
+  startDate?: string
+  endDate?: string
+  mccId?: string
+  farmerId?: string
 }
 
 interface ReportStats {
@@ -98,21 +96,30 @@ export default function AdminReportsPage() {
     if (currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN")) {
       fetchReports()
       fetchMCCs()
-      calculateStats()
     }
   }, [currentUser])
+
+  useEffect(() => {
+    if (currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN")) {
+      calculateStats()
+    }
+  }, [currentUser, reports])
 
   const fetchReports = async () => {
     try {
       setIsLoading(true)
-      // In a real implementation, you'd fetch from a reports history API
-      // For now, we'll use localStorage or generate sample data
       const savedReports = localStorage.getItem("generated_reports")
       if (savedReports) {
-        setReports(JSON.parse(savedReports))
+        try {
+          const parsed = JSON.parse(savedReports)
+          setReports(Array.isArray(parsed) ? parsed : [])
+        } catch {
+          setReports([])
+        }
       }
     } catch (error) {
       console.error("Error fetching reports:", error)
+      setReports([])
     } finally {
       setIsLoading(false)
     }
@@ -138,23 +145,35 @@ export default function AdminReportsPage() {
   }
 
   const calculateStats = () => {
-    const today = new Date()
-    const startOfThisMonth = startOfMonth(today)
+    try {
+      const today = new Date()
+      const startOfThisMonth = startOfMonth(today)
 
-    const todayReports = reports.filter(
-      (r) => format(new Date(r.generatedAt), "yyyy-MM-dd") === format(today, "yyyy-MM-dd")
-    ).length
+      const todayReports = reports.filter((r) => {
+        try {
+          return r.generatedAt && format(new Date(r.generatedAt), "yyyy-MM-dd") === format(today, "yyyy-MM-dd")
+        } catch {
+          return false
+        }
+      }).length
 
-    const thisMonthReports = reports.filter(
-      (r) => new Date(r.generatedAt) >= startOfThisMonth
-    ).length
+      const thisMonthReports = reports.filter((r) => {
+        try {
+          return r.generatedAt && new Date(r.generatedAt) >= startOfThisMonth
+        } catch {
+          return false
+        }
+      }).length
 
-    setStats({
-      totalReports: reports.length,
-      todayReports,
-      thisMonthReports,
-      totalDownloads: reports.filter((r) => r.downloadUrl).length,
-    })
+      setStats({
+        totalReports: reports.length,
+        todayReports,
+        thisMonthReports,
+        totalDownloads: reports.filter((r) => r.downloadUrl).length,
+      })
+    } catch (error) {
+      console.error("Error calculating stats:", error)
+    }
   }
 
   const handleGenerateReport = async () => {
@@ -194,6 +213,10 @@ export default function AdminReportsPage() {
           format: reportConfig.format,
           downloadUrl: result.data.downloadUrl,
           status: "completed",
+          startDate: reportConfig.startDate,
+          endDate: reportConfig.endDate,
+          mccId: reportConfig.mccId !== "all" ? reportConfig.mccId : undefined,
+          farmerId: reportConfig.farmerId || undefined,
         }
 
         const updatedReports = [newReport, ...reports]
@@ -231,11 +254,43 @@ export default function AdminReportsPage() {
     return titles[reportType] || reportType
   }
 
-  const handleDownloadReport = (report: Report) => {
-    if (report.downloadUrl) {
-      window.open(report.downloadUrl, "_blank")
-    } else {
+  const handleDownloadReport = async (report: Report) => {
+    if (!report.downloadUrl) {
       toast.error("Download URL not available")
+      return
+    }
+    try {
+      const token = localStorage.getItem("Gemurai_token")
+      // Append params for re-generation when cache expires
+      const params = new URLSearchParams()
+      if (report.reportType) params.set("reportType", report.reportType)
+      if (report.format) params.set("format", report.format)
+      if (report.startDate) params.set("startDate", report.startDate)
+      if (report.endDate) params.set("endDate", report.endDate)
+      if (report.mccId) params.set("mccId", report.mccId)
+      if (report.farmerId) params.set("farmerId", report.farmerId)
+      const url = params.toString()
+        ? `${report.downloadUrl}?${params.toString()}`
+        : report.downloadUrl
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.error || "Download failed")
+      }
+      const blob = await response.blob()
+      const blobUrl = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = blobUrl
+      const ext = report.format === "pdf" ? "pdf" : "json"
+      a.download = `report_${report.id}.${ext}`
+      a.click()
+      window.URL.revokeObjectURL(blobUrl)
+      toast.success("Report downloaded")
+    } catch (error) {
+      console.error("Download error:", error)
+      toast.error(error instanceof Error ? error.message : "Download failed")
     }
   }
 
@@ -407,79 +462,88 @@ export default function AdminReportsPage() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
               </div>
-            ) : reports.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p>No reports generated yet</p>
-                <p className="text-xs mt-1">Click "Generate Report" to create your first report</p>
-              </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Report Type</TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Format</TableHead>
-                      <TableHead>Generated</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reports.map((report) => (
-                      <TableRow key={report.id}>
-                        <TableCell>
-                          <Badge variant="outline" className="border-blue-300 text-blue-700">
-                            {report.reportType}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">{report.title}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="border-gray-300 text-gray-700 uppercase">
-                            {report.format}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(report.generatedAt), "MMM dd, yyyy HH:mm")}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={report.status === "completed" ? "default" : "secondary"}
-                            className={
-                              report.status === "completed"
-                                ? "bg-green-100 text-green-800 hover:bg-green-100"
-                                : report.status === "generating"
-                                ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-                                : "bg-red-100 text-red-800 hover:bg-red-100"
-                            }
-                          >
-                            {report.status === "completed" && <CheckCircle className="h-3 w-3 mr-1" />}
-                            {report.status === "generating" && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
-                            {report.status === "failed" && <XCircle className="h-3 w-3 mr-1" />}
-                            {report.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {report.downloadUrl && report.status === "completed" ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDownloadReport(report)}
-                              className="h-8"
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </Button>
-                          ) : (
-                            <span className="text-gray-400 text-sm">Not available</span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <DataTable
+                columns={[
+                  {
+                    accessorKey: "reportType",
+                    header: "Report Type",
+                    cell: ({ row }) => (
+                      <Badge variant="outline" className="border-blue-300 text-blue-700">
+                        {row.original.reportType}
+                      </Badge>
+                    ),
+                  },
+                  { accessorKey: "title", header: "Title", cell: ({ row }) => <span className="font-medium">{row.original.title}</span> },
+                  {
+                    accessorKey: "format",
+                    header: "Format",
+                    cell: ({ row }) => (
+                      <Badge variant="outline" className="border-gray-300 text-gray-700 uppercase">
+                        {row.original.format}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    accessorKey: "generatedAt",
+                    header: "Generated",
+                    cell: ({ row }) => {
+                      try {
+                        return row.original.generatedAt
+                          ? format(new Date(row.original.generatedAt), "MMM dd, yyyy HH:mm")
+                          : "-"
+                      } catch {
+                        return "-"
+                      }
+                    },
+                  },
+                  {
+                    accessorKey: "status",
+                    header: "Status",
+                    cell: ({ row }) => (
+                      <Badge
+                        variant={row.original.status === "completed" ? "default" : "secondary"}
+                        className={
+                          row.original.status === "completed"
+                            ? "bg-green-100 text-green-800 hover:bg-green-100"
+                            : row.original.status === "generating"
+                            ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                            : "bg-red-100 text-red-800 hover:bg-red-100"
+                        }
+                      >
+                        {row.original.status === "completed" && <CheckCircle className="h-3 w-3 mr-1" />}
+                        {row.original.status === "generating" && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+                        {row.original.status === "failed" && <XCircle className="h-3 w-3 mr-1" />}
+                        {row.original.status}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    id: "actions",
+                    header: () => <span className="text-right w-full block">Actions</span>,
+                    cell: ({ row }) => (
+                      <div className="flex justify-end">
+                        {row.original.downloadUrl && row.original.status === "completed" ? (
+                          <Button variant="ghost" size="sm" onClick={() => handleDownloadReport(row.original)} className="h-8">
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                          </Button>
+                        ) : (
+                          <span className="text-gray-400 text-sm">Not available</span>
+                        )}
+                      </div>
+                    ),
+                  },
+                ]}
+                data={reports}
+                searchKey="search"
+                searchPlaceholder="Search reports..."
+                emptyMessage="No reports generated yet"
+                emptyDescription="Click Generate Report to create your first report"
+                entityName="reports"
+                pageSize={10}
+                defaultSorting={[{ id: "generatedAt", desc: true }]}
+              />
             )}
           </CardContent>
         </Card>

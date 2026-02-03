@@ -84,6 +84,51 @@ export class SeasonPlanService {
       where,
       include: {
         commodity: true,
+        farmer: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+          },
+        },
+        inputUsage: {
+          include: {
+            inputCatalog: true,
+          },
+        },
+      },
+      orderBy: { expectedHarvestStartDate: "desc" },
+    })
+  }
+
+  /**
+   * Get all season plans for an MCC (when farmerId is not provided)
+   */
+  static async getAllSeasonPlansForMcc(mccId: string, filters?: {
+    commodityId?: string
+    season?: string
+    status?: string
+    region?: string
+  }) {
+    const where: any = {
+      farmer: { mccId },
+    }
+    if (filters?.commodityId) where.commodityId = filters.commodityId
+    if (filters?.season) where.season = filters.season
+    if (filters?.status) where.status = filters.status
+    if (filters?.region) where.region = filters.region
+
+    return await prisma.season_plans.findMany({
+      where,
+      include: {
+        commodity: true,
+        farmer: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+          },
+        },
         inputUsage: {
           include: {
             inputCatalog: true,

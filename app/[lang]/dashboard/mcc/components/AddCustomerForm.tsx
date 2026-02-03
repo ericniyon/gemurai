@@ -19,8 +19,6 @@ import {
   FileText
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
-import { GeoLocationInput } from "@/components/ui/geo-location-input"
-import { Separator } from "@/components/ui/separator"
 
 interface AddCustomerFormProps {
   open: boolean
@@ -37,9 +35,6 @@ interface CustomerFormData {
   contactPerson: string
   taxId: string
   notes: string
-  gpsLatitude?: number | null
-  gpsLongitude?: number | null
-  geoConsent?: boolean
 }
 
 export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFormProps) {
@@ -55,9 +50,6 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
     contactPerson: '',
     taxId: '',
     notes: '',
-    gpsLatitude: null,
-    gpsLongitude: null,
-    geoConsent: false
   })
   
   const [isLoading, setIsLoading] = useState(false)
@@ -123,9 +115,6 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
           taxId: formData.taxId.trim() || null,
           notes: formData.notes.trim() || null,
           mccId: user?.mccId,
-          gpsLatitude: formData.gpsLatitude || null,
-          gpsLongitude: formData.gpsLongitude || null,
-          geoConsent: formData.gpsLatitude != null && formData.gpsLongitude != null,
         }),
       })
 
@@ -142,9 +131,6 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
           contactPerson: '',
           taxId: '',
           notes: '',
-          gpsLatitude: null,
-          gpsLongitude: null,
-          geoConsent: false
         })
         setErrors({})
         onOpenChange(false)
@@ -172,7 +158,7 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
         district: '',
         contactPerson: '',
         taxId: '',
-        notes: ''
+        notes: '',
       })
       setErrors({})
       onOpenChange(false)
@@ -336,24 +322,6 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
                   disabled={isLoading}
                 />
               </div>
-            </div>
-
-            <Separator className="my-4" />
-
-            {/* Geo-location Section */}
-            <div className="space-y-2">
-              <GeoLocationInput
-                latitude={formData.gpsLatitude}
-                longitude={formData.gpsLongitude}
-                onLocationChange={(lat, lng) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    gpsLatitude: lat,
-                    gpsLongitude: lng,
-                    geoConsent: lat != null && lng != null
-                  }))
-                }}
-              />
             </div>
 
             {/* Notes */}

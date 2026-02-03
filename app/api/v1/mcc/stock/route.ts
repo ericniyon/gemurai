@@ -27,19 +27,19 @@ export async function GET(req: NextRequest) {
 
     // Check if user has access to this MCC
     if (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") {
-      const userMcc = await prisma.users.findFirst({
+      const userRecord = await prisma.user.findFirst({
         where: {
           id: user.id,
           mccId: mccId
         }
       })
 
-      if (!userMcc) {
+      if (!userRecord) {
         return NextResponse.json({ error: "Access denied to this MCC" }, { status: 403 })
       }
     }
 
-    // Get MCC warehouses and their products
+    // Get MCC warehouses and their products (products use "stock" not "quantity")
     const warehouses = await prisma.mcc_warehouses.findMany({
       where: {
         mccId: mccId,
@@ -48,8 +48,8 @@ export async function GET(req: NextRequest) {
       include: {
         products: {
           where: {
-            quantity: {
-              gt: 0 // Only show products with stock
+            stock: {
+              gt: 0
             }
           }
         }
@@ -57,21 +57,21 @@ export async function GET(req: NextRequest) {
     })
 
     // Transform the data to match our StockItem interface
-    const stockItems = warehouses.flatMap(warehouse => 
+    const stockItems = warehouses.flatMap(warehouse =>
       warehouse.products.map(product => ({
         id: product.id,
         productName: product.name,
-        productType: product.mccProductType || 'RAW_MILK',
-        currentQuantity: product.quantity || 0,
-        unit: product.unit || 'Liters',
-        unitPrice: product.price || 0,
-        totalValue: (product.quantity || 0) * (product.price || 0),
+        productType: product.mccProductType || "RAW_MILK",
+        currentQuantity: product.stock ?? 0,
+        unit: product.unitOfMeasure || "Liters",
+        unitPrice: product.price ?? 0,
+        totalValue: (product.stock ?? 0) * (product.price ?? 0),
         warehouseName: warehouse.name,
         warehouseType: warehouse.type,
-        lastUpdated: product.updatedAt?.toISOString() || new Date().toISOString(),
+        lastUpdated: product.updatedAt?.toISOString() ?? new Date().toISOString(),
         expiryDate: product.expiryDate?.toISOString(),
-        qualityStatus: 'GOOD', // Default quality status
-        source: 'COLLECTION' as const
+        qualityStatus: "GOOD" as const,
+        source: "COLLECTION" as const
       }))
     )
 

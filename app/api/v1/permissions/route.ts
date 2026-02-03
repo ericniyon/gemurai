@@ -6,9 +6,12 @@ import { cookies } from "next/headers"
 // Get all permissions
 export async function GET(request: NextRequest) {
   try {
-    // Verify superadmin authentication
+    // Verify admin authentication (cookie or Bearer token)
     const cookieStore = await cookies()
-    const token = cookieStore.get("Gemurai_token")
+    const cookieToken = cookieStore.get("Gemurai_token")
+    const authHeader = request.headers.get("Authorization")
+    const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
+    const token = cookieToken?.value || bearerToken
 
     if (!token) {
       return NextResponse.json(
@@ -17,9 +20,9 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const user = await verifyAuthToken(token.value)
+    const user = await verifyAuthToken(token)
 
-    if (!user || user.role !== "SUPER_ADMIN") {
+    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
       return NextResponse.json(
         { success: false, message: "Access denied" },
         { status: 403 }
@@ -79,9 +82,12 @@ export async function GET(request: NextRequest) {
 // Create a new permission
 export async function POST(request: NextRequest) {
   try {
-    // Verify superadmin authentication
+    // Verify admin authentication (cookie or Bearer token)
     const cookieStore = await cookies()
-    const token = cookieStore.get("Gemurai_token")
+    const cookieToken = cookieStore.get("Gemurai_token")
+    const authHeader = request.headers.get("Authorization")
+    const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
+    const token = cookieToken?.value || bearerToken
 
     if (!token) {
       return NextResponse.json(
@@ -90,9 +96,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const user = await verifyAuthToken(token.value)
+    const user = await verifyAuthToken(token)
 
-    if (!user || user.role !== "SUPER_ADMIN") {
+    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
       return NextResponse.json(
         { success: false, message: "Access denied" },
         { status: 403 }

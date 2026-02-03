@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Plus, Edit, Trash2, User, MapPin, Phone, CreditCard, Users } from "lucide-react"
+import { Plus, Edit, Trash2, User, MapPin, Phone, CreditCard, Users, Package } from "lucide-react"
 
 export function FarmerProfileManager() {
   const [farmers, setFarmers] = useState<any[]>([])
@@ -67,7 +67,7 @@ export function FarmerProfileManager() {
       }
 
       // Fetch MCCs
-      const mccsRes = await fetch("/api/v1/mcc", {
+      const mccsRes = await fetch("/api/v1/mcc/setup", {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (mccsRes.ok) {

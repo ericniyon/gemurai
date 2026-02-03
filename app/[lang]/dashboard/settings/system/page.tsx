@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch"
 import { useAuth } from "@/hooks/use-auth"
 import { useParams } from "next/navigation"
 import { Database, Server, Cloud, Save, RefreshCw } from "lucide-react"
+import { SettingsPageHeader } from "@/components/settings/settings-page-header"
 import { toast } from "sonner"
 import {
   Select,
@@ -59,7 +60,7 @@ export default function SystemConfigurationPage() {
         if (settingsRes.ok) {
           const result = await settingsRes.json()
           if (result.success && result.data) {
-            setFormData({ ...formData, ...result.data })
+            setFormData((prev) => ({ ...prev, ...result.data }))
           }
         }
 
@@ -134,7 +135,7 @@ export default function SystemConfigurationPage() {
           <CardContent className="pt-6">
             <div className="text-center">
               <h2 className="text-xl font-bold mb-2">Access Denied</h2>
-              <p className="text-gray-600">You need admin privileges to access this page</p>
+              <p className="text-slate-500">You need admin privileges to access this page</p>
             </div>
           </CardContent>
         </Card>
@@ -143,49 +144,40 @@ export default function SystemConfigurationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg">
-              <Database className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                System Configuration
-              </h1>
-              <p className="text-blue-700 mt-1 font-medium">Configure system-level settings and infrastructure</p>
-            </div>
-          </div>
-        </div>
+    <div className="max-w-5xl mx-auto">
+      <SettingsPageHeader
+        title="System Configuration"
+        description="Configure system-level settings and infrastructure"
+        icon={Database}
+        lang={lang}
+      />
 
-        {/* System Information */}
-        {systemInfo && (
-          <Card className="border-2 border-blue-200 bg-white shadow-lg mb-6">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Server className="h-5 w-5" />
-                System Information
-              </CardTitle>
-            </CardHeader>
+      {/* System Information */}
+      {systemInfo && (
+        <Card className="border-slate-200/80 mb-6">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 text-slate-900">
+              <Server className="h-5 w-5 text-slate-600" />
+              System Information
+            </CardTitle>
+          </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                  <p className="text-sm font-semibold text-blue-700">Database Status</p>
-                  <p className="text-lg font-bold text-blue-900 mt-1">{systemInfo.databaseStatus || "Connected"}</p>
+                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-sm font-medium text-slate-600">Database Status</p>
+                  <p className="text-lg font-bold text-slate-900 mt-1">{systemInfo.databaseStatus || "Connected"}</p>
                 </div>
-                <div className="p-4 bg-indigo-50 rounded-lg border-2 border-indigo-200">
-                  <p className="text-sm font-semibold text-indigo-700">Server Uptime</p>
-                  <p className="text-lg font-bold text-indigo-900 mt-1">{systemInfo.uptime || "N/A"}</p>
+                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-sm font-medium text-slate-600">Server Uptime</p>
+                  <p className="text-lg font-bold text-slate-900 mt-1">{systemInfo.uptime || "N/A"}</p>
                 </div>
-                <div className="p-4 bg-cyan-50 rounded-lg border-2 border-cyan-200">
-                  <p className="text-sm font-semibold text-cyan-700">Version</p>
-                  <p className="text-lg font-bold text-cyan-900 mt-1">{systemInfo.version || "1.0.0"}</p>
+                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-sm font-medium text-slate-600">Version</p>
+                  <p className="text-lg font-bold text-slate-900 mt-1">{systemInfo.version || "1.0.0"}</p>
                 </div>
-                <div className="p-4 bg-sky-50 rounded-lg border-2 border-sky-200">
-                  <p className="text-sm font-semibold text-sky-700">Environment</p>
-                  <p className="text-lg font-bold text-sky-900 mt-1">{systemInfo.environment || "Production"}</p>
+                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-sm font-medium text-slate-600">Environment</p>
+                  <p className="text-lg font-bold text-slate-900 mt-1">{systemInfo.environment || "Production"}</p>
                 </div>
               </div>
               <div className="mt-4">
@@ -193,35 +185,35 @@ export default function SystemConfigurationPage() {
                   type="button"
                   onClick={handleTestConnection}
                   variant="outline"
-                  className="border-2 border-blue-200 hover:border-blue-400"
+                  className="border-slate-200 hover:border-slate-400"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Test Database Connection
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+          </CardContent>
+        </Card>
+      )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
           {/* Backup Settings */}
-          <Card className="border-2 border-blue-200 bg-white shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-white">
+          <Card className="border-slate-200/80">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-slate-900">
                 <Cloud className="h-5 w-5" />
                 Backup & Recovery
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-slate-600">
                 Configure database backup and retention policies
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enableAutoBackup" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enableAutoBackup" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Enable Automatic Backups
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Automatically backup database on schedule</p>
+                  <p className="text-sm text-slate-500 mt-1">Automatically backup database on schedule</p>
                 </div>
                 <Switch
                   id="enableAutoBackup"
@@ -232,14 +224,14 @@ export default function SystemConfigurationPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="databaseBackupFrequency" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="databaseBackupFrequency" className="text-sm font-medium text-slate-700">
                     Backup Frequency
                   </Label>
                   <Select
                     value={formData.databaseBackupFrequency}
                     onValueChange={(value) => setFormData({ ...formData, databaseBackupFrequency: value })}
                   >
-                    <SelectTrigger className="border-2 border-blue-200 focus:border-blue-500">
+                    <SelectTrigger className="border-slate-200 focus:border-primary focus:ring-primary/20">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -252,7 +244,7 @@ export default function SystemConfigurationPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="backupRetentionDays" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="backupRetentionDays" className="text-sm font-medium text-slate-700">
                     Backup Retention (days)
                   </Label>
                   <Input
@@ -260,7 +252,7 @@ export default function SystemConfigurationPage() {
                     type="number"
                     value={formData.backupRetentionDays}
                     onChange={(e) => setFormData({ ...formData, backupRetentionDays: parseInt(e.target.value) || 30 })}
-                    className="border-2 border-blue-200 focus:border-blue-500"
+                    className="border-slate-200 focus:border-primary focus:ring-primary/20"
                     min={1}
                     max={365}
                   />
@@ -270,23 +262,23 @@ export default function SystemConfigurationPage() {
           </Card>
 
           {/* Performance & Monitoring */}
-          <Card className="border-2 border-blue-200 bg-white shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Server className="h-5 w-5" />
+          <Card className="border-slate-200/80">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-slate-900">
+                <Server className="h-5 w-5 text-slate-600" />
                 Performance & Monitoring
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-slate-600">
                 System performance and monitoring settings
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enableAPILogging" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enableAPILogging" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Enable API Logging
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Log all API requests and responses</p>
+                  <p className="text-sm text-slate-500 mt-1">Log all API requests and responses</p>
                 </div>
                 <Switch
                   id="enableAPILogging"
@@ -295,12 +287,12 @@ export default function SystemConfigurationPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enableErrorTracking" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enableErrorTracking" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Enable Error Tracking
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Track and log system errors</p>
+                  <p className="text-sm text-slate-500 mt-1">Track and log system errors</p>
                 </div>
                 <Switch
                   id="enableErrorTracking"
@@ -309,12 +301,12 @@ export default function SystemConfigurationPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enablePerformanceMonitoring" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enablePerformanceMonitoring" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Enable Performance Monitoring
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Monitor system performance metrics</p>
+                  <p className="text-sm text-slate-500 mt-1">Monitor system performance metrics</p>
                 </div>
                 <Switch
                   id="enablePerformanceMonitoring"
@@ -323,12 +315,12 @@ export default function SystemConfigurationPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="cacheEnabled" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="cacheEnabled" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Enable Caching
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Enable response caching for better performance</p>
+                  <p className="text-sm text-slate-500 mt-1">Enable response caching for better performance</p>
                 </div>
                 <Switch
                   id="cacheEnabled"
@@ -339,7 +331,7 @@ export default function SystemConfigurationPage() {
 
               {formData.cacheEnabled && (
                 <div className="space-y-2">
-                  <Label htmlFor="cacheTTL" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="cacheTTL" className="text-sm font-medium text-slate-700">
                     Cache TTL (seconds)
                   </Label>
                   <Input
@@ -347,7 +339,7 @@ export default function SystemConfigurationPage() {
                     type="number"
                     value={formData.cacheTTL}
                     onChange={(e) => setFormData({ ...formData, cacheTTL: parseInt(e.target.value) || 3600 })}
-                    className="border-2 border-blue-200 focus:border-blue-500"
+                    className="border-slate-200 focus:border-primary focus:ring-primary/20"
                     min={60}
                     max={86400}
                   />
@@ -357,23 +349,23 @@ export default function SystemConfigurationPage() {
           </Card>
 
           {/* Security & Rate Limiting */}
-          <Card className="border-2 border-blue-200 bg-white shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Server className="h-5 w-5" />
+          <Card className="border-slate-200/80">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-slate-900">
+                <Server className="h-5 w-5 text-slate-600" />
                 Security & Rate Limiting
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-slate-600">
                 API security and rate limiting configuration
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enableRateLimiting" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enableRateLimiting" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Enable Rate Limiting
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Limit API requests per time window</p>
+                  <p className="text-sm text-slate-500 mt-1">Limit API requests per time window</p>
                 </div>
                 <Switch
                   id="enableRateLimiting"
@@ -385,7 +377,7 @@ export default function SystemConfigurationPage() {
               {formData.enableRateLimiting && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="rateLimitRequests" className="text-base font-semibold text-gray-700">
+                    <Label htmlFor="rateLimitRequests" className="text-sm font-medium text-slate-700">
                       Max Requests
                     </Label>
                     <Input
@@ -393,14 +385,14 @@ export default function SystemConfigurationPage() {
                       type="number"
                       value={formData.rateLimitRequests}
                       onChange={(e) => setFormData({ ...formData, rateLimitRequests: parseInt(e.target.value) || 100 })}
-                      className="border-2 border-blue-200 focus:border-blue-500"
+                      className="border-slate-200 focus:border-primary focus:ring-primary/20"
                       min={10}
                       max={1000}
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="rateLimitWindow" className="text-base font-semibold text-gray-700">
+                    <Label htmlFor="rateLimitWindow" className="text-sm font-medium text-slate-700">
                       Time Window (seconds)
                     </Label>
                     <Input
@@ -408,7 +400,7 @@ export default function SystemConfigurationPage() {
                       type="number"
                       value={formData.rateLimitWindow}
                       onChange={(e) => setFormData({ ...formData, rateLimitWindow: parseInt(e.target.value) || 60 })}
-                      className="border-2 border-blue-200 focus:border-blue-500"
+                      className="border-slate-200 focus:border-primary focus:ring-primary/20"
                       min={10}
                       max={3600}
                     />
@@ -416,12 +408,12 @@ export default function SystemConfigurationPage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex-1">
-                  <Label htmlFor="enableCORS" className="text-base font-semibold text-gray-700 cursor-pointer">
+                  <Label htmlFor="enableCORS" className="text-sm font-medium text-slate-700 cursor-pointer">
                     Enable CORS
                   </Label>
-                  <p className="text-sm text-gray-600 mt-1">Allow cross-origin resource sharing</p>
+                  <p className="text-sm text-slate-500 mt-1">Allow cross-origin resource sharing</p>
                 </div>
                 <Switch
                   id="enableCORS"
@@ -432,14 +424,14 @@ export default function SystemConfigurationPage() {
 
               {formData.enableCORS && (
                 <div className="space-y-2">
-                  <Label htmlFor="allowedOrigins" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="allowedOrigins" className="text-sm font-medium text-slate-700">
                     Allowed Origins (comma-separated)
                   </Label>
                   <Input
                     id="allowedOrigins"
                     value={formData.allowedOrigins}
                     onChange={(e) => setFormData({ ...formData, allowedOrigins: e.target.value })}
-                    className="border-2 border-blue-200 focus:border-blue-500"
+                    className="border-slate-200 focus:border-primary focus:ring-primary/20"
                     placeholder="https://example.com, https://app.example.com"
                   />
                 </div>
@@ -448,20 +440,20 @@ export default function SystemConfigurationPage() {
           </Card>
 
           {/* File Upload Settings */}
-          <Card className="border-2 border-blue-200 bg-white shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-white">
+          <Card className="border-slate-200/80">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-slate-900">
                 <Cloud className="h-5 w-5" />
                 File Upload Settings
               </CardTitle>
-              <CardDescription className="text-blue-100">
+              <CardDescription className="text-slate-600">
                 Configure file upload limits and allowed types
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="maxFileUploadSize" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="maxFileUploadSize" className="text-sm font-medium text-slate-700">
                     Max File Size (MB)
                   </Label>
                   <Input
@@ -469,21 +461,21 @@ export default function SystemConfigurationPage() {
                     type="number"
                     value={formData.maxFileUploadSize}
                     onChange={(e) => setFormData({ ...formData, maxFileUploadSize: parseInt(e.target.value) || 10 })}
-                    className="border-2 border-blue-200 focus:border-blue-500"
+                    className="border-slate-200 focus:border-primary focus:ring-primary/20"
                     min={1}
                     max={100}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="allowedFileTypes" className="text-base font-semibold text-gray-700">
+                  <Label htmlFor="allowedFileTypes" className="text-sm font-medium text-slate-700">
                     Allowed File Types (comma-separated)
                   </Label>
                   <Input
                     id="allowedFileTypes"
                     value={formData.allowedFileTypes}
                     onChange={(e) => setFormData({ ...formData, allowedFileTypes: e.target.value })}
-                    className="border-2 border-blue-200 focus:border-blue-500"
+                    className="border-slate-200 focus:border-primary focus:ring-primary/20"
                     placeholder="jpg,jpeg,png,pdf"
                   />
                 </div>
@@ -496,14 +488,13 @@ export default function SystemConfigurationPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all border-2 border-blue-500"
+              className="bg-slate-900 hover:bg-slate-800"
             >
               <Save className="h-4 w-4 mr-2" />
               {loading ? "Saving..." : "Save Configuration"}
             </Button>
-          </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   )
 }

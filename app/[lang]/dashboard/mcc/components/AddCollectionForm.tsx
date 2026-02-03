@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Combobox } from "@/components/ui/combobox"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { 
   Droplets, 
@@ -19,7 +20,6 @@ import {
   DollarSign,
   FileText,
   User,
-  Search
 } from "lucide-react"
 
 interface AddCollectionFormProps {
@@ -140,7 +140,7 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
   useEffect(() => {
     const fetchFarmers = async () => {
       try {
-        const response = await fetch('/api/v1/mcc/farmers?mccId=mcc_1760697250506', {
+        const response = await fetch('/api/v1/mcc/farmers', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('Gemurai_token')}`
           }
@@ -674,7 +674,7 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto bg-gradient-to-br from-blue-50/30 to-white border-2 border-blue-200/50 shadow-2xl px-4 sm:px-6">
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto bg-white border-2 border-blue-200/80 shadow-2xl px-4 sm:px-6">
         <DialogHeader className="pb-4 border-b border-blue-100">
           <DialogTitle className="flex items-center gap-3 text-2xl font-bold text-gray-900">
             <div className="p-2 bg-blue-600 rounded-lg">
@@ -698,9 +698,9 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
                 <span className="text-red-500">*</span>
               </Label>
               <div className="relative group">
-                <Combobox
+                <SearchableSelect
                   value={formData.farmerId}
-                  onValueChange={(value) => handleFarmerSelect(value)}
+                  onValueChange={(v) => handleFarmerSelect(v)}
                   options={farmers.map((farmer) => ({
                     value: farmer.id,
                     label: farmer.name,
@@ -708,11 +708,12 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
                   placeholder="Search and select farmer..."
                   searchPlaceholder="Type to search farmers..."
                   emptyText="No farmer found"
-                  className={`h-12 text-sm font-medium transition-all duration-200 ${
-                    errors.farmerId 
-                      ? 'border-2 border-red-500 bg-red-50 focus:border-red-600 focus:ring-2 focus:ring-red-200' 
-                      : 'border-2 border-blue-200 bg-gradient-to-r from-white to-blue-50/30 hover:border-blue-400 hover:from-white hover:to-blue-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm hover:shadow-md group-hover:shadow-lg'
-                  }`}
+                  className={cn(
+                    "h-12 text-sm font-medium transition-all duration-200",
+                    errors.farmerId
+                      ? "border-2 border-red-500 bg-red-50 focus:border-red-600 focus:ring-2 focus:ring-red-200"
+                      : "border-2 border-blue-200 shadow-sm hover:shadow-md group-hover:shadow-lg"
+                  )}
                 />
               </div>
               {formData.farmerName && (

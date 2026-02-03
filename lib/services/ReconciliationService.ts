@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { ReconciliationStatus } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 
 export interface ReconciliationResult {
@@ -19,6 +19,7 @@ export interface ReconciliationResult {
 export class ReconciliationService {
   /**
    * Reconcile collections for a period
+   * Uses commodity_collections (primary) + legacy milk/crop collections
    */
   static async reconcileCollections(
     mccId: string,
@@ -26,45 +27,47 @@ export class ReconciliationService {
   ): Promise<ReconciliationResult> {
     const discrepancies: ReconciliationResult["discrepancies"] = []
 
-    // Get milk collections
-    const milkCollections = await prisma.milk_collections.findMany({
+    // 1. Commodity collections (primary model)
+    const commodityCollections = await prisma.commodity_collections.findMany({
       where: {
         mccId,
-        ...(periodId ? { mccPeriodId: periodId } : {}),
+        status: { in: ["APPROVED", "PENDING", "PAID"] },
+        ...(periodId ? { periodId } : {}),
       },
     })
 
-    // Get crop collections
-    const cropCollections = await prisma.crop_collections.findMany({
-      where: {
-        mccId,
-        ...(periodId ? { cropPeriodId: periodId } : {}),
-      },
-    })
+    // 2. Legacy milk + crop collections (optional - may be empty)
+    let milkCollections: { totalAmount?: number; netPayment?: number }[] = []
+    let cropCollections: { totalAmount?: number; netPayment?: number }[] = []
+    try {
+      milkCollections = await prisma.milk_collections.findMany({
+        where: { mccId, ...(periodId ? { mccPeriodId: periodId } : {}) },
+      })
+      cropCollections = await prisma.crop_collections.findMany({
+        where: { mccId, ...(periodId ? { cropPeriodId: periodId } : {}) },
+      })
+    } catch {
+      // Legacy tables may not exist or have different schema
+    }
 
     // Calculate expected totals
-    const expectedMilkTotal = milkCollections.reduce(
-      (sum, c) => sum + (c.totalAmount || 0),
+    const expectedCommodity = commodityCollections.reduce(
+      (sum, c) => sum + (c.totalAmount || c.netPayment || 0),
       0
     )
-    const expectedCropTotal = cropCollections.reduce(
-      (sum, c) => sum + (c.totalAmount || 0),
+    const expectedMilk = milkCollections.reduce(
+      (sum, c) => sum + (c.totalAmount || c.netPayment || 0),
       0
     )
-    const totalExpected = expectedMilkTotal + expectedCropTotal
+    const expectedCrop = cropCollections.reduce(
+      (sum, c) => sum + (c.totalAmount || c.netPayment || 0),
+      0
+    )
+    const totalExpected = expectedCommodity + expectedMilk + expectedCrop
 
-    // Get actual payments
+    // Get actual payments (commodity + legacy)
     const payments = await prisma.mcc_payments.findMany({
-      where: {
-        mccId,
-        ...(periodId
-          ? {
-              milk_collections: {
-                mccPeriodId: periodId,
-              },
-            }
-          : {}),
-      },
+      where: { mccId },
     })
 
     const totalActual = payments.reduce((sum, p) => sum + (p.netPayment || 0), 0)
@@ -83,26 +86,29 @@ export class ReconciliationService {
       })
     }
 
-    // Check individual collection vs payment matching
-    for (const collection of milkCollections) {
-      const payment = payments.find((p) => p.collectionId === collection.id)
+    // Check commodity collection vs payment matching
+    for (const collection of commodityCollections) {
+      const payment = payments.find((p) => p.commodityCollectionId === collection.id)
+      const expectedAmount = collection.netPayment ?? collection.totalAmount ?? 0
       if (!payment) {
-        discrepancies.push({
-          id: collection.id,
-          type: "MISSING_PAYMENT",
-          expected: collection.netPayment || 0,
-          actual: 0,
-          difference: collection.netPayment || 0,
-          description: `Milk collection ${collection.id} has no payment record`,
-        })
-      } else if (Math.abs((collection.netPayment || 0) - (payment.netPayment || 0)) > 0.01) {
+        if (expectedAmount > 0) {
+          discrepancies.push({
+            id: collection.id,
+            type: "MISSING_PAYMENT",
+            expected: expectedAmount,
+            actual: 0,
+            difference: expectedAmount,
+            description: `Commodity collection ${collection.id} has no payment record`,
+          })
+        }
+      } else if (Math.abs(expectedAmount - (payment.netPayment || 0)) > 0.01) {
         discrepancies.push({
           id: collection.id,
           type: "AMOUNT_MISMATCH",
-          expected: collection.netPayment || 0,
+          expected: expectedAmount,
           actual: payment.netPayment || 0,
-          difference: (collection.netPayment || 0) - (payment.netPayment || 0),
-          description: `Milk collection ${collection.id} payment amount mismatch`,
+          difference: expectedAmount - (payment.netPayment || 0),
+          description: `Commodity collection ${collection.id} payment amount mismatch`,
         })
       }
     }
@@ -125,13 +131,18 @@ export class ReconciliationService {
   ): Promise<ReconciliationResult> {
     const discrepancies: ReconciliationResult["discrepancies"] = []
 
-    // Get stock moves for MCC
+    const moveWhere: { moveType: string; state: string; warehouseId?: string } = {
+      moveType: "INCOMING",
+      state: "DONE",
+    }
+    if (warehouseId) moveWhere.warehouseId = warehouseId
+
+    const qtyWhere: { warehouseId?: string } = {}
+    if (warehouseId) qtyWhere.warehouseId = warehouseId
+
+    // Get stock moves
     const stockMoves = await prisma.stockMove.findMany({
-      where: {
-        warehouseId: warehouseId || undefined,
-        moveType: "INCOMING",
-        state: "DONE",
-      },
+      where: moveWhere,
       include: {
         product: true,
       },
@@ -139,9 +150,7 @@ export class ReconciliationService {
 
     // Get stock quantities
     const stockQuantities = await prisma.stockQuantity.findMany({
-      where: {
-        warehouseId: warehouseId || undefined,
-      },
+      where: qtyWhere,
       include: {
         product: true,
       },
@@ -203,18 +212,35 @@ export class ReconciliationService {
     result: ReconciliationResult,
     resolvedBy?: string
   ) {
+    const totalExpected = Number.isFinite(result.totalExpected) ? result.totalExpected : 0
+    const totalActual = Number.isFinite(result.totalActual) ? result.totalActual : 0
+    const discrepancy = Number.isFinite(result.discrepancy) ? result.discrepancy : 0
+    const hasDiscrepancies = result.discrepancies && result.discrepancies.length > 0
+    const status = hasDiscrepancies ? ReconciliationStatus.PENDING : ReconciliationStatus.RESOLVED
+
+    // Ensure discrepancies is JSON-serializable (no NaN, undefined, etc.)
+    const discrepanciesJson = (result.discrepancies || []).map((d) => ({
+      id: String(d.id),
+      type: String(d.type),
+      expected: Number.isFinite(d.expected) ? d.expected : 0,
+      actual: Number.isFinite(d.actual) ? d.actual : 0,
+      difference: Number.isFinite(d.difference) ? d.difference : 0,
+      description: String(d.description || ""),
+    }))
+
     return await prisma.reconciliation_records.create({
       data: {
         mccId,
         periodId: periodId || undefined,
         type,
-        totalExpected: result.totalExpected,
-        totalActual: result.totalActual,
-        discrepancy: result.discrepancy,
-        discrepancies: result.discrepancies as any,
-        status: result.discrepancies.length === 0 ? "RESOLVED" : "PENDING",
-        resolvedBy: resolvedBy || undefined,
-        resolvedAt: result.discrepancies.length === 0 ? new Date() : undefined,
+        totalExpected,
+        totalActual,
+        discrepancy,
+        discrepancies: discrepanciesJson,
+        status,
+        ...(!hasDiscrepancies && resolvedBy
+          ? { resolvedBy, resolvedAt: new Date() }
+          : {}),
       },
     })
   }

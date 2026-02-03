@@ -1,15 +1,30 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { User, Calendar, Package } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { useSearchParams } from "next/navigation"
 import { FarmerProfileManager } from "@/components/farm-level-data/FarmerProfileManager"
 import { SeasonPlanManager } from "@/components/farm-level-data/SeasonPlanManager"
 import { InputUsageLogger } from "@/components/farm-level-data/InputUsageLogger"
 
+const VALID_TABS = ["farmer-profile", "season-plans", "input-usage"]
+
 export default function FarmLevelDataPage() {
   const { user } = useAuth()
+  const searchParams = useSearchParams()
+  const tabParam = searchParams?.get("tab")
+  const [activeTab, setActiveTab] = useState(
+    VALID_TABS.includes(tabParam || "") ? tabParam! : "farmer-profile"
+  )
+
+  useEffect(() => {
+    if (tabParam && VALID_TABS.includes(tabParam)) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
 
   if (!user) {
     return (
@@ -23,12 +38,25 @@ export default function FarmLevelDataPage() {
     )
   }
 
+  if (user.role !== "MCC_MANAGER" && user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-8 pb-8 text-center">
+            <h2 className="text-xl font-bold mb-2">Access Denied</h2>
+            <p className="text-gray-600">You need MCC Manager or Admin access to view farm-level data.</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
         <Card className="bg-white border border-gray-200 shadow-sm overflow-hidden">
           <CardContent className="p-0">
-            <Tabs defaultValue="farmer-profile" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               {/* Tab Header */}
               <div className="border-b border-gray-200 bg-white">
                 <div className="px-4 sm:px-6">

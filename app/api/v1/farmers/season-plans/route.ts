@@ -97,20 +97,36 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status")
     const region = searchParams.get("region")
 
-    if (!farmerId) {
-      return NextResponse.json({ error: "farmerId is required" }, { status: 400 })
+    const mccId = user.mccId ?? user.staff?.mccId
+
+    let plans
+    if (farmerId) {
+      plans = await SeasonPlanService.getFarmerSeasonPlans(farmerId, {
+        commodityId: commodityId || undefined,
+        season: season || undefined,
+        status: status || undefined,
+        region: region || undefined,
+      })
+    } else if (mccId) {
+      plans = await SeasonPlanService.getAllSeasonPlansForMcc(mccId, {
+        commodityId: commodityId || undefined,
+        season: season || undefined,
+        status: status || undefined,
+        region: region || undefined,
+      })
+    } else {
+      return NextResponse.json(
+        { error: "farmerId is required when user has no MCC scope" },
+        { status: 400 }
+      )
     }
 
-    const plans = await SeasonPlanService.getFarmerSeasonPlans(farmerId, {
-      commodityId: commodityId || undefined,
-      season: season || undefined,
-      status: status || undefined,
-      region: region || undefined,
-    })
+    // Deduplicate by id (defensive - Prisma shouldn't return duplicates)
+    const uniquePlans = [...new Map(plans.map((p) => [p.id, p])).values()]
 
     return NextResponse.json({
       success: true,
-      data: plans,
+      data: uniquePlans,
     })
   } catch (error) {
     console.error("Get season plans error:", error)

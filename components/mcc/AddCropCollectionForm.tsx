@@ -20,12 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Wheat, Save, X, Loader2, AlertCircle } from "lucide-react"
+import { Wheat, Loader2, User, Package, Calculator, FileText } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
-import { GeoLocationInput } from "@/components/ui/geo-location-input"
-import { Separator } from "@/components/ui/separator"
 
 interface AddCropCollectionFormProps {
   open: boolean
@@ -44,22 +41,15 @@ interface CropCollectionFormData {
     grade?: string
     foreignMatter?: number
   }
-  deductions: {
-    products?: Array<{
-      productId: string
-      quantity: number
-      unitPrice: number
-    }>
-    others?: {
-      transport?: number
-      storage?: number
-    }
-  }
+  deductions: Record<string, unknown>
   advances: number
   notes: string
   gpsLatitude?: number | null
   gpsLongitude?: number | null
 }
+
+const inputClasses =
+  "rounded-xl border border-emerald-200/80 bg-white text-sm shadow-sm transition placeholder:text-slate-400 focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:ring-offset-0"
 
 export function AddCropCollectionForm({
   open,
@@ -93,13 +83,28 @@ export function AddCropCollectionForm({
     }
   }, [open, user?.mccId])
 
+  // Auto-capture GPS when dialog opens (if browser supports and user allows)
+  useEffect(() => {
+    if (!open) return
+    if (typeof navigator === "undefined" || !navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setFormData((prev) => ({
+          ...prev,
+          gpsLatitude: pos.coords.latitude,
+          gpsLongitude: pos.coords.longitude,
+        }))
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    )
+  }, [open])
+
   const fetchFarmers = async () => {
     try {
       const token = localStorage.getItem("Gemurai_token")
       const response = await fetch(`/api/v1/mcc/farmers?mccId=${user?.mccId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       if (response.ok) {
         const data = await response.json()
@@ -114,14 +119,11 @@ export function AddCropCollectionForm({
     try {
       const token = localStorage.getItem("Gemurai_token")
       const response = await fetch("/api/v1/mcc/crops/types", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       })
       if (response.ok) {
         const data = await response.json()
         setCropTypes(data.data || [])
-        // Set default price if crop type selected
         if (data.data?.length > 0 && !formData.cropTypeId) {
           const firstType = data.data[0]
           setFormData((prev) => ({
@@ -150,32 +152,27 @@ export function AddCropCollectionForm({
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof CropCollectionFormData, string>> = {}
-
     if (!formData.farmerId) newErrors.farmerId = "Farmer is required"
     if (!formData.cropTypeId) newErrors.cropTypeId = "Crop type is required"
     if (!formData.quantity || formData.quantity <= 0) newErrors.quantity = "Quantity must be greater than 0"
     if (!formData.pricePerUnit || formData.pricePerUnit <= 0)
       newErrors.pricePerUnit = "Price per unit must be greater than 0"
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!validateForm()) {
       toast.error("Please fix the errors in the form")
       return
     }
-
     if (!user?.mccId) {
       toast.error("Your profile is not assigned to an MCC")
       return
     }
 
     setIsLoading(true)
-
     try {
       const token = localStorage.getItem("Gemurai_token")
       const response = await fetch("/api/v1/mcc/crops/collections", {
@@ -202,12 +199,10 @@ export function AddCropCollectionForm({
       })
 
       const result = await response.json()
-
       if (response.ok && result.success) {
         toast.success("Crop collection recorded successfully")
         onSuccess?.()
         onOpenChange(false)
-        // Reset form
         setFormData({
           farmerId: "",
           cropTypeId: "",
@@ -233,30 +228,40 @@ export function AddCropCollectionForm({
     }
   }
 
+  const grossAmount = (formData.quantity || 0) * (formData.pricePerUnit || 0)
+  const netAmount = grossAmount - (formData.advances || 0)
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Wheat className="h-5 w-5" />
-            Record Crop Collection
-          </DialogTitle>
-          <DialogDescription>
-            Record a new crop collection from a farmer
-          </DialogDescription>
+      <DialogContent className="max-w-2xl rounded-3xl border border-emerald-100 bg-white shadow-2xl p-0 overflow-hidden">
+        <DialogHeader className="bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border-b border-emerald-100 px-6 pt-6 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25">
+              <Wheat className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-semibold text-gray-900">
+                Record Crop Collection
+              </DialogTitle>
+              <DialogDescription className="text-sm text-gray-600 mt-0.5">
+                Record a new crop collection from a farmer
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Collection Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col max-h-[70vh]">
+          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+            {/* Collection details */}
+            <section className="space-y-4 rounded-xl border border-emerald-100 bg-slate-50/40 px-4 py-4">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                <Package className="h-4 w-4 text-emerald-600" />
+                Collection details
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="farmerId">
-                    Farmer <span className="text-red-500">*</span>
+                  <Label htmlFor="farmerId" className="text-sm font-medium text-gray-700">
+                    Farmer <span className="text-rose-500">*</span>
                   </Label>
                   <Select
                     value={formData.farmerId}
@@ -264,56 +269,59 @@ export function AddCropCollectionForm({
                       setFormData((prev) => ({ ...prev, farmerId: value }))
                     }
                   >
-                    <SelectTrigger className={errors.farmerId ? "border-red-500" : ""}>
+                    <SelectTrigger
+                      className={inputClasses + (errors.farmerId ? " border-rose-400" : "")}
+                    >
                       <SelectValue placeholder="Select farmer" />
                     </SelectTrigger>
                     <SelectContent>
                       {farmers.map((farmer) => (
                         <SelectItem key={farmer.id} value={farmer.id}>
-                          {farmer.name} - {farmer.phone}
+                          {farmer.name} {farmer.phone ? `· ${farmer.phone}` : ""}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {errors.farmerId && (
-                    <p className="text-sm text-red-500">{errors.farmerId}</p>
+                    <p className="text-xs text-rose-500">{errors.farmerId}</p>
                   )}
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="cropTypeId">
-                    Crop Type <span className="text-red-500">*</span>
+                  <Label htmlFor="cropTypeId" className="text-sm font-medium text-gray-700">
+                    Crop type <span className="text-rose-500">*</span>
                   </Label>
                   <Select
                     value={formData.cropTypeId}
                     onValueChange={handleCropTypeChange}
                   >
-                    <SelectTrigger className={errors.cropTypeId ? "border-red-500" : ""}>
+                    <SelectTrigger
+                      className={inputClasses + (errors.cropTypeId ? " border-rose-400" : "")}
+                    >
                       <SelectValue placeholder="Select crop type" />
                     </SelectTrigger>
                     <SelectContent>
                       {cropTypes.map((type) => (
                         <SelectItem key={type.id} value={type.id}>
-                          {type.name} ({type.unitOfMeasure})
+                          {type.name} ({type.unitOfMeasure || "kg"})
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {errors.cropTypeId && (
-                    <p className="text-sm text-red-500">{errors.cropTypeId}</p>
+                    <p className="text-xs text-rose-500">{errors.cropTypeId}</p>
                   )}
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="quantity">
-                    Quantity <span className="text-red-500">*</span>
+                  <Label htmlFor="quantity" className="text-sm font-medium text-gray-700">
+                    Quantity <span className="text-rose-500">*</span>
                   </Label>
                   <Input
                     id="quantity"
                     type="number"
                     step="0.01"
+                    min={0}
                     value={formData.quantity || ""}
                     onChange={(e) =>
                       setFormData((prev) => ({
@@ -321,33 +329,33 @@ export function AddCropCollectionForm({
                         quantity: parseFloat(e.target.value) || 0,
                       }))
                     }
-                    className={errors.quantity ? "border-red-500" : ""}
+                    className={inputClasses + (errors.quantity ? " border-rose-400" : "")}
+                    placeholder="0"
                   />
                   {errors.quantity && (
-                    <p className="text-sm text-red-500">{errors.quantity}</p>
+                    <p className="text-xs text-rose-500">{errors.quantity}</p>
                   )}
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="unit">Unit</Label>
+                  <Label htmlFor="unit" className="text-sm font-medium text-gray-700">
+                    Unit
+                  </Label>
                   <Input
                     id="unit"
                     value={formData.unit}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, unit: e.target.value }))
-                    }
-                    disabled
+                    readOnly
+                    className={inputClasses + " bg-slate-50 text-slate-600"}
                   />
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="pricePerUnit">
-                    Price per Unit <span className="text-red-500">*</span>
+                  <Label htmlFor="pricePerUnit" className="text-sm font-medium text-gray-700">
+                    Price per unit <span className="text-rose-500">*</span>
                   </Label>
                   <Input
                     id="pricePerUnit"
                     type="number"
                     step="0.01"
+                    min={0}
                     value={formData.pricePerUnit || ""}
                     onChange={(e) =>
                       setFormData((prev) => ({
@@ -355,47 +363,64 @@ export function AddCropCollectionForm({
                         pricePerUnit: parseFloat(e.target.value) || 0,
                       }))
                     }
-                    className={errors.pricePerUnit ? "border-red-500" : ""}
+                    className={inputClasses + (errors.pricePerUnit ? " border-rose-400" : "")}
+                    placeholder="0"
                   />
                   {errors.pricePerUnit && (
-                    <p className="text-sm text-red-500">{errors.pricePerUnit}</p>
+                    <p className="text-xs text-rose-500">{errors.pricePerUnit}</p>
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              {/* Total preview */}
+              <div className="flex items-center justify-between rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3">
+                <span className="text-sm font-medium text-emerald-800">Estimated total</span>
+                <span className="text-lg font-bold text-emerald-700">
+                  RF {netAmount >= 0 ? netAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : "0"}
+                </span>
+              </div>
+              {formData.advances > 0 && (
+                <p className="text-xs text-gray-500">
+                  Gross: RF {grossAmount.toLocaleString()} − Advances: RF {formData.advances.toLocaleString()}
+                </p>
+              )}
+            </section>
 
-          {/* Quality Tests */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Quality Tests (Optional)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Quality (optional) */}
+            <section className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/30 px-4 py-4">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                <Calculator className="h-4 w-4 text-slate-600" />
+                Quality (optional)
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="moisture">Moisture (%)</Label>
+                  <Label htmlFor="moisture" className="text-sm font-medium text-gray-600">
+                    Moisture (%)
+                  </Label>
                   <Input
                     id="moisture"
                     type="number"
                     step="0.01"
-                    value={formData.qualityTests.moisture || ""}
+                    value={formData.qualityTests.moisture ?? ""}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
                         qualityTests: {
                           ...prev.qualityTests,
-                          moisture: parseFloat(e.target.value) || undefined,
+                          moisture: e.target.value ? parseFloat(e.target.value) : undefined,
                         },
                       }))
                     }
+                    className={inputClasses}
+                    placeholder="—"
                   />
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="grade">Grade</Label>
+                  <Label htmlFor="grade" className="text-sm font-medium text-gray-600">
+                    Grade
+                  </Label>
                   <Input
                     id="grade"
-                    value={formData.qualityTests.grade || ""}
+                    value={formData.qualityTests.grade ?? ""}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -405,44 +430,50 @@ export function AddCropCollectionForm({
                         },
                       }))
                     }
-                    placeholder="A, B, C, etc."
+                    className={inputClasses}
+                    placeholder="A, B, C"
                   />
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="foreignMatter">Foreign Matter (%)</Label>
+                  <Label htmlFor="foreignMatter" className="text-sm font-medium text-gray-600">
+                    Foreign matter (%)
+                  </Label>
                   <Input
                     id="foreignMatter"
                     type="number"
                     step="0.01"
-                    value={formData.qualityTests.foreignMatter || ""}
+                    value={formData.qualityTests.foreignMatter ?? ""}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
                         qualityTests: {
                           ...prev.qualityTests,
-                          foreignMatter: parseFloat(e.target.value) || undefined,
+                          foreignMatter: e.target.value ? parseFloat(e.target.value) : undefined,
                         },
                       }))
                     }
+                    className={inputClasses}
+                    placeholder="—"
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </section>
 
-          {/* Deductions & Advances */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Deductions & Advances</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            {/* Deductions & advances */}
+            <section className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/30 px-4 py-4">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                <User className="h-4 w-4 text-slate-600" />
+                Advances
+              </h3>
               <div className="space-y-2">
-                <Label htmlFor="advances">Advances</Label>
+                <Label htmlFor="advances" className="text-sm font-medium text-gray-600">
+                  Advances (RF)
+                </Label>
                 <Input
                   id="advances"
                   type="number"
                   step="0.01"
+                  min={0}
                   value={formData.advances || ""}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -450,60 +481,52 @@ export function AddCropCollectionForm({
                       advances: parseFloat(e.target.value) || 0,
                     }))
                   }
+                  className={inputClasses}
+                  placeholder="0"
                 />
               </div>
-            </CardContent>
-          </Card>
+            </section>
 
-          {/* Geo-location */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Location (Optional)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <GeoLocationInput
-                latitude={formData.gpsLatitude}
-                longitude={formData.gpsLongitude}
-                onLocationChange={(lat, lng) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    gpsLatitude: lat,
-                    gpsLongitude: lng,
-                  }))
-                }}
+            {/* Notes */}
+            <section className="space-y-2">
+              <Label htmlFor="notes" className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                <FileText className="h-4 w-4 text-slate-600" />
+                Notes
+              </Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, notes: e.target.value }))
+                }
+                rows={3}
+                className={inputClasses + " resize-none"}
+                placeholder="Optional notes..."
               />
-            </CardContent>
-          </Card>
-
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, notes: e.target.value }))
-              }
-              rows={3}
-            />
+            </section>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              <X className="h-4 w-4 mr-2" />
+          <DialogFooter className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end border-t border-gray-100 bg-slate-50/50 px-6 py-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="rounded-xl border border-emerald-200 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-700 hover:to-teal-700 hover:shadow-xl hover:shadow-emerald-500/30 disabled:opacity-70"
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Recording...
+                  Recording…
                 </>
               ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Record Collection
-                </>
+                "Record collection"
               )}
             </Button>
           </DialogFooter>

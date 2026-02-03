@@ -40,7 +40,7 @@ export function Combobox({
   const selectedOption = options.find((option) => option.value === value)
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -62,28 +62,23 @@ export function Combobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 bg-white" align="start">
-        <Command shouldFilter={false}>
+      <PopoverContent className="w-full p-0 bg-white z-[100]" align="start">
+        <Command shouldFilter={true}>
+          <CommandInput placeholder={searchPlaceholder} className="h-10" />
           <CommandList className="bg-white max-h-[300px] overflow-y-auto">
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground bg-white">{emptyText}</CommandEmpty>
             <CommandGroup className="bg-white">
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label}
-                  onSelect={(currentValue) => {
-                    // Find the option by label (since Command uses label for search)
-                    const selectedOption = options.find(opt => 
-                      opt.label.toLowerCase() === currentValue.toLowerCase()
-                    )
-                    if (selectedOption) {
-                      // Always set the value when an option is selected (don't toggle)
-                      const newValue = selectedOption.value
-                      onValueChange?.(newValue)
-                      setOpen(false)
-                      if (onBlur) {
-                        setTimeout(onBlur, 100)
-                      }
+                  value={option.value}
+                  keywords={[option.label]}
+                  onSelect={(selectedValue) => {
+                    // value is option.value (id) - passed directly from cmdk
+                    onValueChange?.(selectedValue)
+                    setOpen(false)
+                    if (onBlur) {
+                      setTimeout(onBlur, 100)
                     }
                   }}
                   className="cursor-pointer bg-white hover:bg-blue-50 transition-colors"

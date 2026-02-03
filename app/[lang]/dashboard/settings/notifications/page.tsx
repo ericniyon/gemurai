@@ -7,7 +7,8 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@/hooks/use-auth"
 import { useParams } from "next/navigation"
-import { Bell, Save, Mail, MessageSquare, Smartphone } from "lucide-react"
+import { Bell, Save, Mail, Smartphone } from "lucide-react"
+import { SettingsPageHeader } from "@/components/settings/settings-page-header"
 import { toast } from "sonner"
 
 export default function NotificationsPage() {
@@ -57,7 +58,7 @@ export default function NotificationsPage() {
         if (response.ok) {
           const result = await response.json()
           if (result.success && result.data) {
-            setFormData({ ...formData, ...result.data })
+            setFormData((prev) => ({ ...prev, ...result.data }))
           }
         }
       } catch (error) {
@@ -160,34 +161,25 @@ export default function NotificationsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg">
-              <Bell className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Notification Settings
-              </h1>
-              <p className="text-blue-700 mt-1 font-medium">Configure notification preferences and channels</p>
-            </div>
-          </div>
-        </div>
+    <div className="max-w-5xl mx-auto">
+      <SettingsPageHeader
+        title="Notification Settings"
+        description="Configure notification preferences and channels"
+        icon={Bell}
+        lang={lang}
+      />
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
           {notificationGroups.map((group, groupIndex) => {
             const Icon = group.icon
             return (
-              <Card key={groupIndex} className="border-2 border-blue-200 bg-white shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-                  <CardTitle className="flex items-center gap-2 text-white">
-                    <Icon className="h-5 w-5" />
+              <Card key={groupIndex} className="border-slate-200/80">
+                <CardHeader className="border-b border-slate-100 bg-slate-50/50 rounded-t-lg">
+                  <CardTitle className="flex items-center gap-2 text-slate-900">
+                    <Icon className="h-5 w-5 text-slate-600" />
                     {group.title}
                   </CardTitle>
-                  <CardDescription className="text-blue-100">
+                  <CardDescription className="text-slate-600">
                     Configure {group.title.toLowerCase()} preferences
                   </CardDescription>
                 </CardHeader>
@@ -195,13 +187,13 @@ export default function NotificationsPage() {
                   {group.items.map((item) => (
                     <div
                       key={item.key}
-                      className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-2 border-blue-200 hover:border-blue-400 transition-all"
+                      className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-all"
                     >
                       <div className="flex-1">
-                        <Label htmlFor={item.key} className="text-base font-semibold text-gray-700 cursor-pointer">
+                        <Label htmlFor={item.key} className="text-sm font-medium text-slate-700 cursor-pointer">
                           {item.label}
                         </Label>
-                        <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                        <p className="text-sm text-slate-500 mt-1">{item.description}</p>
                       </div>
                       <Switch
                         id={item.key}
@@ -222,14 +214,13 @@ export default function NotificationsPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all border-2 border-blue-500"
+              className="bg-slate-900 hover:bg-slate-800"
             >
               <Save className="h-4 w-4 mr-2" />
               {loading ? "Saving..." : "Save Notification Settings"}
             </Button>
-          </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   )
 }

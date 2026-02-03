@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
         console.log(`✅ User created: ${user.email}`);
 
         // Validate and assign role
-        const validRoles = ['CONSUMER', 'EMPLOYER', 'AGENT', 'INTERVIEWER']
+        const validRoles = ['CONSUMER', 'EMPLOYER', 'AGENT', 'INTERVIEWER', 'FIELD_AGENT']
         const requestedRole = role.toUpperCase()
         
         if (!validRoles.includes(requestedRole)) {

@@ -16,30 +16,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 })
     }
 
-    // Check if user has DCC role
-    const userRole = await prisma.userRoleAssignment.findFirst({
-      where: {
-        userId: payload.id,
-        isActive: true,
-        role: {
-          name: 'DCC'
-        }
-      },
-      include: {
-        role: true
-      }
-    })
-
-    if (!userRole || userRole.role.name !== 'DCC') {
-      return NextResponse.json({ success: false, message: 'Access denied. DCC role required.' }, { status: 403 })
+    // Allow DCC (from role assignment), MCC_MANAGER, SUPER_ADMIN, ADMIN
+    const allowedByToken = ['MCC_MANAGER', 'SUPER_ADMIN', 'ADMIN'].includes(payload.role)
+    let allowedByDCC = false
+    if (!allowedByToken) {
+      const userRole = await prisma.userRoleAssignment.findFirst({
+        where: {
+          userId: payload.id,
+          isActive: true,
+          role: { name: 'DCC' }
+        },
+        include: { role: true }
+      })
+      allowedByDCC = !!userRole && userRole.role.name === 'DCC'
+    }
+    if (!allowedByToken && !allowedByDCC) {
+      return NextResponse.json({ success: false, message: 'Access denied.' }, { status: 403 })
     }
 
-    // Fetch available products (products with stock > 0)
-    const products = await prisma.product.findMany({
+    // Fetch available products (isActive; for MCC/crop processing allow all active so dropdowns work)
+    const products = await prisma.products.findMany({
       where: {
-        stock: {
-          gt: 0
-        },
         isActive: true
       },
       select: {
@@ -53,7 +50,8 @@ export async function GET(request: NextRequest) {
         commission: true,
         sellerId: true,
         image: true,
-        images: true
+        images: true,
+        unitOfMeasure: true
       },
       orderBy: {
         name: 'asc'

@@ -3,6 +3,7 @@ import { MCCInventoryService } from "@/lib/services/MCCInventoryService"
 import { checkMCCPermission } from "@/lib/mcc-auth"
 import { verifyAuthToken } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
+import { generateMCCCode } from "@/lib/utils/mcc-utils"
 
 // GET /api/v1/mcc/setup - Get MCCs list or single MCC
 export async function GET(req: NextRequest) {
@@ -290,17 +291,23 @@ export async function POST(req: NextRequest) {
     const data = await req.json()
     const mccData = data.mcc || data
 
+    const code = mccData.code || (await generateMCCCode())
+
     // Create MCC
     const mcc = await prisma.mccs.create({
       data: {
         name: mccData.name,
-        code: mccData.code || undefined,
+        code,
         location: mccData.location,
         region: mccData.region || undefined,
         address: mccData.address || undefined,
         managerUserId: mccData.managerUserId || undefined,
         settings: mccData.settings || {},
         contactInfo: mccData.contactInfo || {},
+        gpsLatitude: mccData.gpsLatitude ?? undefined,
+        gpsLongitude: mccData.gpsLongitude ?? undefined,
+        isActive: mccData.isActive !== false,
+        updatedAt: new Date(),
       },
     })
 
@@ -362,6 +369,10 @@ export async function PUT(req: NextRequest) {
         ...(updateData.managerUserId !== undefined && { managerUserId: updateData.managerUserId || null }),
         ...(updateData.settings && { settings: updateData.settings }),
         ...(updateData.contactInfo && { contactInfo: updateData.contactInfo }),
+        ...(updateData.gpsLatitude !== undefined && { gpsLatitude: updateData.gpsLatitude ?? null }),
+        ...(updateData.gpsLongitude !== undefined && { gpsLongitude: updateData.gpsLongitude ?? null }),
+        ...(updateData.isActive !== undefined && { isActive: updateData.isActive }),
+        updatedAt: new Date(),
       },
     })
 

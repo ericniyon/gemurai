@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { checkMCCPermission } from "@/lib/mcc-auth"
+import { cacheService } from "@/lib/services/redis-service"
+import { CACHE_TTL } from "@/lib/services/cache-config"
 
 // POST /api/v1/mcc/reports - Generate a report
 export async function POST(req: NextRequest) {
@@ -35,47 +37,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized for this MCC" }, { status: 403 })
     }
 
-    switch (reportType) {
-      case 'summary':
-        reportData = await generateSummaryReport(mccId, startDate, endDate)
-        break
-      case 'farmer':
-        reportData = await generateFarmerReport(mccId, startDate, endDate, data.farmerId)
-        break
-      case 'financial':
-        reportData = await generateFinancialReport(mccId, startDate, endDate)
-        break
-      case 'period':
-        reportData = await generatePeriodReport(mccId, startDate, endDate)
-        break
-      case 'analytics':
-        reportData = await generateAnalyticsReport(mccId, startDate, endDate)
-        break
-      case 'quality':
-        reportData = await generateQualityReport(mccId, startDate, endDate)
-        break
-      case 'sales':
-        reportData = await generateSalesReport(mccId, startDate, endDate)
-        break
-      case 'rentals':
-        reportData = await generateRentalsReport(mccId, startDate, endDate)
-        break
-      case 'daily':
-        reportData = await generateDailyReport(mccId, startDate, endDate)
-        break
-      case 'weekly':
-        reportData = await generateWeeklyReport(mccId, startDate, endDate)
-        break
-      case 'monthly':
-        reportData = await generateMonthlyReport(mccId, startDate, endDate)
-        break
-      default:
-        return NextResponse.json({ error: "Invalid report type" }, { status: 400 })
-    }
+    reportData = await generateReportData({ reportType, mccId, startDate, endDate, farmerId: data.farmerId })
 
     // Generate report file (simplified - in production you'd use libraries like puppeteer for PDF, xlsx for Excel)
     const reportId = `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
+    const generatedAt = new Date().toISOString()
+
+    // Store report in cache for download (1 hour TTL)
+    const reportPayload = {
+      reportId,
+      reportType,
+      format,
+      generatedAt,
+      mccId,
+      startDate,
+      endDate,
+      ...reportData
+    }
+    await cacheService.set(`mcc_report:${reportId}`, reportPayload, CACHE_TTL.LONG)
+
     return NextResponse.json({
       success: true,
       message: "Report generated successfully",
@@ -83,7 +63,7 @@ export async function POST(req: NextRequest) {
         reportId,
         reportType,
         format,
-        generatedAt: new Date().toISOString(),
+        generatedAt,
         downloadUrl: `/api/v1/mcc/reports/${reportId}/download`,
         ...reportData
       }
@@ -101,10 +81,10 @@ export async function POST(req: NextRequest) {
 }
 
 // Helper functions for different report types
-async function generateSummaryReport(mccId: string, startDate: string, endDate: string) {
+async function generateSummaryReport(mccId: string | undefined, startDate: string, endDate: string) {
   const collections = await prisma.milk_collections.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       collectionDate: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -123,7 +103,7 @@ async function generateSummaryReport(mccId: string, startDate: string, endDate: 
 
   const payments = await prisma.mcc_payments.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       paymentDate: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -151,9 +131,9 @@ async function generateSummaryReport(mccId: string, startDate: string, endDate: 
   }
 }
 
-async function generateFarmerReport(mccId: string, startDate: string, endDate: string, farmerId?: string) {
+async function generateFarmerReport(mccId: string | undefined, startDate: string, endDate: string, farmerId?: string) {
   const whereClause: any = {
-    mccId,
+    ...(mccId && { mccId }),
     collectionDate: {
       gte: new Date(startDate),
       lte: new Date(endDate)
@@ -203,10 +183,10 @@ async function generateFarmerReport(mccId: string, startDate: string, endDate: s
   }
 }
 
-async function generateFinancialReport(mccId: string, startDate: string, endDate: string) {
+async function generateFinancialReport(mccId: string | undefined, startDate: string, endDate: string) {
   const collections = await prisma.milk_collections.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       collectionDate: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -216,7 +196,7 @@ async function generateFinancialReport(mccId: string, startDate: string, endDate
 
   const payments = await prisma.mcc_payments.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       paymentDate: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -242,10 +222,10 @@ async function generateFinancialReport(mccId: string, startDate: string, endDate
   }
 }
 
-async function generatePeriodReport(mccId: string, startDate: string, endDate: string) {
+async function generatePeriodReport(mccId: string | undefined, startDate: string, endDate: string) {
   const collections = await prisma.milk_collections.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       collectionDate: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -299,10 +279,10 @@ async function generatePeriodReport(mccId: string, startDate: string, endDate: s
   }
 }
 
-async function generateAnalyticsReport(mccId: string, startDate: string, endDate: string) {
+async function generateAnalyticsReport(mccId: string | undefined, startDate: string, endDate: string) {
   const collections = await prisma.milk_collections.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       collectionDate: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -373,10 +353,10 @@ async function generateAnalyticsReport(mccId: string, startDate: string, endDate
 }
 
 // Quality report: rejection rates, antibiotic fails, quality metrics
-async function generateQualityReport(mccId: string, startDate: string, endDate: string) {
+async function generateQualityReport(mccId: string | undefined, startDate: string, endDate: string) {
   const collections = await prisma.milk_collections.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       collectionDate: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -422,10 +402,10 @@ async function generateQualityReport(mccId: string, startDate: string, endDate: 
 }
 
 // Sales report: product sales, top products, sales by category
-async function generateSalesReport(mccId: string, startDate: string, endDate: string) {
+async function generateSalesReport(mccId: string | undefined, startDate: string, endDate: string) {
   const sales = await prisma.sales.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       saleAt: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -492,10 +472,10 @@ async function generateSalesReport(mccId: string, startDate: string, endDate: st
 }
 
 // Rentals report: rental income, active rentals, returns
-async function generateRentalsReport(mccId: string, startDate: string, endDate: string) {
+async function generateRentalsReport(mccId: string | undefined, startDate: string, endDate: string) {
   const rentals = await prisma.rentals.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       createdAt: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -552,14 +532,14 @@ async function generateRentalsReport(mccId: string, startDate: string, endDate: 
 }
 
 // Daily report: volumes, quality, sales for a specific day
-async function generateDailyReport(mccId: string, startDate: string, endDate: string) {
+async function generateDailyReport(mccId: string | undefined, startDate: string, endDate: string) {
   const date = new Date(startDate)
   const dayStart = new Date(date.setHours(0, 0, 0, 0))
   const dayEnd = new Date(date.setHours(23, 59, 59, 999))
 
   const collections = await prisma.milk_collections.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       collectionDate: {
         gte: dayStart,
         lte: dayEnd
@@ -569,7 +549,7 @@ async function generateDailyReport(mccId: string, startDate: string, endDate: st
 
   const sales = await prisma.sales.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       saleAt: {
         gte: dayStart,
         lte: dayEnd
@@ -579,7 +559,7 @@ async function generateDailyReport(mccId: string, startDate: string, endDate: st
 
   const payments = await prisma.mcc_payments.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       paymentDate: {
         gte: dayStart,
         lte: dayEnd
@@ -617,10 +597,10 @@ async function generateDailyReport(mccId: string, startDate: string, endDate: st
 }
 
 // Weekly report: aggregated weekly data
-async function generateWeeklyReport(mccId: string, startDate: string, endDate: string) {
+async function generateWeeklyReport(mccId: string | undefined, startDate: string, endDate: string) {
   const collections = await prisma.milk_collections.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       collectionDate: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -663,10 +643,10 @@ async function generateWeeklyReport(mccId: string, startDate: string, endDate: s
 }
 
 // Monthly report: aggregated monthly data
-async function generateMonthlyReport(mccId: string, startDate: string, endDate: string) {
+async function generateMonthlyReport(mccId: string | undefined, startDate: string, endDate: string) {
   const collections = await prisma.milk_collections.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       collectionDate: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -676,7 +656,7 @@ async function generateMonthlyReport(mccId: string, startDate: string, endDate: 
 
   const sales = await prisma.sales.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       saleAt: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -686,7 +666,7 @@ async function generateMonthlyReport(mccId: string, startDate: string, endDate: 
 
   const payments = await prisma.mcc_payments.findMany({
     where: {
-      mccId,
+      ...(mccId && { mccId }),
       paymentDate: {
         gte: new Date(startDate),
         lte: new Date(endDate)
@@ -744,5 +724,44 @@ async function generateMonthlyReport(mccId: string, startDate: string, endDate: 
       totalSales: sales.reduce((sum, s) => sum + (s.totalAmount || 0), 0),
       totalPayments: payments.reduce((sum, p) => sum + (p.netPayment || 0), 0),
     }
+  }
+}
+
+/** Exported for use by download route - re-generates report when cache miss */
+export async function generateReportData(params: {
+  reportType: string
+  mccId?: string
+  startDate: string
+  endDate: string
+  farmerId?: string
+}) {
+  const { reportType, mccId, startDate, endDate, farmerId } = params
+  // Use mccId when provided; undefined/"all" means no MCC filter
+  const mccFilter = mccId && mccId !== "all" ? mccId : undefined
+  switch (reportType) {
+    case "summary":
+      return generateSummaryReport(mccFilter, startDate, endDate)
+    case "farmer":
+      return generateFarmerReport(mccFilter, startDate, endDate, farmerId)
+    case "financial":
+      return generateFinancialReport(mccFilter, startDate, endDate)
+    case "period":
+      return generatePeriodReport(mccFilter, startDate, endDate)
+    case "analytics":
+      return generateAnalyticsReport(mccFilter, startDate, endDate)
+    case "quality":
+      return generateQualityReport(mccFilter, startDate, endDate)
+    case "sales":
+      return generateSalesReport(mccFilter, startDate, endDate)
+    case "rentals":
+      return generateRentalsReport(mccFilter, startDate, endDate)
+    case "daily":
+      return generateDailyReport(mccFilter, startDate, endDate)
+    case "weekly":
+      return generateWeeklyReport(mccFilter, startDate, endDate)
+    case "monthly":
+      return generateMonthlyReport(mccFilter, startDate, endDate)
+    default:
+      throw new Error("Invalid report type")
   }
 }
