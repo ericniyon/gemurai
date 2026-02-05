@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Plus, Edit, Trash2, Package, Database } from "lucide-react"
+import Swal from "sweetalert2"
+import { Plus, Edit, Trash2, Package, Database, Loader2 } from "lucide-react"
 
 export function InputCatalogManager() {
   const [commodities, setCommodities] = useState<any[]>([])
@@ -31,6 +32,7 @@ export function InputCatalogManager() {
   const [inputCatalog, setInputCatalog] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isSavingItem, setIsSavingItem] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)
   const [formData, setFormData] = useState({
     name: "",
@@ -92,10 +94,17 @@ export function InputCatalogManager() {
     e.preventDefault()
 
     if (!selectedCommodity || !formData.name || !formData.category || !formData.unit) {
-      toast.error("Please select a commodity and fill in all required fields")
+      await Swal.fire({
+        icon: "warning",
+        title: "Validation",
+        text: "Please select a commodity and fill in all required fields (name, category, unit).",
+        timer: 2000,
+        showConfirmButton: false,
+      })
       return
     }
 
+    setIsSavingItem(true)
     try {
       const token = localStorage.getItem("Gemurai_token")
       const url = editingItem
@@ -130,7 +139,15 @@ export function InputCatalogManager() {
       const result = await response.json()
 
       if (response.ok && result.success) {
-        toast.success(editingItem ? "Input catalog item updated" : "Input catalog item created")
+        await Swal.fire({
+          icon: "success",
+          title: editingItem ? "Item updated" : "Item created",
+          text: editingItem
+            ? "Input catalog item updated successfully."
+            : "Input catalog item created successfully.",
+          timer: 2000,
+          showConfirmButton: false,
+        })
         setIsDialogOpen(false)
         setEditingItem(null)
         setFormData({
@@ -143,11 +160,25 @@ export function InputCatalogManager() {
         })
         fetchInputCatalog()
       } else {
-        toast.error(result.error || "Failed to save input catalog item")
+        await Swal.fire({
+          icon: "error",
+          title: "Failed to save",
+          text: result.error || "Could not save input catalog item.",
+          timer: 2000,
+          showConfirmButton: false,
+        })
       }
     } catch (error) {
       console.error("Error saving input catalog item:", error)
-      toast.error("Failed to save input catalog item")
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to save input catalog item. Please try again.",
+        timer: 2000,
+        showConfirmButton: false,
+      })
+    } finally {
+      setIsSavingItem(false)
     }
   }
 
@@ -353,6 +384,8 @@ export function InputCatalogManager() {
                   <SelectContent>
                     <SelectItem value="feed">Feed (Animal feed, supplements)</SelectItem>
                     <SelectItem value="vet">Veterinary (Medicines, vaccines)</SelectItem>
+                    <SelectItem value="ai">AI (Artificial insemination)</SelectItem>
+                    <SelectItem value="minerals">Minerals</SelectItem>
                     <SelectItem value="fertilizer">Fertilizer (NPK, organic, etc.)</SelectItem>
                     <SelectItem value="seed">Seed (Crop seeds, seedlings)</SelectItem>
                     <SelectItem value="pesticide">Pesticide (Herbicides, insecticides)</SelectItem>
@@ -443,9 +476,17 @@ export function InputCatalogManager() {
               </Button>
               <Button 
                 type="submit"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                disabled={isSavingItem}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:opacity-70"
               >
-                Save Item
+                {isSavingItem ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Item"
+                )}
               </Button>
             </DialogFooter>
           </form>

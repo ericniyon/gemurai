@@ -13,13 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Plus, CreditCard, User, Package, Calendar, History, AlertCircle, CheckCircle } from "lucide-react"
@@ -40,7 +34,17 @@ export function AgentPrepaymentManager() {
     amount: "",
     currency: "RWF",
     notes: "",
+    notesSelect: "",
+    customNotes: "",
   })
+
+  const noteOptions = [
+    { value: "advance_collection", label: "Advance for collection" },
+    { value: "partial_advance", label: "Partial advance" },
+    { value: "pre_harvest", label: "Pre-harvest advance" },
+    { value: "full_advance", label: "Full advance" },
+    { value: "other", label: "Other (type below)" },
+  ]
 
   useEffect(() => {
     fetchData()
@@ -165,7 +169,26 @@ export function AgentPrepaymentManager() {
       amount: "",
       currency: "RWF",
       notes: "",
+      notesSelect: "",
+      customNotes: "",
     })
+  }
+
+  const handleNotesSelectChange = (value: string) => {
+    if (value === "other") {
+      setFormData((prev) => ({
+        ...prev,
+        notesSelect: value,
+        notes: prev.customNotes,
+      }))
+    } else {
+      const option = noteOptions.find((o) => o.value === value)
+      setFormData((prev) => ({
+        ...prev,
+        notesSelect: value,
+        notes: option ? option.label : "",
+      }))
+    }
   }
 
   const stats = {
@@ -347,118 +370,126 @@ export function AgentPrepaymentManager() {
 
       {/* Record Prepayment Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl rounded-2xl border border-slate-200/80 bg-white shadow-2xl">
-          <DialogHeader className="pb-4 border-b border-slate-200/80">
-            <DialogTitle className="text-xl font-bold text-slate-900">Record Agent Prepayment</DialogTitle>
-            <DialogDescription className="text-slate-600 mt-2">
-              Record an advance payment from an agent to a farmer. This will be deducted at settlement.
-            </DialogDescription>
-            <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+        <DialogContent className="max-w-2xl rounded-2xl border border-slate-200/80 bg-white shadow-2xl p-0 overflow-hidden">
+          <div className="bg-gradient-to-br from-slate-50 via-white to-blue-50/30 border-b border-slate-200/80 px-6 pt-6 pb-5">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-blue-100/80 p-2.5">
+                  <CreditCard className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold text-slate-900">Record Agent Prepayment</DialogTitle>
+                  <DialogDescription className="text-slate-600 mt-1">
+                    Advance from agent to farmer — deducted at settlement.
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+            <div className="mt-4 p-3.5 bg-amber-50/90 border border-amber-200/80 rounded-xl flex items-start gap-2.5">
               <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
               <p className="text-sm text-amber-800">
-                <strong>Note:</strong> Farmer ID must be verified before recording prepayment. 
-                No payout will be processed if farmer ID is not verified.
+                <strong>Note:</strong> Farmer ID must be verified before recording. No payout if farmer ID is not verified.
               </p>
             </div>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          </div>
+          <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <Label htmlFor="farmerId" className="text-base font-semibold text-gray-700">
+                <Label htmlFor="farmerId" className="text-sm font-semibold text-slate-700">
                   Farmer <span className="text-red-500">*</span>
                 </Label>
-                <Select
+                <SearchableSelect
                   value={formData.farmerId}
                   onValueChange={(value) => setFormData({ ...formData, farmerId: value })}
-                  required
-                >
-                  <SelectTrigger className="h-11 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20">
-                    <SelectValue placeholder="Select farmer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {farmers.map((farmer) => (
-                      <SelectItem key={farmer.id} value={farmer.id}>
-                        {farmer.name} {farmer.nationalId ? `(${farmer.nationalId})` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={farmers.map((f) => ({
+                    value: f.id,
+                    label: `${f.name}${f.nationalId ? ` (${f.nationalId})` : ""}`,
+                  }))}
+                  placeholder="Select farmer"
+                  searchPlaceholder="Search farmers..."
+                  emptyText="No farmer found."
+                  className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-primary focus:!ring-2 focus:!ring-primary/20"
+                />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="agentId" className="text-base font-semibold text-gray-700">
+                <Label htmlFor="agentId" className="text-sm font-semibold text-slate-700">
                   Agent <span className="text-red-500">*</span>
                 </Label>
-                <Select
+                <SearchableSelect
                   value={formData.agentId}
                   onValueChange={(value) => setFormData({ ...formData, agentId: value })}
-                  required
-                >
-                  <SelectTrigger className="h-11 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20">
-                    <SelectValue placeholder="Select agent" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {agents.map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={agents.map((a) => ({ value: a.id, label: a.name }))}
+                  placeholder="Select agent"
+                  searchPlaceholder="Search agents..."
+                  emptyText="No agent found."
+                  className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-primary focus:!ring-2 focus:!ring-primary/20"
+                />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <Label htmlFor="commodityId" className="text-base font-semibold text-gray-700">
-                  Commodity (Optional)
+                <Label htmlFor="commodityId" className="text-sm font-semibold text-slate-700">
+                  Commodity (optional)
                 </Label>
-                <Select
+                <SearchableSelect
                   value={formData.commodityId}
                   onValueChange={(value) => setFormData({ ...formData, commodityId: value })}
-                >
-                  <SelectTrigger className="h-11 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20">
-                    <SelectValue placeholder="Select commodity (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {commodities.map((commodity) => (
-                      <SelectItem key={commodity.id} value={commodity.id}>
-                        {commodity.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  options={commodities.map((c) => ({ value: c.id, label: c.name }))}
+                  placeholder="Select commodity (optional)"
+                  searchPlaceholder="Search commodities..."
+                  emptyText="No commodity found."
+                  className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-primary focus:!ring-2 focus:!ring-primary/20"
+                />
               </div>
-
               <div className="space-y-2">
-                <Label htmlFor="amount" className="text-base font-semibold text-gray-700">
+                <Label htmlFor="amount" className="text-sm font-semibold text-slate-700">
                   Amount <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="amount"
                   type="number"
                   step="0.01"
+                  min="0"
                   value={formData.amount}
                   onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  placeholder="Amount"
+                  placeholder="0.00"
                   className="h-11 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
                   required
                 />
+                <p className="text-xs text-slate-500">Currency: {formData.currency}</p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes" className="text-base font-semibold text-gray-700">Notes</Label>
-              <Input
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Additional notes"
-                className="h-11 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              <Label htmlFor="notes" className="text-sm font-semibold text-slate-700">Notes (optional)</Label>
+              <SearchableSelect
+                value={formData.notesSelect}
+                onValueChange={handleNotesSelectChange}
+                options={noteOptions}
+                placeholder="Select or search notes..."
+                searchPlaceholder="Search notes..."
+                emptyText="No note found."
+                className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-primary focus:!ring-2 focus:!ring-primary/20"
               />
+              {formData.notesSelect === "other" && (
+                <Input
+                  id="notes"
+                  value={formData.customNotes}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      customNotes: e.target.value,
+                      notes: e.target.value,
+                    }))
+                  }
+                  placeholder="Type your note..."
+                  className="mt-2 h-11 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              )}
             </div>
 
-            <DialogFooter className="gap-2 pt-4 border-t border-slate-200/80">
+            <DialogFooter className="gap-3 pt-5 border-t border-slate-200/80">
               <Button
                 type="button"
                 variant="outline"

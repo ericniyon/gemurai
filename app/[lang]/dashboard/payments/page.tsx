@@ -40,6 +40,7 @@ interface PayoutData {
   farmerId: string
   farmerName: string
   farmerCode: string
+  farmerIdVerified?: boolean
   volume: number
   fatPercent?: number
   snfPercent?: number
@@ -128,6 +129,7 @@ export default function PaymentsDashboardPage() {
         farmerId: collection.farmerId,
         farmerName: collection.farmer?.name || "Unknown",
         farmerCode: collection.farmer?.farmerCode || "",
+        farmerIdVerified: collection.farmerIdVerified === true,
         volume: collection.quantity || 0,
         fatPercent: collection.qualityData?.fatPercent,
         snfPercent: collection.qualityData?.snfPercent,
@@ -166,7 +168,14 @@ export default function PaymentsDashboardPage() {
         toast.success("Payout approved successfully")
         fetchData()
       } else {
-        toast.error(result.error || "Failed to approve payout")
+        const msg = result.error || "Failed to approve payout"
+        const unverified = result.unverifiedFarmers as { farmerName?: string }[] | undefined
+        if (unverified?.length) {
+          const names = unverified.map((f) => f.farmerName || "Unknown").join(", ")
+          toast.error(`${msg} Unverified: ${names}`)
+        } else {
+          toast.error(msg)
+        }
       }
     } catch (error) {
       console.error("Error approving payout:", error)
@@ -181,6 +190,7 @@ export default function PaymentsDashboardPage() {
 
   const totalPayout = payouts.reduce((sum, p) => sum + p.netPayout, 0)
   const totalVolume = payouts.reduce((sum, p) => sum + p.volume, 0)
+  const hasUnverifiedFarmers = payouts.some((p) => p.farmerIdVerified === false)
 
   if (!user || (user.role !== "MCC_MANAGER" && user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
     return (
@@ -202,13 +212,6 @@ export default function PaymentsDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">HarvestPlus by YDEN - Payments Dashboard</h1>
-          <p className="text-gray-600 mt-1">Multi-Commodity Aggregation & Settlement Platform</p>
-        </div>
-
-        {/* Tabs */}
         <Card className="bg-white border border-gray-200 shadow-sm">
           <CardContent className="p-0">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -385,29 +388,44 @@ export default function PaymentsDashboardPage() {
               {/* Farmers Payouts Tab */}
               <TabsContent value="payouts" className="mt-0 p-6">
                 <div className="space-y-4">
-                  {/* Filters */}
-                  <div className="flex items-center gap-4">
-                    <Select value={selectedBatch} onValueChange={setSelectedBatch}>
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="All batches" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">ALL</SelectItem>
-                        <SelectItem value="batch1">KNC A - April 25, 2024</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="date"
-                      value={dateFilter}
-                      onChange={(e) => setDateFilter(e.target.value)}
-                      className="w-48"
-                      placeholder="Filter by date"
-                    />
-                    <Button onClick={handleExport} variant="outline">
-                      <Download className="h-4 w-4 mr-2" />
-                      EXPORT
+                  {/* Filters and Approve */}
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <Select value={selectedBatch} onValueChange={setSelectedBatch}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="All batches" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">ALL</SelectItem>
+                          <SelectItem value="batch1">KNC A - April 25, 2024</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="date"
+                        value={dateFilter}
+                        onChange={(e) => setDateFilter(e.target.value)}
+                        className="w-48"
+                        placeholder="Filter by date"
+                      />
+                      <Button onClick={handleExport} variant="outline">
+                        <Download className="h-4 w-4 mr-2" />
+                        EXPORT
+                      </Button>
+                    </div>
+                    <Button
+                      onClick={handleApprovePayout}
+                      disabled={hasUnverifiedFarmers || payouts.length === 0}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:opacity-50"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Approve payout
                     </Button>
                   </div>
+                  {hasUnverifiedFarmers && payouts.length > 0 && (
+                    <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                      Verify all farmers&apos; IDs before approving. Some farmers in the list are not verified.
+                    </p>
+                  )}
 
                   {/* Summary Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -447,6 +465,7 @@ export default function PaymentsDashboardPage() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Farmers</TableHead>
+                            <TableHead>Verified</TableHead>
                             <TableHead>Volume (L)</TableHead>
                             <TableHead>Fat %</TableHead>
                             <TableHead>SNF %</TableHead>
@@ -457,7 +476,7 @@ export default function PaymentsDashboardPage() {
                         <TableBody>
                           {payouts.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                                 No payout data available
                               </TableCell>
                             </TableRow>
@@ -468,6 +487,13 @@ export default function PaymentsDashboardPage() {
                                   {payout.farmerName}
                                   {payout.farmerCode && (
                                     <span className="text-xs text-gray-500 ml-2">({payout.farmerCode})</span>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {payout.farmerIdVerified === true ? (
+                                    <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-200">Verified</Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="bg-amber-500/10 text-amber-700 border-amber-200">Not verified</Badge>
                                   )}
                                 </TableCell>
                                 <TableCell>{payout.volume.toLocaleString()}</TableCell>

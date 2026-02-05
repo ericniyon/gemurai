@@ -14,13 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Plus, Wheat, Coffee, Package } from "lucide-react"
@@ -155,7 +149,7 @@ export function CommoditiesManager() {
             </div>
             <Button 
               onClick={() => setIsDialogOpen(true)}
-              className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Commodity
@@ -239,11 +233,11 @@ export function CommoditiesManager() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-2 border-indigo-200">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-600" />
-          <DialogHeader className="pb-4 border-b border-indigo-100">
-            <DialogTitle className="text-2xl font-bold text-indigo-900">Create Commodity</DialogTitle>
-            <DialogDescription className="text-sm text-indigo-700 mt-2">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-2 border-blue-200">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-blue-600" />
+          <DialogHeader className="pb-4 border-b border-blue-100">
+            <DialogTitle className="text-2xl font-bold text-blue-900">Create Commodity</DialogTitle>
+            <DialogDescription className="text-sm text-blue-700 mt-2">
               Define a new commodity (e.g. Milk, Coffee Cherries, Maize) with pricing method, storage type, and collection settings
             </DialogDescription>
           </DialogHeader>
@@ -256,9 +250,13 @@ export function CommoditiesManager() {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => {
+                    const name = e.target.value
+                    const autoCode = name.trim().toUpperCase().replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "") || ""
+                    setFormData({ ...formData, name, code: autoCode })
+                  }}
                   placeholder="e.g. Milk, Coffee Cherries, Maize"
-                  className="border-2 border-indigo-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                  className="border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                   required
                 />
               </div>
@@ -266,15 +264,16 @@ export function CommoditiesManager() {
               <div className="space-y-2">
                 <Label htmlFor="code" className="text-base font-semibold text-gray-700">
                   Code <span className="text-red-500">*</span>
+                  <span className="text-xs font-normal text-gray-500 ml-1">(auto from name, editable)</span>
                 </Label>
                 <Input
                   id="code"
                   value={formData.code}
                   onChange={(e) =>
-                    setFormData({ ...formData, code: e.target.value.toUpperCase() })
+                    setFormData({ ...formData, code: e.target.value.toUpperCase().replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "") })
                   }
-                  placeholder="e.g. MILK, COFFEE, MAIZE"
-                  className="border-2 border-indigo-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                  placeholder="e.g. MILK, COFFEE_CHERRIES, MAIZE"
+                  className="border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 font-mono"
                   required
                 />
               </div>
@@ -284,22 +283,15 @@ export function CommoditiesManager() {
               <Label htmlFor="categoryId" className="text-base font-semibold text-gray-700">
                 Category <span className="text-red-500">*</span>
               </Label>
-              <Select
+              <SearchableSelect
                 value={formData.categoryId}
                 onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
-                required
-              >
-                <SelectTrigger className="border-2 border-indigo-200 focus:border-indigo-500">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={categories.map((cat) => ({ label: cat.name, value: cat.id }))}
+                placeholder="Select category"
+                searchPlaceholder="Search categories..."
+                emptyText="No category found."
+                className="border-2 border-blue-200 focus:border-blue-500"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -307,13 +299,27 @@ export function CommoditiesManager() {
                 <Label htmlFor="unitOfMeasure" className="text-base font-semibold text-gray-700">
                   Unit of Measure <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="unitOfMeasure"
+                <SearchableSelect
                   value={formData.unitOfMeasure}
-                  onChange={(e) => setFormData({ ...formData, unitOfMeasure: e.target.value })}
-                  placeholder="e.g. liters, kg, bags"
-                  className="border-2 border-indigo-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                  required
+                  onValueChange={(value) => setFormData({ ...formData, unitOfMeasure: value })}
+                  options={[
+                    { label: "Liters", value: "liters" },
+                    { label: "Kg", value: "kg" },
+                    { label: "Bags", value: "bags" },
+                    { label: "Tons", value: "tons" },
+                    { label: "Units", value: "units" },
+                    { label: "Gallons", value: "gallons" },
+                    { label: "Tonnes", value: "tonnes" },
+                    { label: "Quintals", value: "quintals" },
+                    { label: "Bunches", value: "bunches" },
+                    { label: "Crates", value: "crates" },
+                    { label: "Pieces", value: "pieces" },
+                    { label: "Boxes", value: "boxes" },
+                  ]}
+                  placeholder="Select unit"
+                  searchPlaceholder="Search units..."
+                  emptyText="No unit found."
+                  className="border-2 border-blue-200 focus:border-blue-500"
                 />
               </div>
 
@@ -321,22 +327,21 @@ export function CommoditiesManager() {
                 <Label htmlFor="storageType" className="text-base font-semibold text-gray-700">
                   Storage Type <span className="text-red-500">*</span>
                 </Label>
-                <Select
+                <SearchableSelect
                   value={formData.storageType}
                   onValueChange={(value) => setFormData({ ...formData, storageType: value })}
-                  required
-                >
-                  <SelectTrigger className="border-2 border-indigo-200 focus:border-indigo-500">
-                    <SelectValue placeholder="Select storage type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tank">Tank</SelectItem>
-                    <SelectItem value="bags">Bags</SelectItem>
-                    <SelectItem value="silo">Silo</SelectItem>
-                    <SelectItem value="warehouse">Warehouse</SelectItem>
-                    <SelectItem value="cold_storage">Cold Storage</SelectItem>
-                  </SelectContent>
-                </Select>
+                  options={[
+                    { label: "Tank", value: "tank" },
+                    { label: "Bags", value: "bags" },
+                    { label: "Silo", value: "silo" },
+                    { label: "Warehouse", value: "warehouse" },
+                    { label: "Cold Storage", value: "cold_storage" },
+                  ]}
+                  placeholder="Select storage type"
+                  searchPlaceholder="Search storage type..."
+                  emptyText="No storage type found."
+                  className="border-2 border-blue-200 focus:border-blue-500"
+                />
               </div>
             </div>
 
@@ -346,7 +351,7 @@ export function CommoditiesManager() {
                 id="isPerishable"
                 checked={formData.isPerishable}
                 onChange={(e) => setFormData({ ...formData, isPerishable: e.target.checked })}
-                className="rounded border-indigo-300"
+                className="rounded border-blue-300"
               />
               <Label htmlFor="isPerishable" className="text-base font-semibold text-gray-700">
                 Perishable (e.g. Dairy - requires cold chain)
@@ -357,24 +362,23 @@ export function CommoditiesManager() {
               <Label htmlFor="pricingMethod" className="text-base font-semibold text-gray-700">
                 Pricing Method <span className="text-red-500">*</span>
               </Label>
-              <Select
+              <SearchableSelect
                 value={formData.pricingMethod}
                 onValueChange={(value) =>
                   setFormData({ ...formData, pricingMethod: value as any })
                 }
-                required
-              >
-                <SelectTrigger className="border-2 border-indigo-200 focus:border-indigo-500">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="SPOT">Spot Price (Immediate payment at collection)</SelectItem>
-                  <SelectItem value="GRADE_BASED">Grade-Based (Price varies by quality grade)</SelectItem>
-                  <SelectItem value="DEFERRED">Deferred / Post-Sale (Payment after sale)</SelectItem>
-                  <SelectItem value="POST_SALE">Post-Sale (Payment after processing/sale)</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-indigo-700">
+                options={[
+                  { label: "Spot Price (Immediate payment at collection)", value: "SPOT" },
+                  { label: "Grade-Based (Price varies by quality grade)", value: "GRADE_BASED" },
+                  { label: "Deferred / Post-Sale (Payment after sale)", value: "DEFERRED" },
+                  { label: "Post-Sale (Payment after processing/sale)", value: "POST_SALE" },
+                ]}
+                placeholder="Select pricing method"
+                searchPlaceholder="Search pricing method..."
+                emptyText="No pricing method found."
+                className="border-2 border-blue-200 focus:border-blue-500"
+              />
+              <p className="text-xs text-blue-700">
                 Choose how this commodity is priced: immediate spot price, grade-based pricing, or deferred payment
               </p>
             </div>
@@ -382,46 +386,46 @@ export function CommoditiesManager() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="defaultCollectionCenterType" className="text-base font-semibold text-gray-700">Default Collection Center Type</Label>
-                <Select
+                <SearchableSelect
                   value={formData.defaultCollectionCenterType}
                   onValueChange={(value) =>
                     setFormData({ ...formData, defaultCollectionCenterType: value })
                   }
-                >
-                  <SelectTrigger className="border-2 border-indigo-200 focus:border-indigo-500">
-                    <SelectValue placeholder="Select center type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MCC">MCC (Milk Collection Center)</SelectItem>
-                    <SelectItem value="coffee_washing_station">Coffee Washing Station</SelectItem>
-                    <SelectItem value="warehouse">Warehouse</SelectItem>
-                    <SelectItem value="collection_point">Collection Point</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-indigo-700">
+                  options={[
+                    { label: "MCC (Milk Collection Center)", value: "MCC" },
+                    { label: "Coffee Washing Station", value: "coffee_washing_station" },
+                    { label: "Warehouse", value: "warehouse" },
+                    { label: "Collection Point", value: "collection_point" },
+                  ]}
+                  placeholder="Select center type"
+                  searchPlaceholder="Search center type..."
+                  emptyText="No center type found."
+                  className="border-2 border-blue-200 focus:border-blue-500"
+                />
+                <p className="text-xs text-blue-700">
                   Type of collection center where this commodity is typically collected
                 </p>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="defaultCollectionFrequency" className="text-base font-semibold text-gray-700">Default Collection Frequency</Label>
-                <Select
+                <SearchableSelect
                   value={formData.defaultCollectionFrequency}
                   onValueChange={(value) =>
                     setFormData({ ...formData, defaultCollectionFrequency: value })
                   }
-                >
-                  <SelectTrigger className="border-2 border-indigo-200 focus:border-indigo-500">
-                    <SelectValue placeholder="Select frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily (e.g. Dairy)</SelectItem>
-                    <SelectItem value="weekly">Weekly (e.g. Coffee during harvest)</SelectItem>
-                    <SelectItem value="seasonal">Seasonal (e.g. Crops)</SelectItem>
-                    <SelectItem value="harvest_window">Harvest Window (e.g. Cereals)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-indigo-700">
+                  options={[
+                    { label: "Daily (e.g. Dairy)", value: "daily" },
+                    { label: "Weekly (e.g. Coffee during harvest)", value: "weekly" },
+                    { label: "Seasonal (e.g. Crops)", value: "seasonal" },
+                    { label: "Harvest Window (e.g. Cereals)", value: "harvest_window" },
+                  ]}
+                  placeholder="Select frequency"
+                  searchPlaceholder="Search frequency..."
+                  emptyText="No frequency found."
+                  className="border-2 border-blue-200 focus:border-blue-500"
+                />
+                <p className="text-xs text-blue-700">
                   Default recording cadence for this commodity
                 </p>
               </div>
@@ -434,29 +438,29 @@ export function CommoditiesManager() {
                   id="isActive"
                   checked={formData.isActive}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="rounded border-2 border-indigo-200"
+                  className="rounded border-2 border-blue-200"
                 />
                 <Label htmlFor="isActive" className="text-base font-semibold text-gray-700 cursor-pointer">
                   Active (Commodity will be available for collections)
                 </Label>
               </div>
-              <p className="text-xs text-indigo-700">
+              <p className="text-xs text-blue-700">
                 Inactive commodities will not appear in collection forms
               </p>
             </div>
 
-            <DialogFooter className="gap-2 pt-4 border-t border-indigo-100">
+            <DialogFooter className="gap-2 pt-4 border-t border-blue-100">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsDialogOpen(false)}
-                className="border-indigo-200 hover:bg-indigo-50"
+                className="border-blue-200 hover:bg-blue-50"
               >
                 Cancel
               </Button>
               <Button 
                 type="submit"
-                className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
+                className="bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
               >
                 Create Commodity
               </Button>

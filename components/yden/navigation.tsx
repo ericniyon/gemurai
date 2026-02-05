@@ -6,11 +6,13 @@ import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import Button from "./ui/button"
+import { usePublicSettings } from "@/lib/public-settings-context"
 
 export function YdenNavigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
+  const settings = usePublicSettings()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -55,7 +57,7 @@ export function YdenNavigation() {
               <div className="relative h-12 w-28 sm:h-12 sm:w-28 lg:h-14 lg:w-32 transition-transform group-hover:scale-105">
                 <Image
                   src="/yden.png"
-                  alt="YDEN Logo"
+                  alt={settings.platformName}
                   fill
                   className="object-contain"
                   priority

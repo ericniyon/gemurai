@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -18,7 +18,8 @@ import {
   PiggyBank,
   Shield,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Banknote
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 
@@ -48,6 +49,7 @@ interface IkofiData {
 export default function IkofiPage() {
   const { user } = useAuth()
   const params = useParams()
+  const router = useRouter()
   const lang = (params?.lang as string) || "en"
   
   const [ikofiData, setIkofiData] = useState<IkofiData | null>(null)
@@ -114,9 +116,6 @@ export default function IkofiPage() {
     )
   }
 
-  const pageTitle = "Ikofi - Financial Services"
-  const pageSubtitle = "Manage savings, loans, insurance, and payments"
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
       <div className="relative">
@@ -126,30 +125,23 @@ export default function IkofiPage() {
         </div>
 
         <div className="relative z-10 mx-auto w-full px-0 py-10">
-          <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-3 rounded-full bg-white/80 px-4 py-1.5 shadow-sm ring-1 ring-gray-200">
-                <Wallet className="h-4 w-4 text-blue-600" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-                  MCC Manager • Financial Services
-                </span>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{pageTitle}</h1>
-                <p className="mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">{pageSubtitle}</p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  variant="outline"
-                  onClick={handleRefresh}
-                  disabled={isRefreshing || loading}
-                  className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-300 hover:border-blue-300 hover:bg-white hover:shadow-md disabled:cursor-not-allowed"
-                >
-                  <RefreshCw className={cn("h-4 w-4", (isRefreshing || loading) && "animate-spin")} />
-                  Refresh
-                </Button>
-              </div>
-            </div>
+          <header className="mb-10 flex flex-wrap items-center gap-3">
+            <Button
+              onClick={() => router.push(`/${lang}/dashboard/mcc/payments`)}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30"
+            >
+              <Banknote className="h-4 w-4" />
+              Process Payment
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isRefreshing || loading}
+              className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-300 hover:border-blue-300 hover:bg-white hover:shadow-md disabled:cursor-not-allowed"
+            >
+              <RefreshCw className={cn("h-4 w-4", (isRefreshing || loading) && "animate-spin")} />
+              Refresh
+            </Button>
           </header>
         
         <div className="w-full px-2 sm:px-3 py-4 sm:py-6 space-y-4 sm:space-y-6">

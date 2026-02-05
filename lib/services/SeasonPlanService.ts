@@ -143,25 +143,28 @@ export class SeasonPlanService {
    * Create season template (admin-level, no farmer required)
    */
   static async createSeasonTemplate(data: SeasonTemplateInput) {
-    // For templates, we use a special farmerId or create a template record
-    // Since season_plans requires farmerId, we'll create a system farmer or use null
-    // Actually, let's create a template system - we'll need a special approach
-    // For now, we'll create it with a placeholder farmerId that indicates it's a template
-    // Or better: create a separate table for templates, but for now let's use a special marker
-    
-    // Check if template farmer exists (system template farmer)
+    // season_plans requires farmerId; we use a system template farmer (farmerCode SYSTEM_TEMPLATE)
+    // farmers table requires mccId and location, so we attach to the first MCC
     let templateFarmer = await prisma.farmers.findFirst({
       where: { farmerCode: "SYSTEM_TEMPLATE" },
     })
 
     if (!templateFarmer) {
-      // Create system template farmer if it doesn't exist
+      const firstMcc = await prisma.mccs.findFirst({
+        select: { id: true },
+      })
+      if (!firstMcc) {
+        throw new Error(
+          "Cannot create season template: no MCC exists. Create at least one MCC first."
+        )
+      }
       templateFarmer = await prisma.farmers.create({
         data: {
           name: "System Template",
           farmerCode: "SYSTEM_TEMPLATE",
           phone: "0000000000",
-          mccId: null, // No MCC for template
+          mccId: firstMcc.id,
+          location: "System (template only)",
         },
       })
     }

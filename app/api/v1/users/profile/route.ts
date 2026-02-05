@@ -52,26 +52,38 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Return user profile data
+    // Format DCC level for display (e.g. LEVEL_A -> "Level A")
+    const dccLevelDisplay = user.dccProfile?.level
+      ? `Level ${user.dccProfile.level.replace("LEVEL_", "")}`
+      : null
+
+    // Return user profile data (real fields from User + DCCProfile)
     return NextResponse.json({
       success: true,
       data: {
         id: user.id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
+        phone: user.phone ?? "",
         avatar: user.avatar,
         role: user.userRole?.role?.name || "USER",
-        permissions: [], // Will be populated from token
+        permissions: [],
         isActive: user.isActive,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-        // Additional profile fields
-        bio: "", // Not available in current schema
+        // User profile fields from schema
+        nationalId: user.national_id ?? "",
+        gender: user.gender ?? "",
+        district: user.district ?? "",
+        // DCC profile
         location: user.dccProfile?.location || "",
-        // Commission info for DCC users
-        commission: 0, // Default commission rate
-        // Payment info - not available in current schema
+        dccLevel: dccLevelDisplay,
+        totalSales: user.dccProfile?.totalSales ?? "RWF 0",
+        monthlySales: user.dccProfile?.monthlySales ?? "RWF 0",
+        productsAvailable: user.dccProfile?.productsAvailable ?? 0,
+        mccId: user.mccId ?? null,
+        bio: "",
+        commission: 0,
         mobileMoney: "",
         bankAccount: "",
         bankName: "",
@@ -115,16 +127,30 @@ export async function PUT(request: NextRequest) {
 
     const body = await request.json()
 
-    // Update user profile
+    // Build update data from allowed fields
+    const userUpdate: {
+      name?: string
+      email?: string
+      phone?: string | null
+      avatar?: string | null
+      national_id?: string | null
+      gender?: string | null
+      district?: string | null
+      updatedAt: Date
+    } = {
+      updatedAt: new Date(),
+    }
+    if (body.name !== undefined) userUpdate.name = body.name
+    if (body.email !== undefined) userUpdate.email = body.email
+    if (body.phone !== undefined) userUpdate.phone = body.phone || null
+    if (body.avatar !== undefined) userUpdate.avatar = body.avatar || null
+    if (body.nationalId !== undefined) userUpdate.national_id = body.nationalId || null
+    if (body.gender !== undefined) userUpdate.gender = body.gender || null
+    if (body.district !== undefined) userUpdate.district = body.district || null
+
     const updatedUser = await prisma.user.update({
       where: { id: userData.id },
-      data: {
-        name: body.name,
-        email: body.email,
-        phone: body.phone,
-        avatar: body.avatar,
-        updatedAt: new Date(),
-      },
+      data: userUpdate,
       include: {
         userRole: {
           include: {
@@ -146,6 +172,10 @@ export async function PUT(request: NextRequest) {
       })
     }
 
+    const dccLevelDisplay = updatedUser.dccProfile?.level
+      ? `Level ${updatedUser.dccProfile.level.replace("LEVEL_", "")}`
+      : null
+
     return NextResponse.json({
       success: true,
       message: "Profile updated successfully",
@@ -153,12 +183,20 @@ export async function PUT(request: NextRequest) {
         id: updatedUser.id,
         name: updatedUser.name,
         email: updatedUser.email,
-        phone: updatedUser.phone,
+        phone: updatedUser.phone ?? "",
         avatar: updatedUser.avatar,
         role: updatedUser.userRole?.role?.name || "USER",
         permissions: [],
+        nationalId: updatedUser.national_id ?? "",
+        gender: updatedUser.gender ?? "",
+        district: updatedUser.district ?? "",
         bio: "",
         location: updatedUser.dccProfile?.location || "",
+        dccLevel: dccLevelDisplay,
+        totalSales: updatedUser.dccProfile?.totalSales ?? "RWF 0",
+        monthlySales: updatedUser.dccProfile?.monthlySales ?? "RWF 0",
+        productsAvailable: updatedUser.dccProfile?.productsAvailable ?? 0,
+        mccId: updatedUser.mccId ?? null,
         mobileMoney: "",
         bankAccount: "",
         bankName: "",

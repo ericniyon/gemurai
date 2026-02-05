@@ -30,50 +30,45 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all roles with their permissions and user counts
-    const roles = await prisma.role.findMany({
-      where: {
-        isActive: true
-      },
-      include: {
-        rolePermissions: {
-          include: {
-            permission: true
-          }
-        },
-        userRoles: {
-          where: {
-            isActive: true
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true
-              }
+    const [roles, usersWithoutAssignmentCount, consumerRoleId] = await Promise.all([
+      prisma.role.findMany({
+        where: { isActive: true },
+        include: {
+          rolePermissions: { include: { permission: true } },
+          userRoles: {
+            where: { isActive: true },
+            include: {
+              user: { select: { id: true, name: true, email: true } }
             }
           }
         }
+      }),
+      prisma.user.count({ where: { userRole: null } }),
+      prisma.role.findFirst({ where: { name: "CONSUMER", isActive: true }, select: { id: true } }).then((r) => r?.id ?? null)
+    ])
+
+    // Transform the data for the frontend; count users with no assignment as CONSUMER
+    const transformedRoles = roles.map((role) => {
+      const assignedCount = role.userRoles.length
+      const isConsumer = consumerRoleId && role.id === consumerRoleId
+      const userCount = isConsumer ? assignedCount + usersWithoutAssignmentCount : assignedCount
+      return {
+        id: role.id,
+        name: role.name,
+        description: role.description,
+        isActive: role.isActive,
+        isSystem: role.isSystem,
+        userCount,
+        permissionCount: role.rolePermissions.length,
+        createdAt: role.createdAt.toISOString(),
+        permissions: role.rolePermissions.map((rp) => rp.permission.name),
+        users: role.userRoles.map((ur) => ({
+          id: ur.user.id,
+          name: ur.user.name,
+          email: ur.user.email
+        }))
       }
     })
-
-    // Transform the data for the frontend
-    const transformedRoles = roles.map(role => ({
-      id: role.id,
-      name: role.name,
-      description: role.description,
-      isActive: role.isActive,
-      isSystem: role.isSystem,
-      userCount: role.userRoles.length,
-      permissionCount: role.rolePermissions.length,
-      createdAt: role.createdAt.toISOString(),
-      permissions: role.rolePermissions.map(rp => rp.permission.name),
-      users: role.userRoles.map(ur => ({
-        id: ur.user.id,
-        name: ur.user.name,
-        email: ur.user.email
-      }))
-    }))
 
     return NextResponse.json({
       success: true,

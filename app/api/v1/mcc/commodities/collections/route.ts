@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
       warehouseId,
       locationId,
       productId,
+      createdByUserId: user.id,
       batchId,
       notes,
     })

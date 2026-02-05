@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { ClientOnly } from "@/components/client-only"
 import dynamic from "next/dynamic"
 import { Toaster } from "sonner"
+import { PublicSettingsProvider } from "@/lib/public-settings-context"
 
 // Dynamically import AuthProvider with no SSR
 const AuthProvider = dynamic(() => import("@/components/auth-provider"), {
@@ -21,9 +22,11 @@ export function Providers({ children }: { children: ReactNode }) {
         disableTransitionOnChange
         storageKey="Gemurai-theme"
       >
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <PublicSettingsProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </PublicSettingsProvider>
         <Toaster richColors closeButton position="top-right" />
       </ThemeProvider>
     </ClientOnly>

@@ -13,16 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Plus, Package, TrendingUp } from "lucide-react"
+import { Plus, Package, TrendingUp, User } from "lucide-react"
 
 export function InputUsageLogger() {
   const [farmers, setFarmers] = useState<any[]>([])
@@ -283,177 +277,153 @@ export function InputUsageLogger() {
 
       {/* Log Input Usage Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl border-2 border-blue-200 bg-white opacity-100">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
-          <DialogHeader className="pb-4 border-b border-blue-200">
-            <DialogTitle className="text-2xl font-bold text-blue-900">Log Input Usage</DialogTitle>
-            <DialogDescription className="text-blue-700 mt-2">
-              Record input usage for productivity analytics and credit scoring
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="farmerId" className="text-base font-semibold text-gray-700">
-                Farmer <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.farmerId}
-                onValueChange={(value) => {
-                  setFormData({
-                    ...formData,
-                    farmerId: value,
-                    seasonPlanId: "",
-                    inputCatalogId: "",
-                  })
-                  setSeasonPlans([])
-                  setInputCatalog([])
-                }}
-                required
-              >
-                <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                  <SelectValue placeholder="Select farmer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {farmers.map((farmer) => (
-                    <SelectItem key={farmer.id} value={farmer.id}>
-                      {farmer.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="seasonPlanId" className="text-base font-semibold text-gray-700">
-                Season Plan <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.seasonPlanId}
-                onValueChange={(value) => {
-                  setFormData({
-                    ...formData,
-                    seasonPlanId: value,
-                    inputCatalogId: "",
-                  })
-                  setInputCatalog([])
-                }}
-                required
-                disabled={!formData.farmerId || seasonPlans.length === 0}
-              >
-                <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                  <SelectValue placeholder={!formData.farmerId ? "Select farmer first" : seasonPlans.length === 0 ? "No season plans found" : "Select season plan"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {seasonPlans.map((plan) => (
-                    <SelectItem key={plan.id} value={plan.id}>
-                      {plan.commodity?.name} - {plan.season}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="inputCatalogId" className="text-base font-semibold text-gray-700">
-                Input Item <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.inputCatalogId}
-                onValueChange={(value) => {
-                  const selectedInput = inputCatalog.find((input) => input.id === value)
-                  setFormData({
-                    ...formData,
-                    inputCatalogId: value,
-                    unit: selectedInput?.unit || "",
-                  })
-                }}
-                required
-                disabled={!formData.seasonPlanId || inputCatalog.length === 0}
-              >
-                <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                  <SelectValue placeholder={!formData.seasonPlanId ? "Select season plan first" : inputCatalog.length === 0 ? "No inputs available" : "Select input"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {inputCatalog.map((input) => (
-                    <SelectItem key={input.id} value={input.id}>
-                      {input.name} ({input.unit})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="quantity" className="text-base font-semibold text-gray-700">
-                  Quantity <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  step="0.01"
-                  value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                  placeholder="Quantity"
-                  style={{ border: '2px solid lightblue' }}
-                  required
-                />
+        <DialogContent className="flex max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-0 shadow-2xl">
+          <div className="shrink-0 border-b border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-blue-50/40 px-6 pt-6 pb-4">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-blue-100/80 p-2.5">
+                  <Package className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold text-slate-900">Log Input Usage</DialogTitle>
+                  <DialogDescription className="mt-1 text-slate-600">
+                    Record input usage for productivity analytics and credit scoring
+                  </DialogDescription>
+                </div>
               </div>
+            </DialogHeader>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="unit" className="text-base font-semibold text-gray-700">
-                  Unit <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="unit"
-                  value={formData.unit}
-                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                  placeholder="Unit (kg, liters, etc.)"
-                  style={{ border: '2px solid lightblue' }}
-                  required
-                />
-              </div>
+          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <section className="space-y-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <User className="h-4 w-4 text-blue-600" />
+                  Farmer & Plan
+                </h3>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="farmerId" className="text-sm font-semibold text-slate-700">Farmer <span className="text-red-500">*</span></Label>
+                    <SearchableSelect
+                      value={formData.farmerId}
+                      onValueChange={(value) => {
+                        setFormData({ ...formData, farmerId: value, seasonPlanId: "", inputCatalogId: "" })
+                        setSeasonPlans([])
+                        setInputCatalog([])
+                      }}
+                      options={farmers.map((f) => ({ value: f.id, label: f.name }))}
+                      placeholder="Select farmer"
+                      searchPlaceholder="Search farmers..."
+                      emptyText="No farmer found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="seasonPlanId" className="text-sm font-semibold text-slate-700">Season Plan <span className="text-red-500">*</span></Label>
+                    <SearchableSelect
+                      value={formData.seasonPlanId}
+                      onValueChange={(value) => {
+                        setFormData({ ...formData, seasonPlanId: value, inputCatalogId: "" })
+                        setInputCatalog([])
+                      }}
+                      options={seasonPlans.map((plan) => ({
+                        value: plan.id,
+                        label: `${plan.commodity?.name ?? "Commodity"} - ${plan.season}`,
+                      }))}
+                      placeholder={!formData.farmerId ? "Select farmer first" : seasonPlans.length === 0 ? "No season plans found" : "Select season plan"}
+                      searchPlaceholder="Search season plans..."
+                      emptyText="No season plan found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                      disabled={!formData.farmerId || seasonPlans.length === 0}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="inputCatalogId" className="text-sm font-semibold text-slate-700">Input Item <span className="text-red-500">*</span></Label>
+                    <SearchableSelect
+                      value={formData.inputCatalogId}
+                      onValueChange={(value) => {
+                        const selectedInput = inputCatalog.find((input) => input.id === value)
+                        setFormData({ ...formData, inputCatalogId: value, unit: selectedInput?.unit || "" })
+                      }}
+                      options={inputCatalog.map((input) => ({ value: input.id, label: `${input.name} (${input.unit})` }))}
+                      placeholder={!formData.seasonPlanId ? "Select season plan first" : inputCatalog.length === 0 ? "No inputs available" : "Select input"}
+                      searchPlaceholder="Search inputs..."
+                      emptyText="No input found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                      disabled={!formData.seasonPlanId || inputCatalog.length === 0}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                  Quantity & Cost
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="quantity" className="text-sm font-semibold text-slate-700">Quantity <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      step="0.01"
+                      value={formData.quantity}
+                      onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                      placeholder="Quantity"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="unit" className="text-sm font-semibold text-slate-700">Unit <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="unit"
+                      value={formData.unit}
+                      onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                      placeholder="Unit (kg, liters, etc.)"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cost" className="text-sm font-semibold text-slate-700">Cost (RWF)</Label>
+                    <Input
+                      id="cost"
+                      type="number"
+                      step="0.01"
+                      value={formData.cost}
+                      onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
+                      placeholder="Optional cost"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="notes" className="text-sm font-semibold text-slate-700">Notes</Label>
+                    <Input
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      placeholder="Additional notes"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                </div>
+              </section>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="cost" className="text-base font-semibold text-gray-700">Cost (RWF)</Label>
-              <Input
-                id="cost"
-                type="number"
-                step="0.01"
-                value={formData.cost}
-                onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
-                placeholder="Optional cost"
-                style={{ border: '2px solid lightblue' }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes" className="text-base font-semibold text-gray-700">Notes</Label>
-              <Input
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Additional notes"
-                style={{ border: '2px solid lightblue' }}
-              />
-            </div>
-
-            <DialogFooter className="gap-2 pt-4 border-t-2 border-blue-300">
+            <DialogFooter className="shrink-0 gap-3 border-t border-slate-200/80 px-6 py-4 bg-slate-50/50">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  setIsDialogOpen(false)
-                  resetForm()
-                }}
-                className="border-blue-200 hover:bg-blue-50"
+                onClick={() => { setIsDialogOpen(false); resetForm() }}
+                className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-100"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 font-semibold text-white shadow-lg shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
               >
                 Log Input Usage
               </Button>

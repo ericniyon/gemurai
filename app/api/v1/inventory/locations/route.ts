@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/v1/inventory/locations - List locations (zones)
-export async function GET(_request: NextRequest) {
+// GET /api/v1/inventory/locations - List locations (zones). Optional ?warehouseId= to filter by warehouse.
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const warehouseId = searchParams.get("warehouseId")
     const locations = await prisma.location.findMany({
+      where: warehouseId ? { warehouseId, isActive: true } : undefined,
       orderBy: { name: 'asc' },
       select: { id: true, name: true, code: true, warehouseId: true, locationType: true, isActive: true }
     })

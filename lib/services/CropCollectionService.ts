@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 
 export interface CropCollectionInput {
@@ -36,6 +35,7 @@ export interface CropCollectionInput {
   warehouseId?: string
   locationId?: string
   productId?: string
+  createdByUserId?: string
   notes?: string
 }
 
@@ -205,7 +205,7 @@ export class CropCollectionService {
       })
 
       // Create stock move only when warehouse, product, and createdByUserId are provided (createdBy must be User id)
-      if (data.warehouseId && data.productId && (data as any).createdByUserId) {
+      if (data.warehouseId && data.productId && data.createdByUserId) {
         const stockMove = await tx.stockMove.create({
           data: {
             productId: data.productId,
@@ -218,7 +218,7 @@ export class CropCollectionService {
             date: data.collectionDate,
             reference: `CROP-${collection.id}`,
             notes: `Crop collection: ${cropType.name}`,
-            createdBy: (data as any).createdByUserId,
+            createdBy: data.createdByUserId,
           },
         })
         await tx.crop_collections.update({
@@ -227,62 +227,43 @@ export class CropCollectionService {
         })
       }
 
-      // Update farmer account if not rejected
+      // Update farmer account if not rejected (inline to avoid passing tx to another method)
       if (!qualityResult.rejected && netPayment > 0) {
-        await this.updateFarmerAccount(tx, data.farmerId, netPayment, "CROP_COLLECTION", collection.id)
+        let farmerAccount = await tx.farmer_accounts.findUnique({
+          where: { farmerId: data.farmerId },
+        })
+        if (!farmerAccount) {
+          farmerAccount = await tx.farmer_accounts.create({
+            data: {
+              farmerId: data.farmerId,
+              balance: 0,
+            },
+          })
+        }
+        const newBalance = farmerAccount.balance + netPayment
+        await tx.farmer_accounts.update({
+          where: { farmerId: data.farmerId },
+          data: {
+            balance: newBalance,
+            lastUpdated: new Date(),
+          },
+        })
+        await tx.farmer_ledger.create({
+          data: {
+            farmerId: data.farmerId,
+            type: "CROP_COLLECTION",
+            amount: netPayment,
+            balanceAfter: newBalance,
+            refId: collection.id,
+            notes: "Crop collection: CROP_COLLECTION",
+          },
+        })
       }
 
       return {
         collection,
         qualityResult,
       }
-    })
-  }
-
-  /**
-   * Update farmer account and ledger
-   */
-  static async updateFarmerAccount(
-    tx: PrismaClient | typeof prisma,
-    farmerId: string,
-    amount: number,
-    type: string,
-    refId: string
-  ) {
-    // Get or create farmer account
-    let farmerAccount = await tx.farmer_accounts.findUnique({
-      where: { farmerId },
-    })
-
-    if (!farmerAccount) {
-      farmerAccount = await tx.farmer_accounts.create({
-        data: {
-          farmerId,
-          balance: 0,
-        },
-      })
-    }
-
-    // Update balance
-    const newBalance = farmerAccount.balance + amount
-    await tx.farmer_accounts.update({
-      where: { farmerId },
-      data: {
-        balance: newBalance,
-        lastUpdated: new Date(),
-      },
-    })
-
-    // Create ledger entry
-    await tx.farmer_ledger.create({
-      data: {
-        farmerId,
-        type,
-        amount,
-        balanceAfter: newBalance,
-        refId,
-        notes: `Crop collection: ${type}`,
-      },
     })
   }
 

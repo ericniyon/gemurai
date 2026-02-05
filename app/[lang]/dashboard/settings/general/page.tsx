@@ -20,30 +20,33 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+const initialFormData = {
+  platformName: "HarvestPlus by YDEN",
+  platformDescription: "Multi-Commodity Aggregation & Settlement Platform",
+  defaultLanguage: "en",
+  timezone: "Africa/Kigali",
+  dateFormat: "DD/MM/YYYY",
+  timeFormat: "24h",
+  currency: "RWF",
+  enableNotifications: true,
+  enableEmailNotifications: true,
+  enableSMSNotifications: false,
+  maintenanceMode: false,
+  allowUserRegistration: true,
+  requireEmailVerification: false,
+  sessionTimeout: 30,
+  maxLoginAttempts: 5,
+  supportEmail: "support@harvestplus.rw",
+  supportPhone: "+250 788 123 456",
+}
+
 export default function GeneralSettingsPage() {
   const { user } = useAuth()
   const params = useParams()
   const lang = (params?.lang as string) || "en"
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState({
-    platformName: "HarvestPlus by YDEN",
-    platformDescription: "Multi-Commodity Aggregation & Settlement Platform",
-    defaultLanguage: "en",
-    timezone: "Africa/Kigali",
-    dateFormat: "DD/MM/YYYY",
-    timeFormat: "24h",
-    currency: "RWF",
-    enableNotifications: true,
-    enableEmailNotifications: true,
-    enableSMSNotifications: false,
-    maintenanceMode: false,
-    allowUserRegistration: true,
-    requireEmailVerification: false,
-    sessionTimeout: 30,
-    maxLoginAttempts: 5,
-    supportEmail: "support@harvestplus.rw",
-    supportPhone: "+250 788 123 456",
-  })
+  const [loadingInitial, setLoadingInitial] = useState(true)
+  const [formData, setFormData] = useState(initialFormData)
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -52,14 +55,14 @@ export default function GeneralSettingsPage() {
         const response = await fetch("/api/v1/admin/settings/general", {
           headers: { Authorization: `Bearer ${token}` },
         })
-        if (response.ok) {
-          const result = await response.json()
-          if (result.success && result.data) {
-            setFormData((prev) => ({ ...prev, ...result.data }))
-          }
+        const result = await response.json().catch(() => ({}))
+        if (response.ok && result.success && result.data) {
+          setFormData((prev) => ({ ...initialFormData, ...prev, ...result.data }))
         }
       } catch (error) {
         console.error("Error loading settings:", error)
+      } finally {
+        setLoadingInitial(false)
       }
     }
     loadSettings()
@@ -80,9 +83,12 @@ export default function GeneralSettingsPage() {
         body: JSON.stringify(formData),
       })
 
-      const result = await response.json()
+      const result = await response.json().catch(() => ({ success: false }))
 
       if (response.ok && result.success) {
+        if (result.data) {
+          setFormData((prev) => ({ ...prev, ...result.data }))
+        }
         toast.success("General settings saved successfully")
       } else {
         toast.error(result.error || "Failed to save settings")
@@ -106,6 +112,17 @@ export default function GeneralSettingsPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+    )
+  }
+
+  if (loadingInitial) {
+    return (
+      <div className="max-w-5xl mx-auto flex items-center justify-center min-h-[40vh]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700" />
+          <p className="text-sm text-slate-600">Loading settings...</p>
+        </div>
       </div>
     )
   }

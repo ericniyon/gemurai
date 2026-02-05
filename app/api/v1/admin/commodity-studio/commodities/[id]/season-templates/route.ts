@@ -8,9 +8,10 @@ import { prisma } from "@/lib/prisma"
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
     if (!authToken) {
       return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
@@ -23,14 +24,14 @@ export async function GET(
 
     // Validate commodity exists
     const commodity = await prisma.commodities.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!commodity) {
       return NextResponse.json(
         {
           error: "Commodity not found",
-          details: `Commodity with ID ${params.id} does not exist`,
+          details: `Commodity with ID ${id} does not exist`,
         },
         { status: 404 }
       )
@@ -40,7 +41,7 @@ export async function GET(
     const season = searchParams.get("season")
     const region = searchParams.get("region")
 
-    const templates = await SeasonPlanService.getSeasonTemplates(params.id, {
+    const templates = await SeasonPlanService.getSeasonTemplates(id, {
       season: season || undefined,
       region: region || undefined,
     })
@@ -66,9 +67,10 @@ export async function GET(
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: commodityId } = await params
     const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
     if (!authToken) {
       return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
@@ -81,14 +83,14 @@ export async function POST(
 
     // Validate commodity exists
     const commodity = await prisma.commodities.findUnique({
-      where: { id: params.id },
+      where: { id: commodityId },
     })
 
     if (!commodity) {
       return NextResponse.json(
         {
           error: "Commodity not found",
-          details: `Commodity with ID ${params.id} does not exist`,
+          details: `Commodity with ID ${commodityId} does not exist`,
         },
         { status: 404 }
       )
@@ -114,7 +116,7 @@ export async function POST(
     }
 
     const template = await SeasonPlanService.createSeasonTemplate({
-      commodityId: params.id,
+      commodityId,
       season,
       expectedHarvestStartDate: new Date(expectedHarvestStartDate),
       expectedHarvestEndDate: new Date(expectedHarvestEndDate),

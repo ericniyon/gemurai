@@ -44,36 +44,8 @@ export default function AgentAdvancesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
-      <div className="relative">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-400/10 to-purple-400/10 blur-3xl" />
-          <div className="absolute bottom-[-160px] left-[-160px] h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-400/15 via-sky-400/10 to-blue-400/5 blur-3xl" />
-        </div>
-
-        <div className="relative z-10 mx-auto w-full px-0 py-10">
-          <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-3 rounded-full bg-white/80 px-4 py-1.5 shadow-sm ring-1 ring-gray-200">
-                <CreditCard className="h-4 w-4 text-blue-600" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-                  HarvestPlus • Advances
-                </span>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                  Agent Advances
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">
-                  Record and manage agent prepayments to farmers. Advances are deducted at settlement.
-                </p>
-              </div>
-            </div>
-          </header>
-
-          <AgentPrepaymentManager />
-        </div>
-      </div>
+    <div className="w-full">
+      <AgentPrepaymentManager />
     </div>
   )
 }

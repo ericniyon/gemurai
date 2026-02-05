@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { CommodityStudioService } from "@/lib/services/CommodityStudioService"
+import { logQualityAudit } from "@/lib/services/QualityAuditService"
 import { verifyAuthToken } from "@/lib/api-auth"
 
 /**
@@ -7,9 +8,10 @@ import { verifyAuthToken } from "@/lib/api-auth"
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: commodityId } = await params
     const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
     if (!authToken) {
       return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
@@ -40,7 +42,7 @@ export async function POST(
     }
 
     const qualityRule = await CommodityStudioService.addQualityRule({
-      commodityId: params.id,
+      commodityId,
       qualityFieldId: qualityFieldId || undefined,
       ruleName,
       ruleType,
@@ -49,6 +51,15 @@ export async function POST(
       impactOnPricing: impactOnPricing || false,
       pricingMultiplier: pricingMultiplier || undefined,
       errorMessage,
+    })
+
+    await logQualityAudit({
+      entityType: "quality_rule",
+      entityId: qualityRule.id,
+      commodityId,
+      action: "QUALITY_RULE_ADDED",
+      newValue: { ruleName, ruleType, thresholdValue, impactOnPricing: impactOnPricing ?? false },
+      userId: user?.id,
     })
 
     return NextResponse.json({

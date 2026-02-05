@@ -255,9 +255,6 @@ export default function SuppliersPage() {
     )
   }
 
-  const pageTitle = "Suppliers"
-  const pageSubtitle = "Manage your milk suppliers and collection schedules"
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
       <div className="relative">
@@ -269,16 +266,6 @@ export default function SuppliersPage() {
         <div className="relative z-10 mx-auto w-full px-0 py-10">
           <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-3">
-              <div className="inline-flex items-center gap-3 rounded-full bg-white/80 px-4 py-1.5 shadow-sm ring-1 ring-gray-200">
-                <Package className="h-4 w-4 text-blue-600" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-                  MCC Manager • Suppliers
-                </span>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{pageTitle}</h1>
-                <p className="mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">{pageSubtitle}</p>
-              </div>
               <div className="flex flex-wrap gap-3">
                 <Button
                   onClick={() => setAddSupplierOpen(true)}

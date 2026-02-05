@@ -7,9 +7,10 @@ import { verifyAuthToken } from "@/lib/api-auth"
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
     if (!authToken) {
       return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
@@ -20,7 +21,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const commodity = await CommodityStudioService.getCommodityById(params.id)
+    const commodity = await CommodityStudioService.getCommodityById(id)
 
     if (!commodity) {
       return NextResponse.json({ error: "Commodity not found" }, { status: 404 })
@@ -44,9 +45,10 @@ export async function GET(
  */
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
     if (!authToken) {
       return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
@@ -72,7 +74,7 @@ export async function PUT(
       isActive,
     } = data
 
-    const commodity = await CommodityStudioService.updateCommodity(params.id, {
+    const commodity = await CommodityStudioService.updateCommodity(id, {
       name,
       code,
       categoryId,

@@ -28,6 +28,7 @@ export interface CommodityCollectionInput {
   warehouseId?: string
   locationId?: string
   productId?: string
+  createdByUserId?: string
   batchId?: string
   notes?: string
 }
@@ -151,13 +152,14 @@ export class CommodityCollectionService {
         },
       })
 
-      // Create stock move if warehouse/product specified
-      if (data.warehouseId && data.productId) {
-        await tx.stockMove.create({
+      // Create stock move if warehouse, product, and user specified; link to collection
+      let stockMoveId: string | null = null
+      if (data.warehouseId && data.productId && data.createdByUserId) {
+        const stockMove = await tx.stockMove.create({
           data: {
             productId: data.productId,
             warehouseId: data.warehouseId,
-            locationId: data.locationId,
+            locationId: data.locationId ?? null,
             quantity: data.quantity,
             unitPrice: data.pricePerUnit,
             moveType: "INCOMING",
@@ -165,8 +167,13 @@ export class CommodityCollectionService {
             date: data.collectionDate,
             reference: `${commodity.code}-${collection.id}`,
             notes: `Commodity collection: ${commodity.name}`,
-            createdBy: data.farmerId, // Will be updated by API with actual user ID
+            createdBy: data.createdByUserId,
           },
+        })
+        stockMoveId = stockMove.id
+        await tx.commodity_collections.update({
+          where: { id: collection.id },
+          data: { stockMoveId },
         })
       }
 
@@ -269,6 +276,7 @@ export class CommodityCollectionService {
         commodity: {
           include: {
             category: true,
+            qualityFields: { orderBy: { displayOrder: "asc" } },
           },
         },
         farmer: {

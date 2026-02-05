@@ -1,6 +1,31 @@
 # Commodity Studio Implementation Verification Report
 
-## Status: ✅ MOSTLY IMPLEMENTED with Minor Gaps
+## Status: ✅ IMPLEMENTED (Core concept fully delivered; seasons have minor gaps)
+
+---
+
+## Core Architectural Concept (Official)
+
+> We are introducing an **Admin-level configuration module** called **Commodity Studio**, which allows **non-developers (admins)** to:
+> 1. **Create new commodity categories**
+> 2. **Define new commodities**
+> 3. **Configure quality checks dynamically**
+> 4. **Set commodity-specific collection frequency**
+> 5. **Define input catalogs and seasons**
+>
+> This **avoids rebuilding the platform** for every new commodity.
+
+### Where each capability is implemented
+
+| Capability | Tab in Commodity Studio | API / Backing | Status |
+|------------|-------------------------|---------------|--------|
+| Create new commodity categories | **Categories** | `GET/POST /api/v1/admin/commodity-studio/categories`, `CommodityStudioService` | ✅ |
+| Define new commodities | **Commodities** | `GET/POST /api/v1/admin/commodity-studio/commodities`, `commodities` table | ✅ |
+| Configure quality checks dynamically | **Quality Checks** | `commodities/[id]/quality-fields`, `commodities/[id]/quality-rules`, `commodity_quality_fields`, `commodity_quality_rules` | ✅ |
+| Set commodity-specific collection frequency | **Commodities** (field) + **Frequency & Seasons** (tab) | `commodities.defaultCollectionFrequency`, `FrequencySeasonManager`, `commodities/[id]/season-templates` | ✅ |
+| Define input catalogs and seasons | **Input Catalog** (tab) + **Frequency & Seasons** (tab) | `GET/POST /api/v1/admin/commodity-studio/input-catalog`, season templates per commodity | ✅ |
+
+**UI entry:** `/en/dashboard/admin/commodity-studio` (Admin/SUPER_ADMIN only). The page displays the Core Architectural Concept and the five capabilities so admins see that no code is required.
 
 ---
 

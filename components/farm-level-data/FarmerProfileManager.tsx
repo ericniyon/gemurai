@@ -13,16 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Plus, Edit, Trash2, User, MapPin, Phone, CreditCard, Users, Package } from "lucide-react"
+import { Plus, Edit, Trash2, User, MapPin, Phone, CreditCard, Users, Package, Wallet } from "lucide-react"
 
 export function FarmerProfileManager() {
   const [farmers, setFarmers] = useState<any[]>([])
@@ -186,9 +180,9 @@ export function FarmerProfileManager() {
             <div className="flex items-center gap-3">
               <User className="h-6 w-6 text-blue-600" />
               <div>
-                <CardTitle className="text-2xl font-bold text-blue-900">Farmer Profile</CardTitle>
+                <CardTitle className="text-2xl font-bold text-blue-900">Farmers</CardTitle>
                 <CardDescription className="text-gray-600 mt-1">
-                  Manage farmer profiles with National ID, location, assigned agents, and payment methods
+                  Add, edit, and manage farmer profiles — National ID, location, assigned agents, and payment methods
                 </CardDescription>
               </div>
             </div>
@@ -296,285 +290,285 @@ export function FarmerProfileManager() {
 
       {/* Add/Edit Farmer Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl border-2 border-blue-200 bg-white opacity-100">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
-          <DialogHeader className="pb-4 border-b border-blue-200">
-            <DialogTitle className="text-2xl font-bold text-blue-900">
-              {editingFarmer ? "Edit Farmer Profile" : "Add Farmer Profile"}
-            </DialogTitle>
-            <DialogDescription className="text-blue-700 mt-2">
-              {editingFarmer ? "Update farmer information" : "Create a new farmer profile with all required details"}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-base font-semibold text-gray-700">
-                  Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Farmer name"
-                  style={{ border: '2px solid lightblue' }}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-base font-semibold text-gray-700">
-                  Phone <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="Phone number"
-                  style={{ border: '2px solid lightblue' }}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="nationalId" className="text-base font-semibold text-gray-700">
-                  National ID <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="nationalId"
-                  value={formData.nationalId}
-                  onChange={(e) => setFormData({ ...formData, nationalId: e.target.value })}
-                  placeholder="National ID number"
-                  style={{ border: '2px solid lightblue' }}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="mccId" className="text-base font-semibold text-gray-700">
-                  MCC <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.mccId}
-                  onValueChange={(value) => setFormData({ ...formData, mccId: value })}
-                  required
-                >
-                  <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                    <SelectValue placeholder="Select MCC" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mccs.map((mcc) => (
-                      <SelectItem key={mcc.id} value={mcc.id}>
-                        {mcc.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="location" className="text-base font-semibold text-gray-700">Location</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="Location"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="village" className="text-base font-semibold text-gray-700">Village</Label>
-                <Input
-                  id="village"
-                  value={formData.village}
-                  onChange={(e) => setFormData({ ...formData, village: e.target.value })}
-                  placeholder="Village"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="district" className="text-base font-semibold text-gray-700">District</Label>
-                <Input
-                  id="district"
-                  value={formData.district}
-                  onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                  placeholder="District"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sector" className="text-base font-semibold text-gray-700">Sector</Label>
-                <Input
-                  id="sector"
-                  value={formData.sector}
-                  onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-                  placeholder="Sector"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="cell" className="text-base font-semibold text-gray-700">Cell</Label>
-                <Input
-                  id="cell"
-                  value={formData.cell}
-                  onChange={(e) => setFormData({ ...formData, cell: e.target.value })}
-                  placeholder="Cell"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="defaultCollectionCenterId" className="text-base font-semibold text-gray-700">
-                  Default Collection Center
-                </Label>
-                <Select
-                  value={formData.defaultCollectionCenterId}
-                  onValueChange={(value) => setFormData({ ...formData, defaultCollectionCenterId: value })}
-                >
-                  <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                    <SelectValue placeholder="Select collection center" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mccs.map((mcc) => (
-                      <SelectItem key={mcc.id} value={mcc.id}>
-                        {mcc.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="paymentMethod" className="text-base font-semibold text-gray-700">
-                  Payment Method
-                </Label>
-                <Select
-                  value={formData.paymentMethod}
-                  onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}
-                >
-                  <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                    <SelectValue placeholder="Select payment method" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ikofi">Ikofi</SelectItem>
-                    <SelectItem value="mobile_money">MoMo</SelectItem>
-                    <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="cash">Cash</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="ikofiId" className="text-base font-semibold text-gray-700">
-                  iKOFI ID
-                </Label>
-                <Input
-                  id="ikofiId"
-                  value={formData.ikofiId}
-                  onChange={(e) => setFormData({ ...formData, ikofiId: e.target.value })}
-                  placeholder="iKOFI Wallet ID"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bankName" className="text-base font-semibold text-gray-700">
-                  Bank Name
-                </Label>
-                <Input
-                  id="bankName"
-                  value={formData.bankName}
-                  onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
-                  placeholder="e.g. Bank of Kigali"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bankAccountNumber" className="text-base font-semibold text-gray-700">
-                Bank Account Number
-              </Label>
-              <Input
-                id="bankAccountNumber"
-                value={formData.bankAccountNumber}
-                onChange={(e) => setFormData({ ...formData, bankAccountNumber: e.target.value })}
-                placeholder="Bank account number"
-                style={{ border: '2px solid lightblue' }}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-base font-semibold text-gray-700">Assigned Agents</Label>
-              <Select
-                value=""
-                onValueChange={(value) => {
-                  if (value && !formData.assignedAgentIds.includes(value)) {
-                    setFormData({
-                      ...formData,
-                      assignedAgentIds: [...formData.assignedAgentIds, value],
-                    })
-                  }
-                }}
-              >
-                <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                  <SelectValue placeholder="Add an agent" />
-                </SelectTrigger>
-                <SelectContent>
-                  {agents
-                    .filter((agent) => !formData.assignedAgentIds.includes(agent.id))
-                    .map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              {formData.assignedAgentIds.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.assignedAgentIds.map((agentId) => {
-                    const agent = agents.find((a) => a.id === agentId)
-                    return (
-                      <Badge
-                        key={agentId}
-                        variant="outline"
-                        className="border-blue-300 text-blue-700"
-                      >
-                        {agent?.name || agentId}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFormData({
-                              ...formData,
-                              assignedAgentIds: formData.assignedAgentIds.filter((id) => id !== agentId),
-                            })
-                          }}
-                          className="ml-2 hover:text-red-600"
-                        >
-                          ×
-                        </button>
-                      </Badge>
-                    )
-                  })}
+        <DialogContent className="flex max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-0 shadow-2xl">
+          {/* Header with brand gradient */}
+          <div className="shrink-0 border-b border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-blue-50/40 px-6 pt-6 pb-4">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-blue-100/80 p-2.5">
+                  <User className="h-6 w-6 text-blue-600" />
                 </div>
-              )}
+                <div>
+                  <DialogTitle className="text-xl font-bold text-slate-900">
+                    {editingFarmer ? "Edit Farmer Profile" : "Add Farmer Profile"}
+                  </DialogTitle>
+                  <DialogDescription className="mt-1 text-slate-600">
+                    {editingFarmer ? "Update farmer information" : "Create a new farmer profile with required details"}
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              {/* Personal & MCC */}
+              <section className="space-y-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <User className="h-4 w-4 text-blue-600" />
+                  Personal & MCC
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-sm font-semibold text-slate-700">
+                      Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Farmer name"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-sm font-semibold text-slate-700">
+                      Phone <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="Phone number"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="nationalId" className="text-sm font-semibold text-slate-700">
+                      National ID <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="nationalId"
+                      value={formData.nationalId}
+                      onChange={(e) => setFormData({ ...formData, nationalId: e.target.value })}
+                      placeholder="National ID number"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="mccId" className="text-sm font-semibold text-slate-700">
+                      MCC <span className="text-red-500">*</span>
+                    </Label>
+                    <SearchableSelect
+                      value={formData.mccId}
+                      onValueChange={(value) => setFormData({ ...formData, mccId: value })}
+                      options={mccs.map((mcc) => ({ value: mcc.id, label: mcc.name }))}
+                      placeholder="Select MCC"
+                      searchPlaceholder="Search MCCs..."
+                      emptyText="No MCC found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Location */}
+              <section className="space-y-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <MapPin className="h-4 w-4 text-blue-600" />
+                  Location
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="location" className="text-sm font-semibold text-slate-700">Location</Label>
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                      placeholder="Location"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="village" className="text-sm font-semibold text-slate-700">Village</Label>
+                    <Input
+                      id="village"
+                      value={formData.village}
+                      onChange={(e) => setFormData({ ...formData, village: e.target.value })}
+                      placeholder="Village"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="district" className="text-sm font-semibold text-slate-700">District</Label>
+                    <Input
+                      id="district"
+                      value={formData.district}
+                      onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                      placeholder="District"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="sector" className="text-sm font-semibold text-slate-700">Sector</Label>
+                    <Input
+                      id="sector"
+                      value={formData.sector}
+                      onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
+                      placeholder="Sector"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="cell" className="text-sm font-semibold text-slate-700">Cell</Label>
+                    <Input
+                      id="cell"
+                      value={formData.cell}
+                      onChange={(e) => setFormData({ ...formData, cell: e.target.value })}
+                      placeholder="Cell"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Collection & Payment */}
+              <section className="space-y-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <Wallet className="h-4 w-4 text-blue-600" />
+                  Collection & Payment
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="defaultCollectionCenterId" className="text-sm font-semibold text-slate-700">
+                      Default Collection Center
+                    </Label>
+                    <SearchableSelect
+                      value={formData.defaultCollectionCenterId}
+                      onValueChange={(value) => setFormData({ ...formData, defaultCollectionCenterId: value })}
+                      options={mccs.map((mcc) => ({ value: mcc.id, label: mcc.name }))}
+                      placeholder="Select collection center"
+                      searchPlaceholder="Search collection centers..."
+                      emptyText="No collection center found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="paymentMethod" className="text-sm font-semibold text-slate-700">
+                      Payment Method
+                    </Label>
+                    <SearchableSelect
+                      value={formData.paymentMethod}
+                      onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}
+                      options={[
+                        { value: "ikofi", label: "Ikofi" },
+                        { value: "mobile_money", label: "MoMo" },
+                        { value: "bank_transfer", label: "Bank Transfer" },
+                        { value: "cash", label: "Cash" },
+                      ]}
+                      placeholder="Select payment method"
+                      searchPlaceholder="Search payment method..."
+                      emptyText="No payment method found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ikofiId" className="text-sm font-semibold text-slate-700">iKOFI ID</Label>
+                    <Input
+                      id="ikofiId"
+                      value={formData.ikofiId}
+                      onChange={(e) => setFormData({ ...formData, ikofiId: e.target.value })}
+                      placeholder="iKOFI Wallet ID"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bankName" className="text-sm font-semibold text-slate-700">Bank Name</Label>
+                    <Input
+                      id="bankName"
+                      value={formData.bankName}
+                      onChange={(e) => setFormData({ ...formData, bankName: e.target.value })}
+                      placeholder="e.g. Bank of Kigali"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="bankAccountNumber" className="text-sm font-semibold text-slate-700">
+                      Bank Account Number
+                    </Label>
+                    <Input
+                      id="bankAccountNumber"
+                      value={formData.bankAccountNumber}
+                      onChange={(e) => setFormData({ ...formData, bankAccountNumber: e.target.value })}
+                      placeholder="Bank account number"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Assigned Agents */}
+              <section className="space-y-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <Users className="h-4 w-4 text-blue-600" />
+                  Assigned Agents
+                </h3>
+                <div className="space-y-2">
+                  <SearchableSelect
+                    value=""
+                    onValueChange={(value) => {
+                      if (value && !formData.assignedAgentIds.includes(value)) {
+                        setFormData({
+                          ...formData,
+                          assignedAgentIds: [...formData.assignedAgentIds, value],
+                        })
+                      }
+                    }}
+                    options={agents
+                      .filter((agent) => !formData.assignedAgentIds.includes(agent.id))
+                      .map((agent) => ({ value: agent.id, label: agent.name }))}
+                    placeholder="Add an agent"
+                    searchPlaceholder="Search agents..."
+                    emptyText="No agent found or all assigned."
+                    className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                  />
+                  {formData.assignedAgentIds.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {formData.assignedAgentIds.map((agentId) => {
+                        const agent = agents.find((a) => a.id === agentId)
+                        return (
+                          <Badge
+                            key={agentId}
+                            variant="outline"
+                            className="border-blue-200 bg-blue-50/50 text-blue-800 py-1.5 pr-1 pl-2.5 rounded-lg"
+                          >
+                            {agent?.name || agentId}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFormData({
+                                  ...formData,
+                                  assignedAgentIds: formData.assignedAgentIds.filter((id) => id !== agentId),
+                                })
+                              }}
+                              className="ml-1.5 rounded p-0.5 hover:bg-blue-200/50 text-blue-600"
+                              aria-label="Remove agent"
+                            >
+                              ×
+                            </button>
+                          </Badge>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </section>
             </div>
 
-            <DialogFooter className="gap-2 pt-4 border-t-2 border-blue-300">
+            <DialogFooter className="shrink-0 gap-3 border-t border-slate-200/80 px-6 py-4 bg-slate-50/50">
               <Button
                 type="button"
                 variant="outline"
@@ -582,13 +576,13 @@ export function FarmerProfileManager() {
                   setIsDialogOpen(false)
                   resetForm()
                 }}
-                className="border-blue-200 hover:bg-blue-50"
+                className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-100"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 font-semibold text-white shadow-lg shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
               >
                 {editingFarmer ? "Update Farmer" : "Create Farmer"}
               </Button>

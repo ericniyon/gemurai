@@ -13,16 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Plus, Calendar, TrendingUp, Loader2 } from "lucide-react"
+import { Plus, Calendar, TrendingUp, Loader2, User } from "lucide-react"
 
 export function SeasonPlanManager() {
   const [farmers, setFarmers] = useState<any[]>([])
@@ -251,222 +245,206 @@ export function SeasonPlanManager() {
 
       {/* Add Season Plan Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl border-2 border-blue-200 bg-white opacity-100">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
-          <DialogHeader className="pb-4 border-b border-blue-200">
-            <DialogTitle className="text-2xl font-bold text-blue-900">Create Season Plan</DialogTitle>
-            <DialogDescription className="text-blue-700 mt-2">
-              Define expected harvest volume and dates for a farmer's commodity production
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="farmerId" className="text-base font-semibold text-gray-700">
-                  Farmer <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.farmerId}
-                  onValueChange={(value) => setFormData({ ...formData, farmerId: value })}
-                  required
-                >
-                  <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                    <SelectValue placeholder="Select farmer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {farmers.map((farmer) => (
-                      <SelectItem key={farmer.id} value={farmer.id}>
-                        {farmer.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+        <DialogContent className="flex max-w-4xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-0 shadow-2xl">
+          <div className="shrink-0 border-b border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-blue-50/40 px-6 pt-6 pb-4">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-blue-100/80 p-2.5">
+                  <Calendar className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold text-slate-900">Create Season Plan</DialogTitle>
+                  <DialogDescription className="mt-1 text-slate-600">
+                    Define expected harvest volume and dates for a farmer&apos;s commodity production
+                  </DialogDescription>
+                </div>
               </div>
+            </DialogHeader>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="commodityId" className="text-base font-semibold text-gray-700">
-                  Commodity <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.commodityId}
-                  onValueChange={(value) => setFormData({ ...formData, commodityId: value })}
-                  required
-                >
-                  <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                    <SelectValue placeholder="Select commodity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {commodities.map((commodity) => (
-                      <SelectItem key={commodity.id} value={commodity.id}>
-                        {commodity.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <section className="space-y-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <User className="h-4 w-4 text-blue-600" />
+                  Farmer & Commodity
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="farmerId" className="text-sm font-semibold text-slate-700">Farmer <span className="text-red-500">*</span></Label>
+                    <SearchableSelect
+                      value={formData.farmerId}
+                      onValueChange={(value) => setFormData({ ...formData, farmerId: value })}
+                      options={farmers.map((f) => ({ value: f.id, label: f.name }))}
+                      placeholder="Select farmer"
+                      searchPlaceholder="Search farmers..."
+                      emptyText="No farmer found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="commodityId" className="text-sm font-semibold text-slate-700">Commodity <span className="text-red-500">*</span></Label>
+                    <SearchableSelect
+                      value={formData.commodityId}
+                      onValueChange={(value) => setFormData({ ...formData, commodityId: value })}
+                      options={commodities.map((c) => ({ value: c.id, label: c.name }))}
+                      placeholder="Select commodity"
+                      searchPlaceholder="Search commodities..."
+                      emptyText="No commodity found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                  Season & Harvest
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="season" className="text-sm font-semibold text-slate-700">Season <span className="text-red-500">*</span></Label>
+                    <SearchableSelect
+                      value={formData.season}
+                      onValueChange={(value) => setFormData({ ...formData, season: value })}
+                      options={[
+                        { value: "A", label: "Season A" },
+                        { value: "B", label: "Season B" },
+                        { value: "C", label: "Season C" },
+                        { value: "custom", label: "Custom" },
+                      ]}
+                      placeholder="Select season"
+                      searchPlaceholder="Search season..."
+                      emptyText="No season found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="plotHerdReference" className="text-sm font-semibold text-slate-700">Plot / Herd Reference</Label>
+                    <Input
+                      id="plotHerdReference"
+                      value={formData.plotHerdReference}
+                      onChange={(e) => setFormData({ ...formData, plotHerdReference: e.target.value })}
+                      placeholder="Plot ID or herd reference"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="expectedHarvestVolume" className="text-sm font-semibold text-slate-700">Expected Harvest Volume <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="expectedHarvestVolume"
+                      type="number"
+                      step="0.01"
+                      value={formData.expectedHarvestVolume}
+                      onChange={(e) => setFormData({ ...formData, expectedHarvestVolume: e.target.value })}
+                      placeholder="Expected volume"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="expectedHarvestStartDate" className="text-sm font-semibold text-slate-700">Harvest Start Date <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="expectedHarvestStartDate"
+                      type="date"
+                      value={formData.expectedHarvestStartDate}
+                      onChange={(e) => setFormData({ ...formData, expectedHarvestStartDate: e.target.value })}
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="expectedHarvestEndDate" className="text-sm font-semibold text-slate-700">Harvest End Date <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="expectedHarvestEndDate"
+                      type="date"
+                      value={formData.expectedHarvestEndDate}
+                      onChange={(e) => setFormData({ ...formData, expectedHarvestEndDate: e.target.value })}
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      required
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <section className="space-y-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                  Frequency & Status
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="collectionFrequency" className="text-sm font-semibold text-slate-700">Collection Frequency</Label>
+                    <SearchableSelect
+                      value={formData.collectionFrequency}
+                      onValueChange={(value) => setFormData({ ...formData, collectionFrequency: value })}
+                      options={[
+                        { value: "daily", label: "Daily" },
+                        { value: "weekly", label: "Weekly" },
+                        { value: "seasonal", label: "Seasonal" },
+                        { value: "harvest_window", label: "Harvest Window" },
+                      ]}
+                      placeholder="Select frequency"
+                      searchPlaceholder="Search frequency..."
+                      emptyText="No option found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="status" className="text-sm font-semibold text-slate-700">Status</Label>
+                    <SearchableSelect
+                      value={formData.status}
+                      onValueChange={(value) => setFormData({ ...formData, status: value })}
+                      options={[
+                        { value: "PLANNED", label: "Planned" },
+                        { value: "IN_PROGRESS", label: "In Progress" },
+                        { value: "COMPLETED", label: "Completed" },
+                        { value: "CANCELLED", label: "Cancelled" },
+                      ]}
+                      placeholder="Select status"
+                      searchPlaceholder="Search status..."
+                      emptyText="No option found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="region" className="text-sm font-semibold text-slate-700">Region</Label>
+                    <Input
+                      id="region"
+                      value={formData.region}
+                      onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                      placeholder="Region"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="notes" className="text-sm font-semibold text-slate-700">Notes</Label>
+                    <Input
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      placeholder="Additional notes"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                </div>
+              </section>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="season" className="text-base font-semibold text-gray-700">
-                  Season <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.season}
-                  onValueChange={(value) => setFormData({ ...formData, season: value })}
-                  required
-                >
-                  <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                    <SelectValue placeholder="Select season" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="A">Season A</SelectItem>
-                    <SelectItem value="B">Season B</SelectItem>
-                    <SelectItem value="C">Season C</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="plotHerdReference" className="text-base font-semibold text-gray-700">
-                  Plot / Herd Reference
-                </Label>
-                <Input
-                  id="plotHerdReference"
-                  value={formData.plotHerdReference}
-                  onChange={(e) => setFormData({ ...formData, plotHerdReference: e.target.value })}
-                  placeholder="Plot ID or herd reference"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="expectedHarvestVolume" className="text-base font-semibold text-gray-700">
-                Expected Harvest Volume <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="expectedHarvestVolume"
-                type="number"
-                step="0.01"
-                value={formData.expectedHarvestVolume}
-                onChange={(e) => setFormData({ ...formData, expectedHarvestVolume: e.target.value })}
-                placeholder="Expected volume"
-                style={{ border: '2px solid lightblue' }}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="expectedHarvestStartDate" className="text-base font-semibold text-gray-700">
-                  Harvest Start Date <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="expectedHarvestStartDate"
-                  type="date"
-                  value={formData.expectedHarvestStartDate}
-                  onChange={(e) => setFormData({ ...formData, expectedHarvestStartDate: e.target.value })}
-                  style={{ border: '2px solid lightblue' }}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="expectedHarvestEndDate" className="text-base font-semibold text-gray-700">
-                  Harvest End Date <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="expectedHarvestEndDate"
-                  type="date"
-                  value={formData.expectedHarvestEndDate}
-                  onChange={(e) => setFormData({ ...formData, expectedHarvestEndDate: e.target.value })}
-                  style={{ border: '2px solid lightblue' }}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="collectionFrequency" className="text-base font-semibold text-gray-700">
-                  Collection Frequency
-                </Label>
-                <Select
-                  value={formData.collectionFrequency}
-                  onValueChange={(value) => setFormData({ ...formData, collectionFrequency: value })}
-                >
-                  <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                    <SelectValue placeholder="Select frequency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="seasonal">Seasonal</SelectItem>
-                    <SelectItem value="harvest_window">Harvest Window</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="region" className="text-base font-semibold text-gray-700">Region</Label>
-                <Input
-                  id="region"
-                  value={formData.region}
-                  onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                  placeholder="Region"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-base font-semibold text-gray-700">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                >
-                  <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PLANNED">Planned</SelectItem>
-                    <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                    <SelectItem value="COMPLETED">Completed</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="notes" className="text-base font-semibold text-gray-700">Notes</Label>
-                <Input
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Additional notes"
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="gap-2 pt-4 border-t-2 border-blue-300">
+            <DialogFooter className="shrink-0 gap-3 border-t border-slate-200/80 px-6 py-4 bg-slate-50/50">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  setIsDialogOpen(false)
-                  resetForm()
-                }}
-                className="border-blue-200 hover:bg-blue-50"
+                onClick={() => { setIsDialogOpen(false); resetForm() }}
+                className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-100"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 font-semibold text-white shadow-lg shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
               >
                 {isSubmitting ? (
                   <>

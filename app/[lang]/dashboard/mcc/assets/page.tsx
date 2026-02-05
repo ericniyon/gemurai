@@ -10,7 +10,7 @@ export default function MccAssetsPage() {
   const lang = (params?.lang as string) || "en"
 
   useEffect(() => {
-    router.replace(`/${lang}/dashboard/mcc/inventory-rentals`)
+    router.replace(`/${lang}/dashboard/mcc/warehouses`)
   }, [router, lang])
 
   return (
@@ -18,12 +18,12 @@ export default function MccAssetsPage() {
       <div className="flex flex-col items-center gap-4 text-center">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         <div>
-          <p className="text-base font-semibold text-gray-800">Redirecting to Inventory & Rentals…</p>
+          <p className="text-base font-semibold text-gray-800">Redirecting to Warehouses…</p>
           <p className="text-sm text-gray-500">
             If you are not redirected automatically,{" "}
             <button
               type="button"
-              onClick={() => router.replace(`/${lang}/dashboard/mcc/inventory-rentals`)}
+              onClick={() => router.replace(`/${lang}/dashboard/mcc/warehouses`)}
               className="font-semibold text-blue-600 underline-offset-2 hover:underline"
             >
               click here

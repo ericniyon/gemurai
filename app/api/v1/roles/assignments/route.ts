@@ -4,16 +4,19 @@ import { cookies } from "next/headers"
 import { verifyAuthToken } from "@/lib/token"
 import { prisma } from "@/lib/prisma"
 
-async function requireSuperAdmin() {
+async function requireAdmin(request: NextRequest) {
   const cookieStore = await cookies()
   const token = cookieStore.get("Gemurai_token")
+  const authHeader = request.headers.get("Authorization")
+  const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null
+  const tokenValue = token?.value || bearerToken
 
-  if (!token) {
+  if (!tokenValue) {
     return { error: NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 }) }
   }
 
-  const user = await verifyAuthToken(token.value)
-  if (!user || user.role !== "SUPER_ADMIN") {
+  const user = await verifyAuthToken(tokenValue)
+  if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
     return { error: NextResponse.json({ success: false, message: "Access denied" }, { status: 403 }) }
   }
 
@@ -22,7 +25,7 @@ async function requireSuperAdmin() {
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireSuperAdmin()
+    const auth = await requireAdmin(request)
     if (auth.error) {
       return auth.error
     }
@@ -33,10 +36,7 @@ export async function GET(request: NextRequest) {
     const where: any = {}
 
     if (roleFilter) {
-      where.OR = [
-        { userRole: { role: { name: roleFilter } } },
-        { role: roleFilter },
-      ]
+      where.userRole = { role: { name: roleFilter } }
     }
 
     if (search) {
@@ -60,7 +60,6 @@ export async function GET(request: NextRequest) {
         isActive: true,
         createdAt: true,
         updatedAt: true,
-        role: true,
         userRole: {
           include: {
             role: {
@@ -93,7 +92,7 @@ export async function GET(request: NextRequest) {
         roleId: assignment?.roleId ?? null,
         userName: user.name ?? "Unknown User",
         userEmail: user.email ?? "unknown@Gemurai.rw",
-        roleName: assignment?.role?.name ?? user.role ?? "UNASSIGNED",
+        roleName: assignment?.role?.name ?? "CONSUMER",
         assignedBy: assignment?.assignedByUser?.name || assignment?.assignedBy || "Legacy Role",
         assignedById: assignment?.assignedByUser?.id || assignment?.assignedBy || null,
         assignedAt: assignment?.assignedAt
@@ -121,7 +120,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireSuperAdmin()
+    const auth = await requireAdmin(request)
     if (auth.error) {
       return auth.error
     }

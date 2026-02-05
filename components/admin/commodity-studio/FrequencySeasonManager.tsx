@@ -24,14 +24,17 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
-import { Plus, Edit, Trash2, Calendar, Clock, MapPin, Info } from "lucide-react"
+import Swal from "sweetalert2"
+import { Plus, Edit, Trash2, Calendar, Clock, MapPin, Info, Loader2 } from "lucide-react"
 
 export function FrequencySeasonManager() {
   const [commodities, setCommodities] = useState<any[]>([])
   const [selectedCommodity, setSelectedCommodity] = useState<string>("")
   const [isLoading, setIsLoading] = useState(true)
   const [isFrequencyDialogOpen, setIsFrequencyDialogOpen] = useState(false)
+  const [isSavingFrequency, setIsSavingFrequency] = useState(false)
   const [isSeasonDialogOpen, setIsSeasonDialogOpen] = useState(false)
+  const [isSavingSeason, setIsSavingSeason] = useState(false)
   const [seasonTemplates, setSeasonTemplates] = useState<any[]>([])
   const [selectedRegion, setSelectedRegion] = useState<string>("all")
   const [frequencyFormData, setFrequencyFormData] = useState({
@@ -113,15 +116,31 @@ export function FrequencySeasonManager() {
     e.preventDefault()
 
     if (!selectedCommodity || !frequencyFormData.defaultCollectionFrequency) {
-      toast.error("Please select a commodity and set collection frequency")
+      await Swal.fire({
+        icon: "warning",
+        title: "Validation",
+        text: "Please select a commodity and set collection frequency.",
+        timer: 2000,
+        showConfirmButton: false,
+      })
       return
     }
 
+    const commodity = commodities.find((c) => c.id === selectedCommodity)
+    if (!commodity) {
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Commodity not found.",
+        timer: 2000,
+        showConfirmButton: false,
+      })
+      return
+    }
+
+    setIsSavingFrequency(true)
     try {
       const token = localStorage.getItem("Gemurai_token")
-      const commodity = commodities.find((c) => c.id === selectedCommodity)
-      if (!commodity) return
-
       const response = await fetch(
         `/api/v1/admin/commodity-studio/commodities/${selectedCommodity}`,
         {
@@ -140,15 +159,35 @@ export function FrequencySeasonManager() {
       const result = await response.json()
 
       if (response.ok && result.success) {
-        toast.success("Collection frequency updated successfully")
+        await Swal.fire({
+          icon: "success",
+          title: "Frequency saved",
+          text: "Collection frequency updated successfully.",
+          timer: 2000,
+          showConfirmButton: false,
+        })
         setIsFrequencyDialogOpen(false)
         fetchCommodities()
       } else {
-        toast.error(result.error || "Failed to update collection frequency")
+        await Swal.fire({
+          icon: "error",
+          title: "Failed to save",
+          text: result.error || "Could not update collection frequency.",
+          timer: 2000,
+          showConfirmButton: false,
+        })
       }
     } catch (error) {
       console.error("Error updating collection frequency:", error)
-      toast.error("Failed to update collection frequency")
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to update collection frequency. Please try again.",
+        timer: 2000,
+        showConfirmButton: false,
+      })
+    } finally {
+      setIsSavingFrequency(false)
     }
   }
 
@@ -168,6 +207,7 @@ export function FrequencySeasonManager() {
       return
     }
 
+    setIsSavingSeason(true)
     try {
       const token = localStorage.getItem("Gemurai_token")
       const seasonValue = seasonFormData.season === "custom" ? seasonFormData.customSeasonName : seasonFormData.season
@@ -212,6 +252,8 @@ export function FrequencySeasonManager() {
     } catch (error) {
       console.error("Error creating season template:", error)
       toast.error("Failed to create season template")
+    } finally {
+      setIsSavingSeason(false)
     }
   }
 
@@ -561,9 +603,17 @@ export function FrequencySeasonManager() {
               </Button>
               <Button 
                 type="submit"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                disabled={isSavingFrequency}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:opacity-70"
               >
-                Save Frequency
+                {isSavingFrequency ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Frequency"
+                )}
               </Button>
             </DialogFooter>
           </form>
@@ -719,9 +769,17 @@ export function FrequencySeasonManager() {
               </Button>
               <Button 
                 type="submit"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                disabled={isSavingSeason}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:opacity-70"
               >
-                Save Season
+                {isSavingSeason ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Season"
+                )}
               </Button>
             </DialogFooter>
           </form>

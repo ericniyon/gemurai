@@ -3,8 +3,10 @@
 import { Mail, Phone, MapPin, Send } from "lucide-react"
 import Button from "@/components/yden/ui/button"
 import ScrollReveal from "@/components/yden/ui/scroll-reveal"
+import { usePublicSettings } from "@/lib/public-settings-context"
 
 export default function ContactPage() {
+  const settings = usePublicSettings()
   const inputClasses =
     "w-full px-4 py-3 rounded-lg border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 bg-white hover:border-slate-400"
   const labelClasses = "block text-sm font-semibold text-slate-700 mb-2"
@@ -66,14 +68,14 @@ export default function ContactPage() {
                   <Mail className="w-6 h-6 mt-1 mr-4" style={{ color: '#0099f2' }} />
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Email</p>
-                    <p className="text-slate-700">info@yden.rw</p>
+                    <a href={`mailto:${settings.supportEmail}`} className="text-slate-700 hover:text-[#0099f2]">{settings.supportEmail}</a>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <Phone className="w-6 h-6 mt-1 mr-4" style={{ color: '#0099f2' }} />
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">Phone</p>
-                    <p className="text-slate-700">+250 XXX XXX XXX</p>
+                    <a href={`tel:${settings.supportPhone}`} className="text-slate-700 hover:text-[#0099f2]">{settings.supportPhone}</a>
                   </div>
                 </div>
                 <div className="flex items-start">

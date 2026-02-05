@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useSearchParams, useRouter, useParams } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { XCircle, Wheat, Package, CheckSquare, Calendar, Database, TrendingUp, Settings } from "lucide-react"
+import { XCircle, Wheat, Package, CheckSquare, Calendar, Database } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { CommodityCategoriesManager } from "@/components/admin/commodity-studio/CommodityCategoriesManager"
 import { CommoditiesManager } from "@/components/admin/commodity-studio/CommoditiesManager"
@@ -19,18 +19,48 @@ export default function CommodityStudioPage() {
   const params = useParams()
   const lang = (params?.lang as string) || "en"
   
-  // Get tab from URL search params
-  const initialTab = searchParams?.get('tab') || "categories"
+  // Sync active tab with URL (ensures ?tab=quality shows Quality tab)
+  const validTabs = ['categories', 'commodities', 'quality', 'frequency', 'input-catalog'] as const
+  const tabFromUrl = searchParams?.get('tab')
+  const initialTab = tabFromUrl && validTabs.includes(tabFromUrl as any) ? tabFromUrl : "categories"
   const [activeTab, setActiveTab] = useState(initialTab)
-  
-  // Update tab when URL changes
+  const tabsListRef = useRef<HTMLDivElement>(null)
+
+  // Keep tab in sync with URL when user navigates or lands with ?tab=...
   useEffect(() => {
     const tabParam = searchParams?.get('tab')
-    const validTabs = ['categories', 'commodities', 'quality', 'frequency', 'input-catalog']
-    if (tabParam && validTabs.includes(tabParam)) {
+    if (tabParam && validTabs.includes(tabParam as any)) {
       setActiveTab(tabParam)
     }
   }, [searchParams])
+
+  // Scroll active tab into view when tab changes (e.g. landing with ?tab=quality)
+  useEffect(() => {
+    if (!activeTab || !tabsListRef.current) return
+    const trigger = tabsListRef.current.querySelector(`[data-state="active"]`)
+    if (trigger) {
+      ;(trigger as HTMLElement).scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" })
+    }
+  }, [activeTab])
+
+  // Stats for dashboard cards
+  const [stats, setStats] = useState<{
+    totalCategories: number
+    totalCommodities: number
+    totalQualityFields: number
+    totalInputItems: number
+  } | null>(null)
+  useEffect(() => {
+    if (!user) return
+    const token = localStorage.getItem("Gemurai_token")
+    if (!token) return
+    fetch("/api/v1/admin/commodity-studio/stats", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.ok ? res.json() : null)
+      .then((json) => json?.data && setStats(json.data))
+      .catch(() => {})
+  }, [user])
   
   // Handle tab change and update URL
   const handleTabChange = (newTab: string) => {
@@ -66,7 +96,7 @@ export default function CommodityStudioPage() {
           <h1 className="text-3xl font-bold text-gray-900">Commodity Studio</h1>
           <p className="text-gray-600 mt-1">HarvestPlus by YDEN - Multi-Commodity Configuration & Management</p>
         </div>
-        
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Card className="border-2 border-blue-200 hover:border-blue-400 transition-all shadow-sm hover:shadow-md">
@@ -77,7 +107,9 @@ export default function CommodityStudioPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-900">-</div>
+              <div className="text-2xl font-bold text-blue-900">
+                {stats ? stats.totalCategories : "—"}
+              </div>
               <p className="text-xs text-gray-500 mt-1">Commodity categories</p>
             </CardContent>
           </Card>
@@ -90,7 +122,9 @@ export default function CommodityStudioPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-indigo-900">-</div>
+              <div className="text-2xl font-bold text-indigo-900">
+                {stats ? stats.totalCommodities : "—"}
+              </div>
               <p className="text-xs text-gray-500 mt-1">Active commodities</p>
             </CardContent>
           </Card>
@@ -103,7 +137,9 @@ export default function CommodityStudioPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-900">-</div>
+              <div className="text-2xl font-bold text-purple-900">
+                {stats ? stats.totalQualityFields : "—"}
+              </div>
               <p className="text-xs text-gray-500 mt-1">Defined quality fields</p>
             </CardContent>
           </Card>
@@ -116,7 +152,9 @@ export default function CommodityStudioPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-teal-900">-</div>
+              <div className="text-2xl font-bold text-teal-900">
+                {stats ? stats.totalInputItems : "—"}
+              </div>
               <p className="text-xs text-gray-500 mt-1">Catalog items</p>
             </CardContent>
           </Card>
@@ -128,35 +166,42 @@ export default function CommodityStudioPage() {
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               {/* Enhanced Tab Header */}
               <div className="border-b border-gray-200 bg-white">
-                <div className="px-4 sm:px-6">
-                  <TabsList className="h-auto bg-transparent p-0 w-full justify-start gap-0.5 sm:gap-1 inline-flex">
+                <div className="px-4 sm:px-6 overflow-x-auto" ref={tabsListRef}>
+                  <TabsList className="h-auto bg-transparent p-0 w-full justify-start gap-0.5 sm:gap-1 inline-flex min-w-0">
                     <TabsTrigger 
                       value="categories" 
-                      className="group relative data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-none rounded-none border-b-3 border-transparent data-[state=active]:border-orange-500 px-4 sm:px-6 py-3.5 font-semibold text-sm transition-all duration-200 data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-900 data-[state=inactive]:hover:bg-gray-50"
+                      className="rounded-none border-b-2 border-transparent px-4 sm:px-6 py-3.5 font-semibold text-sm transition-all duration-200 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 data-[state=inactive]:hover:bg-gray-50 data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 data-[state=active]:border-orange-600 data-[state=active]:border-b-2 data-[state=active]:shadow-none"
                     >
                       <Package className="h-4 w-4 mr-2" />
                       <span>Categories</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="commodities"
-                      className="group relative data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-none rounded-none border-b-3 border-transparent data-[state=active]:border-orange-500 px-4 sm:px-6 py-3.5 font-semibold text-sm transition-all duration-200 data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-900 data-[state=inactive]:hover:bg-gray-50"
+                      className="rounded-none border-b-2 border-transparent px-4 sm:px-6 py-3.5 font-semibold text-sm transition-all duration-200 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 data-[state=inactive]:hover:bg-gray-50 data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 data-[state=active]:border-orange-600 data-[state=active]:border-b-2 data-[state=active]:shadow-none"
                     >
                       <Wheat className="h-4 w-4 mr-2" />
                       <span>Commodities</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="quality"
-                      className="group relative data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-none rounded-none border-b-3 border-transparent data-[state=active]:border-orange-500 px-4 sm:px-6 py-3.5 font-semibold text-sm transition-all duration-200 data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-900 data-[state=inactive]:hover:bg-gray-50"
+                      className="rounded-none border-b-2 border-transparent px-4 sm:px-6 py-3.5 font-semibold text-sm transition-all duration-200 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 data-[state=inactive]:hover:bg-gray-50 data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 data-[state=active]:border-orange-600 data-[state=active]:border-b-2 data-[state=active]:shadow-none"
                     >
                       <CheckSquare className="h-4 w-4 mr-2" />
                       <span>Quality Checks</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="frequency"
-                      className="group relative data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-none rounded-none border-b-3 border-transparent data-[state=active]:border-orange-500 px-4 sm:px-6 py-3.5 font-semibold text-sm transition-all duration-200 data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-900 data-[state=inactive]:hover:bg-gray-50"
+                      className="rounded-none border-b-2 border-transparent px-4 sm:px-6 py-3.5 font-semibold text-sm transition-all duration-200 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 data-[state=inactive]:hover:bg-gray-50 data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 data-[state=active]:border-orange-600 data-[state=active]:border-b-2 data-[state=active]:shadow-none"
                     >
                       <Calendar className="h-4 w-4 mr-2" />
-                      <span>Frequency Settings</span>
+                      <span>Frequency & Seasons</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="input-catalog"
+                      className="rounded-none border-b-2 border-transparent px-4 sm:px-6 py-3.5 font-semibold text-sm transition-all duration-200 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-900 data-[state=inactive]:hover:bg-gray-50 data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 data-[state=active]:border-orange-600 data-[state=active]:border-b-2 data-[state=active]:shadow-none"
+                    >
+                      <Database className="h-4 w-4 mr-2" />
+                      <span>Input Catalog</span>
                     </TabsTrigger>
                   </TabsList>
                 </div>

@@ -14,7 +14,14 @@ import {
 } from "@/components/ui/table"
 import { useAuth } from "@/hooks/use-auth"
 import { useParams } from "next/navigation"
-import { Package, Plus, Wheat, Droplets, Coffee, Activity, DollarSign } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Package, Plus, Wheat, Droplets, Coffee, Activity, DollarSign, ClipboardList, Eye } from "lucide-react"
 import { CommodityCollectionForm } from "@/components/mcc/CommodityCollectionForm"
 import { formatCurrency } from "@/lib/utils"
 
@@ -32,6 +39,7 @@ export default function CommodityCollectionsPage() {
   const [collections, setCollections] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [qualityReviewCollection, setQualityReviewCollection] = useState<any | null>(null)
 
   const fetchCollections = async () => {
     try {
@@ -203,6 +211,7 @@ export default function CommodityCollectionsPage() {
                         <TableHead className="font-semibold text-slate-700">Farmer</TableHead>
                         <TableHead className="font-semibold text-slate-700">Quantity</TableHead>
                         <TableHead className="font-semibold text-slate-700">Amount</TableHead>
+                        <TableHead className="font-semibold text-slate-700">Quality</TableHead>
                         <TableHead className="font-semibold text-slate-700">Status</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -223,6 +232,24 @@ export default function CommodityCollectionsPage() {
                             {c.quantity?.toLocaleString()} {c.unit}
                           </TableCell>
                           <TableCell className="font-semibold text-slate-900">{formatCurrency(c.totalAmount)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {c.qualityScore != null ? (
+                                <span className="text-sm font-medium text-slate-700">{Number(c.qualityScore).toFixed(1)}</span>
+                              ) : (
+                                <span className="text-slate-400 text-sm">—</span>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-slate-600 hover:text-primary hover:bg-primary/5"
+                                onClick={() => setQualityReviewCollection(c)}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                Review
+                              </Button>
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <Badge
                               variant={
@@ -259,6 +286,72 @@ export default function CommodityCollectionsPage() {
         onOpenChange={setIsFormOpen}
         onSuccess={fetchCollections}
       />
+
+      {/* Quality review screen – dynamic schema from commodity quality fields */}
+      <Dialog open={!!qualityReviewCollection} onOpenChange={(open) => !open && setQualityReviewCollection(null)}>
+        <DialogContent className="max-w-lg rounded-2xl border border-slate-200 bg-white shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg font-bold text-slate-900">
+              <ClipboardList className="h-5 w-5 text-primary" />
+              Quality Review
+            </DialogTitle>
+            <DialogDescription>
+              {qualityReviewCollection && (
+                <>
+                  {qualityReviewCollection.commodity?.name} ·{" "}
+                  {new Date(qualityReviewCollection.collectionDate).toLocaleDateString()} ·{" "}
+                  {qualityReviewCollection.farmer?.name}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {qualityReviewCollection && (
+            <div className="space-y-4 pt-2">
+              {qualityReviewCollection.qualityScore != null && (
+                <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Quality score</p>
+                  <p className="text-2xl font-bold text-slate-900">{Number(qualityReviewCollection.qualityScore).toFixed(1)}</p>
+                </div>
+              )}
+              {qualityReviewCollection.commodity?.qualityFields?.length > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Quality fields</p>
+                  <ul className="space-y-2 rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+                    {qualityReviewCollection.commodity.qualityFields.map((field: { id: string; fieldName: string; fieldType: string }) => {
+                      const value = qualityReviewCollection.qualityData?.[field.fieldName]
+                      const display = value === undefined || value === null || value === "" ? "—" : String(value)
+                      return (
+                        <li key={field.id} className="flex justify-between items-center px-4 py-3 bg-white hover:bg-slate-50/50">
+                          <span className="text-sm font-medium text-slate-700">{field.fieldName}</span>
+                          <span className="text-sm text-slate-900">{display}</span>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              ) : (
+                Object.keys(qualityReviewCollection.qualityData || {}).length > 0 && (
+                  <div className="space-y-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Quality data</p>
+                    <ul className="space-y-2 rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+                      {Object.entries(qualityReviewCollection.qualityData || {}).map(([key, value]) => (
+                        <li key={key} className="flex justify-between items-center px-4 py-3 bg-white hover:bg-slate-50/50">
+                          <span className="text-sm font-medium text-slate-700">{key}</span>
+                          <span className="text-sm text-slate-900">{value == null ? "—" : String(value)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )
+              )}
+              {(!qualityReviewCollection.qualityData || Object.keys(qualityReviewCollection.qualityData).length === 0) &&
+                !qualityReviewCollection.commodity?.qualityFields?.length && (
+                  <p className="text-sm text-slate-500 py-4 text-center">No quality data recorded for this collection.</p>
+                )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

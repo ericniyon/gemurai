@@ -7,9 +7,10 @@ import { prisma } from "@/lib/prisma"
  */
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: farmerId } = await params
     const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
     if (!authToken) {
       return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
@@ -39,9 +40,17 @@ export async function PUT(
       assignedAgentIds,
     } = data
 
+    // National ID is mandatory: must be present on update (cannot be cleared)
+    if (nationalId !== undefined && !nationalId?.trim()) {
+      return NextResponse.json(
+        { error: "National ID is required and cannot be empty" },
+        { status: 400 }
+      )
+    }
+
     // Check if farmer exists
     const existingFarmer = await prisma.farmers.findUnique({
-      where: { id: params.id },
+      where: { id: farmerId },
     })
 
     if (!existingFarmer) {
@@ -69,39 +78,41 @@ export async function PUT(
       }
     }
 
-    // Update farmer
+    // Update farmer (preserve nationalId if not sent; require non-empty if sent)
+    const updateData: Record<string, unknown> = {
+      name,
+      phone,
+      mccId,
+      location: location || "",
+      village,
+      district,
+      sector,
+      cell,
+      defaultCollectionCenterId: defaultCollectionCenterId || null,
+      paymentMethod: paymentMethod || null,
+      ikofiId: ikofiId || null,
+      bankAccountNumber: bankAccountNumber || null,
+      bankName: bankName || null,
+    }
+    if (nationalId !== undefined) updateData.nationalId = nationalId.trim() || existingFarmer.nationalId
+
     const farmer = await prisma.farmers.update({
-      where: { id: params.id },
-      data: {
-        name,
-        phone,
-        nationalId,
-        mccId,
-        location: location || "",
-        village,
-        district,
-        sector,
-        cell,
-        defaultCollectionCenterId: defaultCollectionCenterId || null,
-        paymentMethod: paymentMethod || null,
-        ikofiId: ikofiId || null,
-        bankAccountNumber: bankAccountNumber || null,
-        bankName: bankName || null,
-      },
+      where: { id: farmerId },
+      data: updateData,
     })
 
     // Update agent assignments
     if (assignedAgentIds !== undefined) {
       // Remove all existing assignments
       await prisma.farmer_agent_assignments.deleteMany({
-        where: { farmerId: params.id },
+        where: { farmerId: farmerId },
       })
 
       // Create new assignments
       if (assignedAgentIds.length > 0) {
         await prisma.farmer_agent_assignments.createMany({
           data: assignedAgentIds.map((agentId: string) => ({
-            farmerId: params.id,
+            farmerId: farmerId,
             agentId,
             assignedBy: user.id,
           })),
@@ -111,7 +122,7 @@ export async function PUT(
 
     // Fetch farmer with all relations
     const farmerWithRelations = await prisma.farmers.findUnique({
-      where: { id: params.id },
+      where: { id: farmerId },
       include: {
         mccs: true,
         defaultCollectionCenter: true,

@@ -22,15 +22,22 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { toast } from "sonner"
-import { Plus, Settings, Trash2, Info } from "lucide-react"
+import Swal from "sweetalert2"
+import { Plus, Settings, Trash2, Info, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
+
+const PER_PAGE = 5
 
 export function QualitySchemaBuilder() {
   const [commodities, setCommodities] = useState<any[]>([])
   const [selectedCommodity, setSelectedCommodity] = useState<string>("")
   const [qualityFields, setQualityFields] = useState<any[]>([])
+  const [qualityRules, setQualityRules] = useState<any[]>([])
+  const [fieldsPage, setFieldsPage] = useState(1)
+  const [rulesPage, setRulesPage] = useState(1)
   const [isFieldDialogOpen, setIsFieldDialogOpen] = useState(false)
   const [isRuleDialogOpen, setIsRuleDialogOpen] = useState(false)
+  const [isAddingField, setIsAddingField] = useState(false)
+  const [isAddingRule, setIsAddingRule] = useState(false)
   const [fieldFormData, setFieldFormData] = useState({
     fieldName: "",
     fieldType: "NUMERIC",
@@ -61,6 +68,14 @@ export function QualitySchemaBuilder() {
       fetchCommodityDetails()
     }
   }, [selectedCommodity])
+
+  // Reset pagination when data changes
+  useEffect(() => {
+    setFieldsPage(1)
+  }, [selectedCommodity, qualityFields.length])
+  useEffect(() => {
+    setRulesPage(1)
+  }, [selectedCommodity, qualityRules.length])
 
   const fetchCommodities = async () => {
     try {
@@ -93,6 +108,7 @@ export function QualitySchemaBuilder() {
       if (response.ok) {
         const data = await response.json()
         setQualityFields(data.data?.qualityFields || [])
+        setQualityRules(data.data?.qualityRules || [])
       }
     } catch (error) {
       console.error("Error fetching commodity details:", error)
@@ -103,10 +119,17 @@ export function QualitySchemaBuilder() {
     e.preventDefault()
 
     if (!selectedCommodity || !fieldFormData.fieldName) {
-      toast.error("Please select a commodity and enter field name")
+      await Swal.fire({
+        icon: "warning",
+        title: "Validation",
+        text: "Please select a commodity and enter field name.",
+        timer: 2000,
+        showConfirmButton: false,
+      })
       return
     }
 
+    setIsAddingField(true)
     try {
       const token = localStorage.getItem("Gemurai_token")
       const response = await fetch(
@@ -127,7 +150,13 @@ export function QualitySchemaBuilder() {
       const result = await response.json()
 
       if (response.ok && result.success) {
-        toast.success("Quality field added successfully")
+        await Swal.fire({
+          icon: "success",
+          title: "Quality field added",
+          text: "The quality field was added successfully.",
+          timer: 2000,
+          showConfirmButton: false,
+        })
         setIsFieldDialogOpen(false)
         setFieldFormData({
           fieldName: "",
@@ -141,11 +170,25 @@ export function QualitySchemaBuilder() {
         })
         fetchCommodityDetails()
       } else {
-        toast.error(result.error || "Failed to add quality field")
+        await Swal.fire({
+          icon: "error",
+          title: "Failed to add field",
+          text: result.error || "Could not add quality field.",
+          timer: 2000,
+          showConfirmButton: false,
+        })
       }
     } catch (error) {
       console.error("Error adding quality field:", error)
-      toast.error("Failed to add quality field")
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to add quality field. Please try again.",
+        timer: 2000,
+        showConfirmButton: false,
+      })
+    } finally {
+      setIsAddingField(false)
     }
   }
 
@@ -153,10 +196,17 @@ export function QualitySchemaBuilder() {
     e.preventDefault()
 
     if (!selectedCommodity || !ruleFormData.ruleName) {
-      toast.error("Please select a commodity and enter rule name")
+      await Swal.fire({
+        icon: "warning",
+        title: "Validation",
+        text: "Please select a commodity and enter rule name.",
+        timer: 2000,
+        showConfirmButton: false,
+      })
       return
     }
 
+    setIsAddingRule(true)
     try {
       const token = localStorage.getItem("Gemurai_token")
       const response = await fetch(
@@ -183,7 +233,13 @@ export function QualitySchemaBuilder() {
       const result = await response.json()
 
       if (response.ok && result.success) {
-        toast.success("Quality rule added successfully")
+        await Swal.fire({
+          icon: "success",
+          title: "Quality rule added",
+          text: "The quality rule was added successfully.",
+          timer: 2000,
+          showConfirmButton: false,
+        })
         setIsRuleDialogOpen(false)
         setRuleFormData({
           qualityFieldId: "none",
@@ -197,11 +253,25 @@ export function QualitySchemaBuilder() {
         })
         fetchCommodityDetails()
       } else {
-        toast.error(result.error || "Failed to add quality rule")
+        await Swal.fire({
+          icon: "error",
+          title: "Failed to add rule",
+          text: result.error || "Could not add quality rule.",
+          timer: 2000,
+          showConfirmButton: false,
+        })
       }
     } catch (error) {
       console.error("Error adding quality rule:", error)
-      toast.error("Failed to add quality rule")
+      await Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to add quality rule. Please try again.",
+        timer: 2000,
+        showConfirmButton: false,
+      })
+    } finally {
+      setIsAddingRule(false)
     }
   }
 
@@ -265,45 +335,89 @@ export function QualitySchemaBuilder() {
                   <p className="text-sm mt-1">Add your first quality field to get started</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {qualityFields
-                    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
-                    .map((field) => (
-                    <Card key={field.id} className="border-2 border-blue-200 hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow-md">
-                      <CardContent className="pt-5 pb-5">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 flex-wrap mb-2">
-                              <span className="font-bold text-lg text-blue-900">{field.fieldName}</span>
-                              <Badge variant="outline" className="border-blue-300 text-blue-700 font-semibold">{field.fieldType}</Badge>
-                              <Badge variant="outline" className="border-indigo-300 text-indigo-700 font-semibold">{field.dataType}</Badge>
-                              {field.isMandatory && (
-                                <Badge variant="outline" className="border-red-300 text-red-700 font-semibold">Required</Badge>
-                              )}
-                              {field.options && Array.isArray(field.options) && field.options.length > 0 && (
-                                <Badge variant="outline" className="border-purple-300 text-purple-700 font-semibold">
-                                  {field.options.length} option(s)
-                                </Badge>
-                              )}
-                            </div>
-                            {field.description && (
-                              <p className="text-sm text-gray-700 mt-2 pl-1 border-l-2 border-blue-200 pl-3">{field.description}</p>
-                            )}
-                            {field.options && Array.isArray(field.options) && field.options.length > 0 && (
-                              <div className="mt-3 flex flex-wrap gap-2">
-                                {field.options.map((opt: string, idx: number) => (
-                                  <Badge key={idx} variant="outline" className="border-blue-200 text-blue-700 text-xs font-medium">
-                                    {opt}
-                                  </Badge>
-                                ))}
+                <>
+                  <div className="space-y-3">
+                    {(() => {
+                      const sorted = [...qualityFields].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+                      const totalFields = sorted.length
+                      const totalPagesFields = Math.max(1, Math.ceil(totalFields / PER_PAGE))
+                      const from = (fieldsPage - 1) * PER_PAGE
+                      const to = Math.min(from + PER_PAGE, totalFields)
+                      const paginatedFields = sorted.slice(from, to)
+                      return (
+                        <>
+                          {paginatedFields.map((field) => (
+                            <Card key={field.id} className="border-2 border-blue-200 hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow-md">
+                              <CardContent className="pt-5 pb-5">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                                      <span className="font-bold text-lg text-blue-900">{field.fieldName}</span>
+                                      <Badge variant="outline" className="border-blue-300 text-blue-700 font-semibold">{field.fieldType}</Badge>
+                                      <Badge variant="outline" className="border-indigo-300 text-indigo-700 font-semibold">{field.dataType}</Badge>
+                                      {field.isMandatory && (
+                                        <Badge variant="outline" className="border-red-300 text-red-700 font-semibold">Required</Badge>
+                                      )}
+                                      {field.options && Array.isArray(field.options) && field.options.length > 0 && (
+                                        <Badge variant="outline" className="border-purple-300 text-purple-700 font-semibold">
+                                          {field.options.length} option(s)
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    {field.description && (
+                                      <p className="text-sm text-gray-700 mt-2 pl-1 border-l-2 border-blue-200 pl-3">{field.description}</p>
+                                    )}
+                                    {field.options && Array.isArray(field.options) && field.options.length > 0 && (
+                                      <div className="mt-3 flex flex-wrap gap-2">
+                                        {field.options.map((opt: string, idx: number) => (
+                                          <Badge key={idx} variant="outline" className="border-blue-200 text-blue-700 text-xs font-medium">
+                                            {opt}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                          {totalPagesFields > 1 && (
+                            <div className="flex items-center justify-between pt-4 pb-2 border-t border-blue-100">
+                              <p className="text-sm text-gray-600">
+                                Showing {from + 1}–{to} of {totalFields} fields
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setFieldsPage((p) => Math.max(1, p - 1))}
+                                  disabled={fieldsPage <= 1}
+                                  className="border-blue-200"
+                                >
+                                  <ChevronLeft className="h-4 w-4" />
+                                  Previous
+                                </Button>
+                                <span className="text-sm font-medium text-gray-700 px-2">
+                                  Page {fieldsPage} of {totalPagesFields}
+                                </span>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setFieldsPage((p) => Math.min(totalPagesFields, p + 1))}
+                                  disabled={fieldsPage >= totalPagesFields}
+                                  className="border-blue-200"
+                                >
+                                  Next
+                                  <ChevronRight className="h-4 w-4" />
+                                </Button>
                               </div>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                            </div>
+                          )}
+                        </>
+                      )
+                    })()}
+                  </div>
+                </>
               )}
 
               <div className="flex items-center justify-between pt-6 border-t-2 border-blue-200">
@@ -322,9 +436,96 @@ export function QualitySchemaBuilder() {
                 </Button>
               </div>
 
-              {/* Display existing rules */}
+              {/* List existing quality rules */}
+              {qualityRules.length === 0 ? (
+                <div className="mt-4 text-center py-8 text-gray-500 border-2 border-dashed border-blue-200 rounded-lg">
+                  <Settings className="h-10 w-10 mx-auto mb-2 text-blue-400" />
+                  <p className="font-medium">No quality rules defined</p>
+                  <p className="text-sm mt-1">Add a rule to validate quality data at collection time</p>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-3">
+                  {(() => {
+                    const activeRules = qualityRules.filter((r: any) => r.isActive !== false)
+                    const totalRules = activeRules.length
+                    const totalPagesRules = Math.max(1, Math.ceil(totalRules / PER_PAGE))
+                    const fromR = (rulesPage - 1) * PER_PAGE
+                    const toR = Math.min(fromR + PER_PAGE, totalRules)
+                    const paginatedRules = activeRules.slice(fromR, toR)
+                    return (
+                      <>
+                        {paginatedRules.map((rule: any) => (
+                          <Card key={rule.id} className="border-2 border-indigo-200 hover:border-indigo-400 transition-all shadow-sm">
+                            <CardContent className="pt-4 pb-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                                    <span className="font-bold text-blue-900">{rule.ruleName}</span>
+                                    <Badge variant="outline" className="border-indigo-300 text-indigo-700 font-semibold">{rule.ruleType}</Badge>
+                                    {rule.impactOnPricing && (
+                                      <Badge variant="outline" className="border-amber-300 text-amber-700 font-semibold">Affects pricing</Badge>
+                                    )}
+                                  </div>
+                                  {rule.qualityField?.fieldName && (
+                                    <p className="text-sm text-gray-600 mt-1">Field: {rule.qualityField.fieldName}</p>
+                                  )}
+                                  {(rule.thresholdValue != null || rule.thresholdOperator) && (
+                                    <p className="text-sm text-gray-600 mt-0.5">
+                                      Threshold: {rule.thresholdOperator ?? ""} {rule.thresholdValue != null ? rule.thresholdValue : ""}
+                                    </p>
+                                  )}
+                                  {rule.impactOnPricing && rule.pricingMultiplier != null && (
+                                    <p className="text-sm text-amber-700 mt-0.5">Pricing multiplier: {rule.pricingMultiplier}</p>
+                                  )}
+                                  {rule.errorMessage && (
+                                    <p className="text-sm text-gray-500 mt-1 italic">&quot;{rule.errorMessage}&quot;</p>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                        {totalPagesRules > 1 && (
+                          <div className="flex items-center justify-between pt-4 pb-2 border-t border-indigo-100">
+                            <p className="text-sm text-gray-600">
+                              Showing {fromR + 1}–{toR} of {totalRules} rules
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setRulesPage((p) => Math.max(1, p - 1))}
+                                disabled={rulesPage <= 1}
+                                className="border-indigo-200"
+                              >
+                                <ChevronLeft className="h-4 w-4" />
+                                Previous
+                              </Button>
+                              <span className="text-sm font-medium text-gray-700 px-2">
+                                Page {rulesPage} of {totalPagesRules}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setRulesPage((p) => Math.min(totalPagesRules, p + 1))}
+                                disabled={rulesPage >= totalPagesRules}
+                                className="border-indigo-200"
+                              >
+                                Next
+                                <ChevronRight className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )
+                  })()}
+                </div>
+              )}
+
+              {/* How Quality Rules Work */}
               {selectedCommodity && (
-                <Card className="mt-4 border-2 border-blue-200 shadow-sm">
+                <Card className="mt-6 border-2 border-blue-200 shadow-sm">
                   <CardContent className="pt-5 pb-5">
                     <div className="flex items-start gap-4">
                       <Info className="h-5 w-5 text-blue-600 mt-0.5" />
@@ -465,14 +666,15 @@ export function QualitySchemaBuilder() {
 
             <div className="space-y-2">
               <Label htmlFor="description" className="text-base font-semibold text-gray-700">Description</Label>
-              <Input
+              <Textarea
                 id="description"
                 value={fieldFormData.description}
                 onChange={(e) =>
                   setFieldFormData({ ...fieldFormData, description: e.target.value })
                 }
                 placeholder="Field description"
-                className="border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                rows={3}
+                className="border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 resize-none"
               />
             </div>
 
@@ -500,9 +702,17 @@ export function QualitySchemaBuilder() {
               </Button>
               <Button 
                 type="submit"
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                disabled={isAddingField}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white disabled:opacity-70"
               >
-                Add Field
+                {isAddingField ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  "Add Field"
+                )}
               </Button>
             </DialogFooter>
           </form>
@@ -671,9 +881,17 @@ export function QualitySchemaBuilder() {
               </Button>
               <Button 
                 type="submit"
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white"
+                disabled={isAddingRule}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white disabled:opacity-70"
               >
-                Add Rule
+                {isAddingRule ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  "Add Rule"
+                )}
               </Button>
             </DialogFooter>
           </form>

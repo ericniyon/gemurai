@@ -18,8 +18,36 @@ import { useAuth } from "@/hooks/use-auth"
 import { useParams } from "next/navigation"
 import { SettingsPageHeader } from "@/components/settings/settings-page-header"
 import { RolePermissionsModal } from "@/components/settings/role-permissions-modal"
-import { Shield, Key, Search, KeyRound, Users } from "lucide-react"
+import { Shield, Key, Search, KeyRound, Users, UserCheck, Edit } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+
+interface UserRoleAssignment {
+  id: string
+  userId: string
+  roleId: string | null
+  userName: string
+  userEmail: string
+  roleName: string
+  assignedBy: string
+  assignedAt: string | null
+  isActive: boolean
+}
 
 interface Role {
   id: string
@@ -60,6 +88,11 @@ export default function RolesAndPermissionPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedRole, setSelectedRole] = useState<Role | null>(null)
   const [permissionsModalOpen, setPermissionsModalOpen] = useState(false)
+  const [userAssignments, setUserAssignments] = useState<UserRoleAssignment[]>([])
+  const [assignmentsSearch, setAssignmentsSearch] = useState("")
+  const [changeRoleAssignment, setChangeRoleAssignment] = useState<UserRoleAssignment | null>(null)
+  const [changeRoleId, setChangeRoleId] = useState("")
+  const [changeRoleSubmitting, setChangeRoleSubmitting] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -68,9 +101,10 @@ export default function RolesAndPermissionPage() {
   const loadData = async () => {
     try {
       setLoading(true)
-      const [rolesRes, permsRes] = await Promise.all([
+      const [rolesRes, permsRes, assignmentsRes] = await Promise.all([
         fetch("/api/v1/roles", { headers: getAuthHeaders() }),
-        fetch("/api/v1/permissions", { headers: getAuthHeaders() })
+        fetch("/api/v1/permissions", { headers: getAuthHeaders() }),
+        fetch("/api/v1/roles/assignments", { headers: getAuthHeaders(), credentials: "include" })
       ])
       const rolesData = await rolesRes.json()
       const permsData = await permsRes.json()
@@ -84,6 +118,10 @@ export default function RolesAndPermissionPage() {
         setPermissions(permsData.permissions || [])
       } else {
         toast({ title: "Error", description: permsData.message || "Failed to load permissions", variant: "destructive" })
+      }
+      const assignmentsData = await assignmentsRes.json()
+      if (assignmentsData.success) {
+        setUserAssignments(assignmentsData.assignments || [])
       }
     } catch (error) {
       console.error("Error loading data:", error)
@@ -107,6 +145,45 @@ export default function RolesAndPermissionPage() {
   const handleManagePermissions = (role: Role) => {
     setSelectedRole(role)
     setPermissionsModalOpen(true)
+  }
+
+  const filteredAssignments = userAssignments.filter(
+    (a) =>
+      a.userName.toLowerCase().includes(assignmentsSearch.toLowerCase()) ||
+      a.userEmail.toLowerCase().includes(assignmentsSearch.toLowerCase()) ||
+      a.roleName.toLowerCase().includes(assignmentsSearch.toLowerCase())
+  )
+
+  const handleOpenChangeRole = (assignment: UserRoleAssignment) => {
+    setChangeRoleAssignment(assignment)
+    const initialRoleId = assignment.roleId ?? roles.find((r) => r.name === assignment.roleName)?.id ?? ""
+    setChangeRoleId(initialRoleId)
+  }
+
+  const handleChangeRoleSubmit = async () => {
+    if (!changeRoleAssignment || !changeRoleId) return
+    setChangeRoleSubmitting(true)
+    try {
+      const res = await fetch("/api/v1/roles/assignments", {
+        method: "POST",
+        headers: getAuthHeaders(),
+        credentials: "include",
+        body: JSON.stringify({ userId: changeRoleAssignment.userId, roleId: changeRoleId })
+      })
+      const data = await res.json()
+      if (!data.success) throw new Error(data.message || "Failed to update role")
+      toast({ title: "Success", description: data.message || "Role updated" })
+      setChangeRoleAssignment(null)
+      loadData()
+    } catch (e) {
+      toast({
+        title: "Error",
+        description: e instanceof Error ? e.message : "Failed to update role",
+        variant: "destructive"
+      })
+    } finally {
+      setChangeRoleSubmitting(false)
+    }
   }
 
   if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
@@ -216,6 +293,14 @@ export default function RolesAndPermissionPage() {
             <Key className="h-4 w-4 mr-2" />
             Permissions
             <Badge variant="secondary" className="ml-2 bg-slate-200/80 text-slate-600 text-xs">{permissions.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger
+            value="users-roles"
+            className="flex-1 sm:flex-initial px-6 py-2.5 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-slate-200/80 data-[state=active]:text-slate-900 font-medium text-slate-600 transition-all"
+          >
+            <UserCheck className="h-4 w-4 mr-2" />
+            Users & roles
+            <Badge variant="secondary" className="ml-2 bg-slate-200/80 text-slate-600 text-xs">{userAssignments.length}</Badge>
           </TabsTrigger>
         </TabsList>
 
@@ -403,7 +488,136 @@ export default function RolesAndPermissionPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="users-roles" className="space-y-4 mt-0">
+          <Card className="border-slate-200/80 overflow-hidden shadow-sm">
+            <CardHeader className="border-b border-slate-100 bg-gradient-to-b from-slate-50/80 to-white px-6 py-5">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <CardTitle className="text-lg font-semibold text-slate-900">Users & role assignments</CardTitle>
+                  <CardDescription className="text-slate-600 mt-0.5">View users and their roles; change a user’s role from the row action</CardDescription>
+                </div>
+                <div className="relative w-full sm:w-72">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Search by name, email or role..."
+                    value={assignmentsSearch}
+                    onChange={(e) => setAssignmentsSearch(e.target.value)}
+                    className="pl-10 h-10 border-slate-200 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 rounded-lg bg-white"
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-slate-50/80 hover:bg-slate-50/80 border-b border-slate-200/80">
+                      <TableHead className="font-semibold text-slate-700 py-4 px-6">User</TableHead>
+                      <TableHead className="font-semibold text-slate-700 py-4 px-6">Email</TableHead>
+                      <TableHead className="font-semibold text-slate-700 py-4 px-6 text-center">Role</TableHead>
+                      <TableHead className="font-semibold text-slate-700 py-4 px-6 text-center">Assigned by</TableHead>
+                      <TableHead className="font-semibold text-slate-700 py-4 px-6 text-center">Assigned date</TableHead>
+                      <TableHead className="font-semibold text-slate-700 py-4 px-6 text-right w-[120px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAssignments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-16">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="p-4 rounded-full bg-slate-100">
+                              <UserCheck className="h-10 w-10 text-slate-400" />
+                            </div>
+                            <p className="text-slate-600 font-medium">No users found</p>
+                            <p className="text-sm text-slate-500">{assignmentsSearch ? "Try adjusting your search" : "User assignments will appear here"}</p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredAssignments.map((assignment, idx) => (
+                        <TableRow
+                          key={assignment.id}
+                          className={`border-b border-slate-100 transition-colors hover:bg-violet-50/30 ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}
+                        >
+                          <TableCell className="py-4 px-6">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2.5 rounded-xl bg-violet-500/10 shrink-0">
+                                <Users className="h-5 w-5 text-violet-600" />
+                              </div>
+                              <p className="font-semibold text-slate-900">{assignment.userName}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-4 px-6 text-slate-600 text-sm">{assignment.userEmail}</TableCell>
+                          <TableCell className="py-4 px-6 text-center">
+                            <Badge variant="secondary" className="bg-violet-100 text-violet-700 font-medium px-2.5 py-0.5">
+                              {assignment.roleName}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-4 px-6 text-center text-slate-600 text-sm">{assignment.assignedBy || "—"}</TableCell>
+                          <TableCell className="py-4 px-6 text-center text-slate-600 text-sm">
+                            {assignment.assignedAt ? new Date(assignment.assignedAt).toLocaleDateString() : "—"}
+                          </TableCell>
+                          <TableCell className="py-4 px-6 text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenChangeRole(assignment)}
+                              className="border-slate-200 hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 text-slate-700"
+                            >
+                              <Edit className="h-4 w-4 mr-1.5" />
+                              Change role
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      <Dialog open={!!changeRoleAssignment} onOpenChange={(open) => !open && setChangeRoleAssignment(null)}>
+        <DialogContent className="sm:max-w-md bg-white border-slate-200 shadow-xl">
+          <DialogHeader>
+            <DialogTitle>Change user role</DialogTitle>
+            <DialogDescription>
+              {changeRoleAssignment && (
+                <>Update role for <strong>{changeRoleAssignment.userName}</strong> ({changeRoleAssignment.userEmail})</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {changeRoleAssignment && (
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <Select value={changeRoleId} onValueChange={setChangeRoleId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.filter((r) => r.isActive).map((role) => (
+                      <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setChangeRoleAssignment(null)}>Cancel</Button>
+            <Button
+              onClick={handleChangeRoleSubmit}
+              disabled={!changeRoleId || changeRoleSubmitting}
+            >
+              {changeRoleSubmitting ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <RolePermissionsModal
         isOpen={permissionsModalOpen}

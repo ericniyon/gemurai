@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,16 +13,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import { toast } from "sonner"
-import { Wheat, Loader2, User, Package, Calculator, FileText } from "lucide-react"
+import { Wheat, Loader2, User, Package, Calculator, FileText, Warehouse as WarehouseIcon } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { useAuthStore } from "@/lib/stores/auth-store"
 
 interface AddCropCollectionFormProps {
   open: boolean
@@ -44,6 +39,9 @@ interface CropCollectionFormData {
   deductions: Record<string, unknown>
   advances: number
   notes: string
+  warehouseId: string
+  locationId: string
+  productId: string
   gpsLatitude?: number | null
   gpsLongitude?: number | null
 }
@@ -51,12 +49,25 @@ interface CropCollectionFormData {
 const inputClasses =
   "rounded-xl border border-emerald-200/80 bg-white text-sm shadow-sm transition placeholder:text-slate-400 focus:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/20 focus-visible:ring-offset-0"
 
+const UNIT_OPTIONS = [
+  { value: "kg", label: "kg" },
+  { value: "g", label: "g" },
+  { value: "ton", label: "ton" },
+  { value: "mt", label: "mt" },
+  { value: "lb", label: "lb" },
+  { value: "sack", label: "sack" },
+  { value: "bag", label: "bag" },
+  { value: "basket", label: "basket" },
+]
+
 export function AddCropCollectionForm({
   open,
   onOpenChange,
   onSuccess,
 }: AddCropCollectionFormProps) {
   const { user } = useAuth()
+  const storeToken = useAuthStore((s) => s.token)
+  const token = storeToken ?? (typeof window !== "undefined" ? localStorage.getItem("Gemurai_token") : null)
   const [formData, setFormData] = useState<CropCollectionFormData>({
     farmerId: "",
     cropTypeId: "",
@@ -67,21 +78,78 @@ export function AddCropCollectionForm({
     deductions: {},
     advances: 0,
     notes: "",
+    warehouseId: "",
+    locationId: "",
+    productId: "",
     gpsLatitude: null,
     gpsLongitude: null,
   })
 
   const [farmers, setFarmers] = useState<any[]>([])
   const [cropTypes, setCropTypes] = useState<any[]>([])
+  const [globalWarehouses, setGlobalWarehouses] = useState<{ id: string; name: string; code: string }[]>([])
+  const [warehouseLocations, setWarehouseLocations] = useState<{ id: string; name: string; code: string }[]>([])
+  const [productsForReceiving, setProductsForReceiving] = useState<{ id: string; name: string; unit: string }[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof CropCollectionFormData, string>>>({})
 
   useEffect(() => {
-    if (open && user?.mccId) {
+    if (open && user?.mccId && token) {
       fetchFarmers()
       fetchCropTypes()
+      fetchGlobalWarehouses()
     }
-  }, [open, user?.mccId])
+  }, [open, user?.mccId, token])
+
+  useEffect(() => {
+    if (!formData.warehouseId || !open || !token) {
+      setWarehouseLocations([])
+      return
+    }
+    fetch(`/api/v1/inventory/locations?warehouseId=${formData.warehouseId}`, {
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) setWarehouseLocations(res.data)
+        else setWarehouseLocations([])
+      })
+      .catch(() => setWarehouseLocations([]))
+  }, [formData.warehouseId, open, token])
+
+  useEffect(() => {
+    if (!user?.mccId || !formData.cropTypeId || !open || !token) {
+      setProductsForReceiving([])
+      return
+    }
+    const q = new URLSearchParams({ mccId: user.mccId, cropTypeId: formData.cropTypeId })
+    fetch(`/api/v1/mcc/products-for-receiving?${q}`, {
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) setProductsForReceiving(res.data)
+        else setProductsForReceiving([])
+      })
+      .catch(() => setProductsForReceiving([]))
+  }, [user?.mccId, formData.cropTypeId, open, token])
+
+  async function fetchGlobalWarehouses() {
+    if (!user?.mccId || !token) return
+    try {
+      const res = await fetch(`/api/v1/mcc/global-warehouses?mccId=${user.mccId}`, {
+        credentials: "include",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json()
+      if (data.success && Array.isArray(data.data)) setGlobalWarehouses(data.data)
+      else setGlobalWarehouses([])
+    } catch {
+      setGlobalWarehouses([])
+    }
+  }
 
   // Auto-capture GPS when dialog opens (if browser supports and user allows)
   useEffect(() => {
@@ -101,9 +169,10 @@ export function AddCropCollectionForm({
   }, [open])
 
   const fetchFarmers = async () => {
+    if (!token) return
     try {
-      const token = localStorage.getItem("Gemurai_token")
       const response = await fetch(`/api/v1/mcc/farmers?mccId=${user?.mccId}`, {
+        credentials: "include",
         headers: { Authorization: `Bearer ${token}` },
       })
       if (response.ok) {
@@ -116,9 +185,10 @@ export function AddCropCollectionForm({
   }
 
   const fetchCropTypes = async () => {
+    if (!token) return
     try {
-      const token = localStorage.getItem("Gemurai_token")
       const response = await fetch("/api/v1/mcc/crops/types", {
+        credentials: "include",
         headers: { Authorization: `Bearer ${token}` },
       })
       if (response.ok) {
@@ -172,14 +242,20 @@ export function AddCropCollectionForm({
       return
     }
 
+    const authToken = useAuthStore.getState().token ?? (typeof window !== "undefined" ? localStorage.getItem("Gemurai_token") : null) ?? token
+    if (!authToken) {
+      toast.error("Please log in again")
+      return
+    }
+
     setIsLoading(true)
     try {
-      const token = localStorage.getItem("Gemurai_token")
       const response = await fetch("/api/v1/mcc/crops/collections", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({
           farmerId: formData.farmerId,
@@ -193,6 +269,9 @@ export function AddCropCollectionForm({
           deductions: Object.keys(formData.deductions).length > 0 ? formData.deductions : undefined,
           advances: formData.advances || 0,
           notes: formData.notes || undefined,
+          warehouseId: formData.warehouseId || undefined,
+          locationId: formData.locationId || undefined,
+          productId: formData.productId || undefined,
           gpsLatitude: formData.gpsLatitude,
           gpsLongitude: formData.gpsLongitude,
         }),
@@ -213,6 +292,9 @@ export function AddCropCollectionForm({
           deductions: {},
           advances: 0,
           notes: "",
+          warehouseId: "",
+          locationId: "",
+          productId: "",
           gpsLatitude: null,
           gpsLongitude: null,
         })
@@ -231,9 +313,19 @@ export function AddCropCollectionForm({
   const grossAmount = (formData.quantity || 0) * (formData.pricePerUnit || 0)
   const netAmount = grossAmount - (formData.advances || 0)
 
+  const unitOptions = useMemo(() => {
+    const byValue = new Map(UNIT_OPTIONS.map((u) => [u.value.toLowerCase(), u]))
+    const selectedType = cropTypes.find((ct) => ct.id === formData.cropTypeId)
+    const cropUnit = selectedType?.unitOfMeasure?.trim()
+    if (cropUnit && !byValue.has(cropUnit.toLowerCase())) {
+      return [{ value: cropUnit, label: cropUnit }, ...UNIT_OPTIONS]
+    }
+    return UNIT_OPTIONS
+  }, [formData.cropTypeId, cropTypes])
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl rounded-3xl border border-emerald-100 bg-white shadow-2xl p-0 overflow-hidden">
+      <DialogContent className="max-w-4xl max-h-[90vh] rounded-3xl border border-emerald-100 bg-white shadow-2xl p-0 overflow-hidden">
         <DialogHeader className="bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border-b border-emerald-100 px-6 pt-6 pb-4">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25">
@@ -263,25 +355,19 @@ export function AddCropCollectionForm({
                   <Label htmlFor="farmerId" className="text-sm font-medium text-gray-700">
                     Farmer <span className="text-rose-500">*</span>
                   </Label>
-                  <Select
+                  <SearchableSelect
                     value={formData.farmerId}
                     onValueChange={(value) =>
                       setFormData((prev) => ({ ...prev, farmerId: value }))
                     }
-                  >
-                    <SelectTrigger
-                      className={inputClasses + (errors.farmerId ? " border-rose-400" : "")}
-                    >
-                      <SelectValue placeholder="Select farmer" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {farmers.map((farmer) => (
-                        <SelectItem key={farmer.id} value={farmer.id}>
-                          {farmer.name} {farmer.phone ? `· ${farmer.phone}` : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    options={farmers.map((farmer) => ({
+                      value: farmer.id,
+                      label: [farmer.name, farmer.phone].filter(Boolean).join(" · "),
+                    }))}
+                    placeholder="Select farmer"
+                    searchPlaceholder="Search farmer..."
+                    className={inputClasses + (errors.farmerId ? " border-rose-400" : "")}
+                  />
                   {errors.farmerId && (
                     <p className="text-xs text-rose-500">{errors.farmerId}</p>
                   )}
@@ -290,23 +376,17 @@ export function AddCropCollectionForm({
                   <Label htmlFor="cropTypeId" className="text-sm font-medium text-gray-700">
                     Crop type <span className="text-rose-500">*</span>
                   </Label>
-                  <Select
+                  <SearchableSelect
                     value={formData.cropTypeId}
                     onValueChange={handleCropTypeChange}
-                  >
-                    <SelectTrigger
-                      className={inputClasses + (errors.cropTypeId ? " border-rose-400" : "")}
-                    >
-                      <SelectValue placeholder="Select crop type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cropTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id}>
-                          {type.name} ({type.unitOfMeasure || "kg"})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    options={cropTypes.map((type) => ({
+                      value: type.id,
+                      label: `${type.name} (${type.unitOfMeasure || "kg"})`,
+                    }))}
+                    placeholder="Select crop type"
+                    searchPlaceholder="Search crop type..."
+                    className={inputClasses + (errors.cropTypeId ? " border-rose-400" : "")}
+                  />
                   {errors.cropTypeId && (
                     <p className="text-xs text-rose-500">{errors.cropTypeId}</p>
                   )}
@@ -340,11 +420,15 @@ export function AddCropCollectionForm({
                   <Label htmlFor="unit" className="text-sm font-medium text-gray-700">
                     Unit
                   </Label>
-                  <Input
-                    id="unit"
+                  <SearchableSelect
                     value={formData.unit}
-                    readOnly
-                    className={inputClasses + " bg-slate-50 text-slate-600"}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, unit: value }))
+                    }
+                    options={unitOptions}
+                    placeholder="Select unit"
+                    searchPlaceholder="Search unit..."
+                    className={inputClasses}
                   />
                 </div>
                 <div className="space-y-2">
@@ -484,6 +568,56 @@ export function AddCropCollectionForm({
                   className={inputClasses}
                   placeholder="0"
                 />
+              </div>
+            </section>
+
+            {/* Receive into warehouse (optional) */}
+            <section className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/40 px-4 py-4">
+              <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                <WarehouseIcon className="h-4 w-4 text-slate-600" />
+                Receive into warehouse (optional)
+              </h3>
+              <p className="text-xs text-gray-500">
+                Record this collection into inventory by selecting a warehouse and product.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Warehouse</Label>
+                  <SearchableSelect
+                    value={formData.warehouseId}
+                    onValueChange={(v) =>
+                      setFormData((prev) => ({ ...prev, warehouseId: v, locationId: "", productId: "" }))
+                    }
+                    options={globalWarehouses.map((w) => ({ value: w.id, label: `${w.name} (${w.code})` }))}
+                    placeholder="Select warehouse"
+                    searchPlaceholder="Search warehouse..."
+                    className={inputClasses}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Location</Label>
+                  <SearchableSelect
+                    value={formData.locationId}
+                    onValueChange={(v) => setFormData((prev) => ({ ...prev, locationId: v }))}
+                    options={warehouseLocations.map((l) => ({ value: l.id, label: `${l.name} (${l.code})` }))}
+                    placeholder="Select location"
+                    searchPlaceholder="Search location..."
+                    className={inputClasses}
+                    disabled={!formData.warehouseId}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700">Product</Label>
+                  <SearchableSelect
+                    value={formData.productId}
+                    onValueChange={(v) => setFormData((prev) => ({ ...prev, productId: v }))}
+                    options={productsForReceiving.map((p) => ({ value: p.id, label: `${p.name} (${p.unit})` }))}
+                    placeholder="Select product"
+                    searchPlaceholder="Search product..."
+                    className={inputClasses}
+                    disabled={!formData.cropTypeId}
+                  />
+                </div>
               </div>
             </section>
 

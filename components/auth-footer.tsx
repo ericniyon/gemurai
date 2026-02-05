@@ -5,11 +5,13 @@ import Image from "next/image"
 import { useParams } from "next/navigation"
 import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react"
 import { layoutTranslations } from "@/app/[lang]/translations/layout"
+import { usePublicSettings } from "@/lib/public-settings-context"
 
 export function AuthFooter() {
   const params = useParams()
   const lang = ((params || {}) as { lang?: string }).lang || "en"
   const t = layoutTranslations[lang as keyof typeof layoutTranslations] || layoutTranslations.en
+  const settings = usePublicSettings()
 
   return (
     <footer className="bg-white border-t border-slate-200/80">
@@ -19,11 +21,11 @@ export function AuthFooter() {
           <div className="lg:col-span-1 space-y-4">
             <Link href={`/${lang}`} className="inline-block">
               <div className="relative w-32 h-10">
-                <Image src="/yden.png" alt="HarvestPlus by YDEN" fill className="object-contain" />
+                <Image src="/yden.png" alt={settings.platformName} fill className="object-contain" />
               </div>
             </Link>
             <p className="text-slate-600 text-sm leading-relaxed max-w-xs">
-              {t.footer.description}
+              {settings.platformDescription || t.footer.description}
             </p>
             <div className="flex gap-3">
               <a href="#" className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-[#0099f2]/10 flex items-center justify-center text-slate-500 hover:text-[#0099f2] transition-colors" aria-label="Facebook">
@@ -86,11 +88,11 @@ export function AuthFooter() {
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-[#0099f2] flex-shrink-0" />
-                <a href={`tel:${t.footer.contact.phone}`} className="text-slate-600 hover:text-[#0099f2] transition-colors">{t.footer.contact.phone}</a>
+                <a href={`tel:${settings.supportPhone || t.footer.contact.phone}`} className="text-slate-600 hover:text-[#0099f2] transition-colors">{settings.supportPhone || t.footer.contact.phone}</a>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-[#0099f2] flex-shrink-0" />
-                <a href={`mailto:${t.footer.contact.email}`} className="text-slate-600 hover:text-[#0099f2] transition-colors">{t.footer.contact.email}</a>
+                <a href={`mailto:${settings.supportEmail || t.footer.contact.email}`} className="text-slate-600 hover:text-[#0099f2] transition-colors">{settings.supportEmail || t.footer.contact.email}</a>
               </div>
             </div>
           </div>
@@ -98,7 +100,7 @@ export function AuthFooter() {
 
         <div className="border-t border-slate-200 mt-10 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-slate-500">{t.footer.legal.copyright}</p>
+            <p className="text-sm text-slate-500">© {new Date().getFullYear()} {settings.platformName}. All rights reserved.</p>
             <div className="flex gap-6 text-sm">
               <Link href={`/${lang}/privacy`} className="text-slate-500 hover:text-[#0099f2] transition-colors">
                 {t.footer.legal.privacy}

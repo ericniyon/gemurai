@@ -176,6 +176,15 @@ model SMSLog {
   @@map("sms_logs")
 }
 
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
 model PasswordReset {
   id         String    @id @default(cuid())
   email      String
@@ -519,6 +528,7 @@ model Warehouse {
   country               String?
   isActive              Boolean                 @default(true)
   isMain                Boolean                 @default(false)
+  mccId                 String?                 // When set, this warehouse belongs to that MCC (each MCC has its own global warehouses)
   // Geo-location fields
   gpsLatitude           Float?
   gpsLongitude          Float?
@@ -528,6 +538,7 @@ model Warehouse {
   geoUpdatedAt          DateTime?
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
+  mccs                  mccs?                   @relation(fields: [mccId], references: [id], onDelete: SetNull)
   cycleCounts           CycleCount[]
   inventoryAdjustments  InventoryAdjustment[]
   locations             Location[]
@@ -539,7 +550,9 @@ model Warehouse {
   serialNumbers         SerialNumber[]
   stockMoves            StockMove[]
   stockQuantities       StockQuantity[]
+  mccWarehouses         mcc_warehouses[]
 
+  @@index([mccId])
   @@map("warehouses")
 }
 
@@ -990,19 +1003,22 @@ model mcc_periods {
 }
 
 model mcc_warehouses {
-  id        String           @id
-  mccId     String
-  name      String
-  type      MCCWarehouseType
-  location  String
-  capacity  Float
-  isActive  Boolean          @default(true)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime
-  mccs      mccs             @relation(fields: [mccId], references: [id])
-  products  products[]
+  id                 String           @id
+  mccId              String
+  name               String
+  type               MCCWarehouseType
+  location           String
+  capacity           Float
+  isActive           Boolean          @default(true)
+  globalWarehouseId  String?          // Link to global Warehouse for receive-into-warehouse flow
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime
+  mccs               mccs            @relation(fields: [mccId], references: [id])
+  products           products[]
+  warehouse          Warehouse?      @relation(fields: [globalWarehouseId], references: [id])
 
   @@index([mccId])
+  @@index([globalWarehouseId])
 }
 
 model mcc_customers {
@@ -1080,6 +1096,7 @@ model mccs {
   farmersDefaultCollectionCenter farmers[]                 @relation("FarmerDefaultCollectionCenter")
   mcc_periods                    mcc_periods[]
   mcc_warehouses                 mcc_warehouses[]
+  warehouses                     Warehouse[]                // Global warehouses assigned to this MCC
   milk_processing                milk_processing[]
   mcc_sales                      mcc_sales[]
   mcc_customers                  mcc_customers[]
@@ -1288,6 +1305,8 @@ model products {
   commodity_collections                                        commodity_collections[]
   crop_processing_raw                                          crop_processing[]       @relation("CropProcessingRaw")
   crop_processing_processed                                    crop_processing[]       @relation("CropProcessingProcessed")
+  commodityInventoryProducts                                   commodities[]           @relation("CommodityInventoryProduct")
+  cropTypeInventoryProducts                                    crop_types[]            @relation("CropTypeInventoryProduct")
 
   @@index([mccProductType])
   @@index([mccWarehouseId])
@@ -2126,6 +2145,7 @@ model commodities {
   defaultCollectionFrequency  String? // daily, weekly, seasonal
   isActive                    Boolean                @default(true)
   metadata                    Json? // Additional commodity-specific config
+  inventoryProductId          String?                // Product used when receiving this commodity into warehouse
   createdAt                   DateTime               @default(now())
   updatedAt                   DateTime               @updatedAt
 
@@ -2137,10 +2157,12 @@ model commodities {
   collections      commodity_collections[]
   agentPrepayments agent_prepayments[]
   inventoryBatches inventory_batches[]
+  inventoryProduct products?                  @relation("CommodityInventoryProduct", fields: [inventoryProductId], references: [id])
 
   @@index([code])
   @@index([categoryId])
   @@index([isActive])
+  @@index([inventoryProductId])
   @@map("commodities")
 }
 
@@ -2188,6 +2210,27 @@ model commodity_quality_rules {
   @@index([commodityId])
   @@index([isActive])
   @@map("commodity_quality_rules")
+}
+
+// Quality & compliance audit (schema changes, quality overrides)
+model quality_audit_log {
+  id          String   @id @default(cuid())
+  entityType  String   // quality_field, quality_rule, quality_result
+  entityId    String
+  commodityId  String?
+  collectionId String?  // For quality_result / override
+  action      String   // QUALITY_SCHEMA_UPDATE, QUALITY_FIELD_ADDED, QUALITY_RULE_ADDED, QUALITY_OVERRIDE, etc.
+  oldValue    Json?
+  newValue    Json?
+  userId      String?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType])
+  @@index([entityId])
+  @@index([commodityId])
+  @@index([createdAt])
+  @@map("quality_audit_log")
 }
 
 // Season Plans (Farm-Level Planning)
@@ -2373,11 +2416,14 @@ model crop_types {
   qualityStandards    Json? // grading rules
   defaultPricePerUnit Float
   isActive            Boolean            @default(true)
+  inventoryProductId  String?            // Product used when receiving this crop type into warehouse
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
   collections         crop_collections[]
+  inventoryProduct    products?          @relation("CropTypeInventoryProduct", fields: [inventoryProductId], references: [id])
 
   @@index([code])
+  @@index([inventoryProductId])
   @@map("crop_types")
 }
 

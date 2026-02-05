@@ -12,17 +12,38 @@ function normalizeJson(value: unknown): Record<string, unknown> | undefined {
   }
 }
 
+function getToken(req: NextRequest): string | null {
+  const fromHeader = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "")?.trim() || ""
+  if (fromHeader && fromHeader !== "null" && fromHeader !== "undefined") return fromHeader
+  const fromCookie = req.cookies.get("Gemurai_token")?.value?.trim()
+  if (fromCookie) return fromCookie
+  return null
+}
+
 /**
  * POST /api/v1/mcc/crops/collections - Record crop collection
  */
 export async function POST(req: NextRequest) {
   try {
-    const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
+    let authToken = getToken(req)
     if (!authToken) {
       return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
     }
 
-    const user = await verifyAuthToken(authToken)
+    let user: Awaited<ReturnType<typeof verifyAuthToken>> = null
+    try {
+      user = await verifyAuthToken(authToken)
+    } catch {
+      const cookieToken = req.cookies.get("Gemurai_token")?.value?.trim()
+      if (cookieToken && cookieToken !== authToken) {
+        try {
+          user = await verifyAuthToken(cookieToken)
+          if (user) authToken = cookieToken
+        } catch {
+          // ignore
+        }
+      }
+    }
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -80,6 +101,7 @@ export async function POST(req: NextRequest) {
       locationId,
       productId,
       notes,
+      createdByUserId: user.id,
     })
 
     return NextResponse.json({
@@ -89,7 +111,12 @@ export async function POST(req: NextRequest) {
     })
   } catch (error) {
     console.error("Record crop collection error:", error)
-    const message = error instanceof Error ? error.message : "Unknown error"
+    const message = error instanceof Error ? error.message : ""
+    const isAuthError =
+      /token|unauthorized|jwt|expired|invalid.*signature/i.test(message) || message === "User not found" || message === "User account is not active"
+    if (isAuthError) {
+      return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
+    }
     return NextResponse.json(
       {
         error: "Failed to record crop collection",
@@ -105,12 +132,24 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
-    const authToken = req.headers.get("authorization")?.replace("Bearer ", "")
+    let authToken = getToken(req)
     if (!authToken) {
       return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
     }
 
-    const user = await verifyAuthToken(authToken)
+    let user: Awaited<ReturnType<typeof verifyAuthToken>> | null = null
+    try {
+      user = await verifyAuthToken(authToken)
+    } catch {
+      const cookieToken = req.cookies.get("Gemurai_token")?.value?.trim()
+      if (cookieToken && cookieToken !== authToken) {
+        try {
+          user = await verifyAuthToken(cookieToken)
+        } catch {
+          // ignore
+        }
+      }
+    }
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -141,6 +180,12 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error("Get crop collections error:", error)
+    const message = error instanceof Error ? error.message : ""
+    const isAuthError =
+      /token|unauthorized|jwt|expired|invalid.*signature/i.test(message) || message === "User not found" || message === "User account is not active"
+    if (isAuthError) {
+      return NextResponse.json({ error: "Authorization token required" }, { status: 401 })
+    }
     return NextResponse.json(
       { error: "Failed to get crop collections" },
       { status: 500 }

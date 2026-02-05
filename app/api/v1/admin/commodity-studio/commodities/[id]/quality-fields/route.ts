@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { CommodityStudioService } from "@/lib/services/CommodityStudioService"
+import { logQualityAudit } from "@/lib/services/QualityAuditService"
 import { verifyAuthToken } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 
@@ -114,6 +115,15 @@ export async function POST(
       isMandatory: isMandatory || false,
       displayOrder: displayOrder || 0,
       description,
+    })
+
+    await logQualityAudit({
+      entityType: "quality_field",
+      entityId: qualityField.id,
+      commodityId: params.id,
+      action: "QUALITY_FIELD_ADDED",
+      newValue: { fieldName, fieldType, dataType, isMandatory: isMandatory ?? false },
+      userId: user?.id,
     })
 
     return NextResponse.json({

@@ -79,9 +79,29 @@ export async function GET(req: NextRequest) {
       },
     })
 
+    // Attach verification status per farmer (for payout approval UI)
+    const farmerIds = [...new Set(collections.map((c) => c.farmerId))]
+    const idVerifications =
+      farmerIds.length > 0
+        ? await prisma.id_verifications.findMany({
+            where: {
+              entityType: "farmer",
+              entityId: { in: farmerIds },
+              verificationStatus: "VERIFIED",
+            },
+            select: { entityId: true },
+          })
+        : []
+    const verifiedFarmerIds = new Set(idVerifications.map((v) => v.entityId))
+
+    const dataWithVerification = collections.map((c) => ({
+      ...c,
+      farmerIdVerified: verifiedFarmerIds.has(c.farmerId),
+    }))
+
     return NextResponse.json({
       success: true,
-      data: collections,
+      data: dataWithVerification,
     })
   } catch (error: any) {
     console.error("Get collections error:", error)

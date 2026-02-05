@@ -2,7 +2,7 @@
 
 import "./inventory-rentals.css"
 import { useEffect, useMemo, useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -238,10 +238,38 @@ const capitalize = (value?: string | null) => {
     .join(" ")
 }
 
-export default function InventoryRentalsPage() {
+export type InventoryEmbedTab = "warehouse-hub" | "assets" | "rentals" | "requests"
+
+export function InventoryRentalsContent({
+  embedTab: embedTabProp,
+}: {
+  embedTab?: InventoryEmbedTab
+} = {}) {
   const { user } = useAuth()
   const params = useParams()
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const lang = (params?.lang as string) || "en"
+  const fromWarehouses = searchParams.get("from") === "warehouses"
+  const tabParam = searchParams.get("tab") || "products"
+  const effectiveTab: InventoryEmbedTab =
+    tabParam === "products"
+      ? "warehouse-hub"
+      : tabParam === "assets"
+        ? "assets"
+        : tabParam === "rentals"
+          ? "rentals"
+          : tabParam === "requests"
+            ? "requests"
+            : "warehouse-hub"
+  const isEmbedMode = !!embedTabProp || fromWarehouses
+  const tabToShow = embedTabProp ?? effectiveTab
+
+  useEffect(() => {
+    if (!fromWarehouses && !embedTabProp) {
+      router.replace(`/${lang}/dashboard/mcc/warehouses`)
+    }
+  }, [fromWarehouses, embedTabProp, lang, router])
 
   const [activeTab, setActiveTab] = useState("warehouse-hub")
   const [initializing, setInitializing] = useState(true)
@@ -1078,6 +1106,17 @@ export default function InventoryRentalsPage() {
 
   const isLoading = initializing || assetsLoading || rentalsLoading
 
+  if (!fromWarehouses && !embedTabProp) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600" />
+          <p className="mt-3 text-sm text-gray-600">Redirecting to Warehouses…</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -1091,63 +1130,69 @@ export default function InventoryRentalsPage() {
   }
 
   return (
-    <div className="inventory-rentals-page min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
-      <div className="relative">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-400/10 to-purple-400/10 blur-3xl" />
-          <div className="absolute bottom-[-160px] left-[-160px] h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-400/15 via-sky-400/10 to-blue-400/5 blur-3xl" />
+    <div className={isEmbedMode ? "space-y-6" : "inventory-rentals-page min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40"}>
+      {!isEmbedMode && (
+        <div className="relative">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-400/10 to-purple-400/10 blur-3xl" />
+            <div className="absolute bottom-[-160px] left-[-160px] h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-400/15 via-sky-400/10 to-blue-400/5 blur-3xl" />
+          </div>
+
+          <div className="relative z-10 mx-auto w-full px-0 py-10">
+            <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-3 rounded-full bg-white/80 px-4 py-1.5 shadow-sm ring-1 ring-gray-200">
+                  <ClipboardList className="h-4 w-4 text-blue-600" />
+                  <span className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                    MCC Manager • Assets & Inventory
+                  </span>
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{pageTitle}</h1>
+                  <p className="mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">{pageSubtitle}</p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    onClick={() => setAssetDialogOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30"
+                  >
+                    <Package className="h-4 w-4" />
+                    Add Asset
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      fetchFarmersAndAvailableAssets()
+                      setRentalDialogOpen(true)
+                    }}
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:from-emerald-700 hover:to-teal-700 hover:shadow-xl hover:shadow-emerald-500/30"
+                  >
+                    <Truck className="h-4 w-4" />
+                    Issue Rental
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleRefreshAll}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-300 hover:border-blue-300 hover:bg-white hover:shadow-md disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+            </header>
+          </div>
         </div>
+      )}
 
-        <div className="relative z-10 mx-auto w-full px-0 py-10">
-          <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-3 rounded-full bg-white/80 px-4 py-1.5 shadow-sm ring-1 ring-gray-200">
-                <ClipboardList className="h-4 w-4 text-blue-600" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-                  MCC Manager • Assets & Inventory
-                </span>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{pageTitle}</h1>
-                <p className="mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">{pageSubtitle}</p>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  onClick={() => setAssetDialogOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30"
-                >
-                  <Package className="h-4 w-4" />
-                  Add Asset
-                </Button>
-                <Button
-                  onClick={() => {
-                    fetchFarmersAndAvailableAssets()
-                    setRentalDialogOpen(true)
-                  }}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:from-emerald-700 hover:to-teal-700 hover:shadow-xl hover:shadow-emerald-500/30"
-                >
-                  <Truck className="h-4 w-4" />
-                  Issue Rental
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleRefreshAll}
-                  disabled={isLoading}
-                  className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-300 hover:border-blue-300 hover:bg-white hover:shadow-md disabled:cursor-not-allowed"
-                >
-                  <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
-                  Refresh
-                </Button>
-              </div>
-            </div>
-          </header>
-
-          {/* Main Content with Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <div className={isEmbedMode ? "w-full" : "relative z-10 mx-auto w-full px-0 py-10"}>
+        {/* Main Content with Tabs */}
+        <Tabs value={isEmbedMode ? tabToShow : activeTab} onValueChange={isEmbedMode ? () => {} : setActiveTab} className="w-full">
+          {!isEmbedMode && (
             <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 h-auto p-1 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl shadow-sm mb-6">
               <TabsTrigger value="warehouse-hub" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-sm font-semibold py-2.5">
                 <Warehouse className="h-4 w-4 mr-2" />
-                Warehouse Hub
+                Products & inventory
               </TabsTrigger>
               <TabsTrigger value="assets" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-sm font-semibold py-2.5">
                 <Box className="h-4 w-4 mr-2" />
@@ -1162,13 +1207,14 @@ export default function InventoryRentalsPage() {
                 Requests
               </TabsTrigger>
             </TabsList>
+          )}
 
-            {/* Warehouse Hub Tab */}
+            {/* Products & inventory Tab */}
             <TabsContent value="warehouse-hub" className="space-y-6">
               <section>
                 <div className="mb-6 flex items-center justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Warehouse Inventory Management</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Products & inventory</h2>
               <p className="text-sm text-gray-600">
                       Manage products, inventory, and stock quantities across warehouses and locations
                     </p>
@@ -3138,7 +3184,6 @@ export default function InventoryRentalsPage() {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
 
       {/* Create Asset Dialog */}
       <Dialog open={assetDialogOpen} onOpenChange={setAssetDialogOpen}>
@@ -3585,5 +3630,9 @@ export default function InventoryRentalsPage() {
       </Dialog>
     </div>
   )
+}
+
+export default function InventoryRentalsPage() {
+  return <InventoryRentalsContent />
 }
 
