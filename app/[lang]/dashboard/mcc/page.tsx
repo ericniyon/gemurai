@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from "react"
 import dynamic from "next/dynamic"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
-import { useSearchParams, useRouter, usePathname } from "next/navigation"
+import { useSearchParams, useRouter, usePathname, useParams } from "next/navigation"
 import {
   Droplets,
   ShoppingCart,
@@ -15,8 +16,23 @@ import {
   Warehouse,
   Loader2,
   LayoutGrid,
+  Plus,
+  UserPlus,
+  Banknote,
+  Boxes,
+  Briefcase,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+const ACTION_BUTTONS = [
+  { id: "record-sale", label: "Record Sale", icon: ShoppingCart, triggerKey: "recordSale" as const },
+  { id: "add-customer", label: "Add Customer", icon: UserPlus, triggerKey: "addCustomer" as const },
+  { id: "add-supplier", label: "Add Supplier", icon: Package, triggerKey: "addSupplier" as const },
+  { id: "process-payment", label: "Process Payment", icon: Banknote, triggerKey: "processPayment" as const },
+  { id: "add-warehouse", label: "Add warehouse", icon: Warehouse, triggerKey: "addWarehouse" as const },
+  { id: "add-product", label: "Add Product", icon: Boxes, triggerKey: "addProduct" as const },
+  { id: "record-asset", label: "Record asset", icon: Briefcase, triggerKey: "recordAsset" as const },
+]
 
 const SalesTab = dynamic(
   () => import("@/app/[lang]/dashboard/mcc/sales/page").then((mod) => ({ default: mod.default })),
@@ -67,9 +83,17 @@ export default function MCCDairyPage() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const tabParam = searchParams?.get("tab")
+  const params = useParams()
+  const lang = (params?.lang as string) || "en"
   const [activeTab, setActiveTab] = useState<string>(
     VALID_TABS.includes(tabParam as (typeof VALID_TABS)[number]) ? tabParam! : "sales"
   )
+  const [triggerRecordSale, setTriggerRecordSale] = useState(false)
+  const [triggerAddCustomer, setTriggerAddCustomer] = useState(false)
+  const [triggerAddSupplier, setTriggerAddSupplier] = useState(false)
+  const [triggerAddWarehouse, setTriggerAddWarehouse] = useState(false)
+  const [triggerAddProduct, setTriggerAddProduct] = useState(false)
+  const [triggerRecordAsset, setTriggerRecordAsset] = useState(false)
 
   useEffect(() => {
     if (tabParam && VALID_TABS.includes(tabParam as (typeof VALID_TABS)[number])) {
@@ -80,11 +104,27 @@ export default function MCCDairyPage() {
   const handleTabChange = useCallback(
     (value: string) => {
       setActiveTab(value)
-      const params = new URLSearchParams(searchParams?.toString() || "")
-      params.set("tab", value)
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+      const nextParams = new URLSearchParams(searchParams?.toString() || "")
+      nextParams.set("tab", value)
+      router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false })
     },
     [pathname, router, searchParams]
+  )
+
+  const handleActionClick = useCallback(
+    (triggerKey: string) => {
+      if (triggerKey === "processPayment") {
+        router.push(`/${lang}/dashboard/mcc/payments`)
+        return
+      }
+      if (triggerKey === "recordSale") setTriggerRecordSale(true)
+      else if (triggerKey === "addCustomer") setTriggerAddCustomer(true)
+      else if (triggerKey === "addSupplier") setTriggerAddSupplier(true)
+      else if (triggerKey === "addWarehouse") setTriggerAddWarehouse(true)
+      else if (triggerKey === "addProduct") setTriggerAddProduct(true)
+      else if (triggerKey === "recordAsset") setTriggerRecordAsset(true)
+    },
+    [lang, router]
   )
 
   if (!user) {
@@ -143,6 +183,28 @@ export default function MCCDairyPage() {
           </div>
         </header>
 
+        {/* Big action buttons above tabs */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 sm:gap-4 mb-6">
+          {ACTION_BUTTONS.map((action) => {
+            const Icon = action.icon
+            return (
+              <Button
+                key={action.id}
+                variant="outline"
+                onClick={() => handleActionClick(action.triggerKey)}
+                className="h-auto min-h-[88px] sm:min-h-[100px] flex flex-col items-center justify-center gap-2 rounded-2xl bg-transparent border-2 border-sky-200 text-sky-600 shadow-sm transition-all hover:scale-[1.02] hover:border-sky-300 hover:text-sky-700 active:scale-[0.98] dark:border-sky-500/50 dark:text-sky-400 dark:hover:border-sky-400 dark:hover:text-sky-300"
+              >
+                <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl border border-current/30">
+                  <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                </span>
+                <span className="text-sm font-semibold leading-tight sm:text-base text-center px-1">
+                  {action.label}
+                </span>
+              </Button>
+            )
+          })}
+        </div>
+
         {/* Main content card with tabs */}
         <Card className="w-full overflow-hidden border border-slate-200/80 shadow-sm dark:border-slate-800 dark:bg-slate-900/30 rounded-xl">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -177,20 +239,37 @@ export default function MCCDairyPage() {
 
             <div className="bg-white dark:bg-slate-900/50">
               <div className="p-4 sm:p-6 lg:p-8 min-h-[420px]">
-                <TabsContent value="sales" className="mt-0 focus-visible:outline-none">
-                  <SalesTab />
+                {/* All panels mounted so dialogs can open without switching tab */}
+                <TabsContent value="sales" className="mt-0 focus-visible:outline-none" forceMount hidden={activeTab !== "sales"}>
+                  <SalesTab
+                    triggerOpenAddDialog={triggerRecordSale}
+                    onTriggerConsumed={() => setTriggerRecordSale(false)}
+                  />
                 </TabsContent>
-                <TabsContent value="customers" className="mt-0 focus-visible:outline-none">
-                  <CustomersTab />
+                <TabsContent value="customers" className="mt-0 focus-visible:outline-none" forceMount hidden={activeTab !== "customers"}>
+                  <CustomersTab
+                    triggerOpenAddDialog={triggerAddCustomer}
+                    onTriggerConsumed={() => setTriggerAddCustomer(false)}
+                  />
                 </TabsContent>
-                <TabsContent value="suppliers" className="mt-0 focus-visible:outline-none">
-                  <SuppliersTab />
+                <TabsContent value="suppliers" className="mt-0 focus-visible:outline-none" forceMount hidden={activeTab !== "suppliers"}>
+                  <SuppliersTab
+                    triggerOpenAddDialog={triggerAddSupplier}
+                    onTriggerConsumed={() => setTriggerAddSupplier(false)}
+                  />
                 </TabsContent>
-                <TabsContent value="ikofi" className="mt-0 focus-visible:outline-none">
+                <TabsContent value="ikofi" className="mt-0 focus-visible:outline-none" forceMount hidden={activeTab !== "ikofi"}>
                   <IkofiTab />
                 </TabsContent>
-                <TabsContent value="warehouses" className="mt-0 focus-visible:outline-none">
-                  <WarehousesTab />
+                <TabsContent value="warehouses" className="mt-0 focus-visible:outline-none" forceMount hidden={activeTab !== "warehouses"}>
+                  <WarehousesTab
+                    triggerAddWarehouse={triggerAddWarehouse}
+                    onTriggerAddWarehouseConsumed={() => setTriggerAddWarehouse(false)}
+                    triggerAddProduct={triggerAddProduct}
+                    onTriggerAddProductConsumed={() => setTriggerAddProduct(false)}
+                    triggerRecordAsset={triggerRecordAsset}
+                    onTriggerRecordAssetConsumed={() => setTriggerRecordAsset(false)}
+                  />
                 </TabsContent>
               </div>
             </div>

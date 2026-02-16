@@ -261,7 +261,7 @@ function ProfileContent({ lang }: { lang: string }) {
             const mccData = await mccResponse.json()
             setMccInfo({
               id: mccData.id || data?.mccId || "",
-              name: mccData.name || "Unknown MCC",
+              name: mccData.name || "Unknown Collection Center",
               code: mccData.code,
               location: mccData.location || "",
               region: mccData.region,
@@ -681,7 +681,7 @@ function ProfileContent({ lang }: { lang: string }) {
           </CardContent>
         </Card>
 
-        {/* MCC card (when linked) */}
+        {/* Collection Center card (when linked) */}
         {mccInfo && (
           <Card className="mb-6 border-slate-200/80 shadow-sm">
             <CardHeader className="pb-3">

@@ -30,7 +30,12 @@ import { cn } from "@/lib/utils"
 const inputBase =
   "h-11 rounded-xl border-2 border-blue-200 bg-white px-4 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all"
 
-export function OnboardingAgentsContent() {
+interface OnboardingAgentsContentProps {
+  triggerOpenAddDialog?: boolean
+  onTriggerConsumed?: () => void
+}
+
+export function OnboardingAgentsContent({ triggerOpenAddDialog, onTriggerConsumed }: OnboardingAgentsContentProps = {}) {
   const { user } = useAuth()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [agents, setAgents] = useState<any[]>([])
@@ -82,6 +87,13 @@ export function OnboardingAgentsContent() {
       setFormData((p) => ({ ...p, mccId: user.mccId || p.mccId }))
     }
   }, [user])
+
+  useEffect(() => {
+    if (triggerOpenAddDialog) {
+      setIsDialogOpen(true)
+      onTriggerConsumed?.()
+    }
+  }, [triggerOpenAddDialog, onTriggerConsumed])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

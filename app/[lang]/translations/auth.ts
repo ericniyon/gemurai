@@ -175,9 +175,33 @@ interface RegisterTranslation {
     subtitle: string
     tabs: {
       individual: string
+      cooperative: string
       company: string
+      ngo: string
+    }
+    sections: {
+      personalInfo: string
+      identification: string
+      contact: string
+      accountDetails: string
+      organizationInfo: string
+      cooperativeInfo: string
+      companyInfo: string
+      ngoInfo: string
     }
     fullName: {
+      label: string
+      placeholder: string
+    }
+    gender: {
+      label: string
+      placeholder: string
+    }
+    dateOfBirth: {
+      label: string
+      placeholder: string
+    }
+    nationalId: {
       label: string
       placeholder: string
     }
@@ -193,11 +217,28 @@ interface RegisterTranslation {
       label: string
       placeholder: string
     }
+    businessSize: {
+      label: string
+      placeholder: string
+      options: { small: string; medium: string; large: string }
+    }
     email: {
       label: string
       placeholder: string
     }
     phone: {
+      label: string
+      placeholder: string
+    }
+    alternatePhone: {
+      label: string
+      placeholder: string
+    }
+    district: {
+      label: string
+      placeholder: string
+    }
+    address: {
       label: string
       placeholder: string
     }
@@ -725,11 +766,35 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
       subtitle: "Enter your details to Apply to become a DCC",
       tabs: {
         individual: "Individual",
-        company: "Company"
+        cooperative: "Cooperative",
+        company: "Company",
+        ngo: "NGO"
+      },
+      sections: {
+        personalInfo: "Personal Information",
+        identification: "Identification",
+        contact: "Contact",
+        accountDetails: "Account Details",
+        organizationInfo: "Organization Information",
+        cooperativeInfo: "Cooperative Information",
+        companyInfo: "Company Information",
+        ngoInfo: "NGO Information"
       },
       fullName: {
         label: "Full Name",
         placeholder: "Enter your full name"
+      },
+      gender: {
+        label: "Gender",
+        placeholder: "Select gender (optional)"
+      },
+      dateOfBirth: {
+        label: "Date of Birth",
+        placeholder: "YYYY-MM-DD (optional)"
+      },
+      nationalId: {
+        label: "National ID",
+        placeholder: "National ID (optional)"
       },
       companyName: {
         label: "Company Name",
@@ -743,6 +808,11 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
         label: "TIN Number",
         placeholder: "Enter your TIN number"
       },
+      businessSize: {
+        label: "Business Size",
+        placeholder: "Select size",
+        options: { small: "Small", medium: "Medium", large: "Large" }
+      },
       email: {
         label: "Email",
         placeholder: "Enter your email"
@@ -750,6 +820,18 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
       phone: {
         label: "Phone",
         placeholder: "Enter your phone number"
+      },
+      alternatePhone: {
+        label: "Alternate Phone",
+        placeholder: "Alternate number (optional)"
+      },
+      district: {
+        label: "District",
+        placeholder: "District (optional)"
+      },
+      address: {
+        label: "Address",
+        placeholder: "Street address (optional)"
       },
       password: {
         label: "Password",
@@ -815,11 +897,35 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
       subtitle: "Choisissez votre rôle et remplissez vos informations ci-dessous",
       tabs: {
         individual: "Individuel",
-        company: "Entreprise"
+        cooperative: "Coopérative",
+        company: "Entreprise",
+        ngo: "ONG"
+      },
+      sections: {
+        personalInfo: "Informations Personnelles",
+        identification: "Identification",
+        contact: "Contact",
+        accountDetails: "Détails du Compte",
+        organizationInfo: "Informations sur l'Organisation",
+        cooperativeInfo: "Informations sur la Coopérative",
+        companyInfo: "Informations sur l'Entreprise",
+        ngoInfo: "Informations sur l'ONG"
       },
       fullName: {
         label: "Nom Complet",
         placeholder: "Entrez votre nom complet"
+      },
+      gender: {
+        label: "Genre",
+        placeholder: "Sélectionnez le genre (optionnel)"
+      },
+      dateOfBirth: {
+        label: "Date de Naissance",
+        placeholder: "AAAA-MM-JJ (optionnel)"
+      },
+      nationalId: {
+        label: "Numéro d'Identité National",
+        placeholder: "Numéro d'identité (optionnel)"
       },
       companyName: {
         label: "Nom de l'Entreprise",
@@ -833,6 +939,11 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
         label: "Numéro TIN",
         placeholder: "Entrez votre numéro TIN"
       },
+      businessSize: {
+        label: "Taille de l'Entreprise",
+        placeholder: "Sélectionnez la taille",
+        options: { small: "Petite", medium: "Moyenne", large: "Grande" }
+      },
       email: {
         label: "Adresse Email",
         placeholder: "Entrez votre adresse email"
@@ -840,6 +951,18 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
       phone: {
         label: "Numéro de Téléphone",
         placeholder: "Entrez votre numéro de téléphone"
+      },
+      alternatePhone: {
+        label: "Téléphone Secondaire",
+        placeholder: "Numéro secondaire (optionnel)"
+      },
+      district: {
+        label: "District",
+        placeholder: "District (optionnel)"
+      },
+      address: {
+        label: "Adresse",
+        placeholder: "Adresse (optionnel)"
       },
       password: {
         label: "Mot de Passe",
@@ -905,11 +1028,35 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
       subtitle: "Andika amakuru yawe kugirango utangire",
       tabs: {
         individual: "Umuntu",
-        company: "Umukoresha"
+        cooperative: "Ishyirahamwe",
+        company: "Sosiyete",
+        ngo: "NGO"
+      },
+      sections: {
+        personalInfo: "Amakuru y'umuntu",
+        identification: "Indangamuntu",
+        contact: "Ihuza",
+        accountDetails: "Amakuru ya konti",
+        organizationInfo: "Amakuru y'ishyirahamwe",
+        cooperativeInfo: "Amakuru y'ishyirahamwe",
+        companyInfo: "Amakuru y'umukozi",
+        ngoInfo: "Amakuru ya NGO"
       },
       fullName: {
         label: "Amazina Yombi",
         placeholder: "Andika amazina yawe yombi"
+      },
+      gender: {
+        label: "Igitsina",
+        placeholder: "Hitamo igitsina (bishoboka)"
+      },
+      dateOfBirth: {
+        label: "Itariki y'amavuko",
+        placeholder: "YYYY-MM-DD (bishoboka)"
+      },
+      nationalId: {
+        label: "Indangamuntu",
+        placeholder: "Indangamuntu (bishoboka)"
       },
       companyName: {
         label: "Amazina Y'umukozi",
@@ -923,6 +1070,11 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
         label: "Numero TIN",
         placeholder: "Andika numero yawe ya TIN"
       },
+      businessSize: {
+        label: "Ingano y'umukozi",
+        placeholder: "Hitamo ingano",
+        options: { small: "Nto", medium: "Hagati", large: "Nini" }
+      },
       email: {
         label: "Imeyili",
         placeholder: "Andika imeyili yawe"
@@ -930,6 +1082,18 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
       phone: {
         label: "Telefoni",
         placeholder: "Andika numero ya telefoni"
+      },
+      alternatePhone: {
+        label: "Telefoni y'inyongera",
+        placeholder: "Numero y'inyongera (bishoboka)"
+      },
+      district: {
+        label: "Akarere",
+        placeholder: "Akarere (bishoboka)"
+      },
+      address: {
+        label: "Aderesi",
+        placeholder: "Aderesi (bishoboka)"
       },
       password: {
         label: "Ijambo ry'ibanga",

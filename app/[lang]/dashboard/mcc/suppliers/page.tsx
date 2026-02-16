@@ -53,7 +53,12 @@ interface Supplier {
   }>
 }
 
-export default function SuppliersPage() {
+interface SuppliersPageProps {
+  triggerOpenAddDialog?: boolean
+  onTriggerConsumed?: () => void
+}
+
+export default function SuppliersPage({ triggerOpenAddDialog, onTriggerConsumed }: SuppliersPageProps = {}) {
   const { user } = useAuth()
   const params = useParams()
   const lang = (params?.lang as string) || "en"
@@ -128,6 +133,13 @@ export default function SuppliersPage() {
       fetchSuppliers(currentPage)
     }
   }, [user, currentPage, searchQuery])
+
+  useEffect(() => {
+    if (triggerOpenAddDialog) {
+      setAddSupplierOpen(true)
+      onTriggerConsumed?.()
+    }
+  }, [triggerOpenAddDialog, onTriggerConsumed])
 
   const handleRefresh = () => {
     setIsRefreshing(true)

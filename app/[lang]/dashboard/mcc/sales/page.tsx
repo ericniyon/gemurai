@@ -55,7 +55,12 @@ interface Sale {
   updatedAt: string
 }
 
-export default function SalesPage() {
+interface SalesPageProps {
+  triggerOpenAddDialog?: boolean
+  onTriggerConsumed?: () => void
+}
+
+export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed }: SalesPageProps = {}) {
   const { user } = useAuth()
   const params = useParams()
   const lang = (params?.lang as string) || "en"
@@ -155,6 +160,23 @@ export default function SalesPage() {
       fetchSales(currentPage)
     }
   }, [user, currentPage, searchQuery])
+
+  useEffect(() => {
+    if (!triggerOpenAddDialog) return
+    setSelectedSale(null)
+    setFormData({
+      litersSold: "",
+      unitPrice: "",
+      companyName: "",
+      companyContact: "",
+      companyAddress: "",
+      paymentStatus: "pending",
+      saleDate: new Date().toISOString().split("T")[0],
+      notes: "",
+    })
+    setAddSaleOpen(true)
+    onTriggerConsumed?.()
+  }, [triggerOpenAddDialog, onTriggerConsumed])
 
   const handleRefresh = () => {
     setIsRefreshing(true)
@@ -630,7 +652,7 @@ export default function SalesPage() {
             setSelectedSale(null)
           }
         }}>
-          <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-2xl">
+          <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-2xl">
             <DialogHeader className="space-y-1 pb-4 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25">

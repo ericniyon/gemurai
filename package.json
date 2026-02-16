@@ -19,6 +19,9 @@
     "seed-users": "tsx scripts/seed-users.ts",
     "test-auth": "tsx scripts/test-auth.ts",
     "db:seed": "prisma db seed",
+    "seed-commodities": "tsx scripts/seed-commodities.ts",
+    "seed-rwanda-administratives": "tsx scripts/seed-rwanda-administratives.ts",
+    "backfill-display-ids": "tsx scripts/backfill-display-ids.ts",
     "test:sms": "ts-node scripts/test-sms.ts",
     "test:twilio": "tsx scripts/test-twilio.ts",
     "test:application-sms": "tsx scripts/test-application-sms.ts",
@@ -168,8 +171,5 @@
     "fs": false,
     "path": false,
     "os": false
-  },
-  "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   }
 }

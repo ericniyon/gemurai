@@ -125,7 +125,7 @@ export default function OnboardFarmerPage() {
                 </CardTitle>
                 <p className="mt-0.5 text-sm text-slate-500">
                   {farmers.length > 0
-                    ? "Farmers registered for your MCC."
+                    ? "Farmers registered for your collection center."
                     : "No farmers yet. Register your first farmer using the form on the right."}
                 </p>
               </div>
@@ -188,7 +188,7 @@ export default function OnboardFarmerPage() {
                     Register new farmer
                   </CardTitle>
                   <p className="text-sm text-slate-500">
-                    Add a smallholder farmer to your MCC. A unique farmer code and ledger account will be created automatically.
+                    Add a smallholder farmer to your collection center. A unique farmer code and ledger account will be created automatically.
                   </p>
                 </CardHeader>
                 <CardContent className="pb-6 pt-0">

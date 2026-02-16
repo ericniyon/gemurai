@@ -68,6 +68,32 @@ interface ReportStats {
   totalDownloads: number
 }
 
+interface DbStats {
+  overview: {
+    totalMCCs: number
+    totalFarmers: number
+    totalCollections: number
+    totalSales: number
+    totalPayments: number
+    totalRevenue: number
+    totalLiters: number
+    totalPaymentsAmount: number
+  }
+  today: {
+    collections: number
+    revenue: number
+    liters: number
+  }
+  thisMonth: {
+    collections: number
+    sales: number
+    payments: number
+    revenue: number
+    liters: number
+    paymentsAmount: number
+  }
+}
+
 export default function AdminReportsPage() {
   const { user: currentUser } = useAuth()
   const [reports, setReports] = useState<Report[]>([])
@@ -82,6 +108,8 @@ export default function AdminReportsPage() {
     thisMonthReports: 0,
     totalDownloads: 0,
   })
+  const [dbStats, setDbStats] = useState<DbStats | null>(null)
+  const [statsLoading, setStatsLoading] = useState(true)
 
   const [reportConfig, setReportConfig] = useState({
     reportType: "",
@@ -96,6 +124,7 @@ export default function AdminReportsPage() {
     if (currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN")) {
       fetchReports()
       fetchMCCs()
+      fetchDbStats()
     }
   }, [currentUser])
 
@@ -141,6 +170,26 @@ export default function AdminReportsPage() {
       }
     } catch (error) {
       console.error("Error fetching MCCs:", error)
+    }
+  }
+
+  const fetchDbStats = async () => {
+    try {
+      setStatsLoading(true)
+      const token = localStorage.getItem("Gemurai_token")
+      const response = await fetch("/api/v1/admin/reports/stats", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      const result = await response.json()
+      if (result.success && result.data) {
+        setDbStats(result.data)
+      }
+    } catch (error) {
+      console.error("Error fetching report stats:", error)
+    } finally {
+      setStatsLoading(false)
     }
   }
 
@@ -356,57 +405,108 @@ export default function AdminReportsPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Real data from database */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Overview</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchDbStats()}
+            disabled={statsLoading}
+            className="gap-1"
+          >
+            <RefreshCw className={`h-4 w-4 ${statsLoading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Card className="border-2 border-blue-200 hover:border-blue-400 transition-all shadow-sm hover:shadow-md">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Reports</CardTitle>
-                <FileText className="h-5 w-5 text-blue-600" />
+                <CardTitle className="text-sm font-medium text-gray-600">Collection Centers</CardTitle>
+                <Building2 className="h-5 w-5 text-blue-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-900">{stats.totalReports}</div>
-              <p className="text-xs text-gray-500 mt-1">All generated reports</p>
+              {statsLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold text-blue-900">
+                    {dbStats?.overview?.totalMCCs ?? "—"}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Active MCCs</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
           <Card className="border-2 border-green-200 hover:border-green-400 transition-all shadow-sm hover:shadow-md">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600">Today</CardTitle>
-                <Calendar className="h-5 w-5 text-green-600" />
+                <CardTitle className="text-sm font-medium text-gray-600">Farmers</CardTitle>
+                <Users className="h-5 w-5 text-green-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-900">{stats.todayReports}</div>
-              <p className="text-xs text-gray-500 mt-1">Generated today</p>
+              {statsLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin text-green-600" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold text-green-900">
+                    {dbStats?.overview?.totalFarmers ?? "—"}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Registered farmers</p>
+                </>
+              )}
             </CardContent>
           </Card>
 
           <Card className="border-2 border-purple-200 hover:border-purple-400 transition-all shadow-sm hover:shadow-md">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600">This Month</CardTitle>
-                <BarChart3 className="h-5 w-5 text-purple-600" />
+                <CardTitle className="text-sm font-medium text-gray-600">Collections</CardTitle>
+                <Activity className="h-5 w-5 text-purple-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-900">{stats.thisMonthReports}</div>
-              <p className="text-xs text-gray-500 mt-1">This month</p>
+              {statsLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold text-purple-900">
+                    {dbStats?.thisMonth?.collections ?? "—"}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    This month · Total {dbStats?.overview?.totalCollections ?? "—"}
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
 
           <Card className="border-2 border-orange-200 hover:border-orange-400 transition-all shadow-sm hover:shadow-md">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600">Downloads</CardTitle>
-                <Download className="h-5 w-5 text-orange-600" />
+                <CardTitle className="text-sm font-medium text-gray-600">Revenue</CardTitle>
+                <DollarSign className="h-5 w-5 text-orange-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-900">{stats.totalDownloads}</div>
-              <p className="text-xs text-gray-500 mt-1">Total downloads</p>
+              {statsLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin text-orange-600" />
+              ) : (
+                <>
+                  <div className="text-2xl font-bold text-orange-900">
+                    {dbStats?.thisMonth?.revenue != null
+                      ? new Intl.NumberFormat("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(dbStats.thisMonth.revenue)
+                      : "—"}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    This month · Sales: {dbStats?.thisMonth?.sales ?? "—"} · Payments: {dbStats?.thisMonth?.payments ?? "—"}
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -582,17 +682,17 @@ export default function AdminReportsPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="mccId" className="text-base font-semibold text-gray-700">
-                  MCC (Optional)
+                  Collection Center (Optional)
                 </Label>
                 <Select
                   value={reportConfig.mccId}
                   onValueChange={(value) => setReportConfig({ ...reportConfig, mccId: value })}
                 >
                   <SelectTrigger style={{ border: '2px solid lightblue' }}>
-                    <SelectValue placeholder="All MCCs" />
+                    <SelectValue placeholder="All Collection Centers" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All MCCs</SelectItem>
+                    <SelectItem value="all">All Collection Centers</SelectItem>
                     {mccs.map((mcc) => (
                       <SelectItem key={mcc.id} value={mcc.id}>
                         {mcc.name}

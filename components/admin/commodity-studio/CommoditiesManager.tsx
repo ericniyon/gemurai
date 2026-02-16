@@ -233,238 +233,248 @@ export function CommoditiesManager() {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-2 border-blue-200">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-blue-600" />
-          <DialogHeader className="pb-4 border-b border-blue-100">
-            <DialogTitle className="text-2xl font-bold text-blue-900">Create Commodity</DialogTitle>
-            <DialogDescription className="text-sm text-blue-700 mt-2">
-              Define a new commodity (e.g. Milk, Coffee Cherries, Maize) with pricing method, storage type, and collection settings
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-base font-semibold text-gray-700">
-                  Commodity Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => {
-                    const name = e.target.value
-                    const autoCode = name.trim().toUpperCase().replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "") || ""
-                    setFormData({ ...formData, name, code: autoCode })
-                  }}
-                  placeholder="e.g. Milk, Coffee Cherries, Maize"
-                  className="border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  required
-                />
+        <DialogContent className="overflow-hidden border-0 bg-slate-50 p-0 shadow-xl max-w-2xl max-h-[90vh] flex flex-col opacity-100 dark:bg-slate-950">
+          <div className="border-b border-slate-200 bg-white px-6 py-5 dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900">
+                <Package className="h-5 w-5" />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="code" className="text-base font-semibold text-gray-700">
-                  Code <span className="text-red-500">*</span>
-                  <span className="text-xs font-normal text-gray-500 ml-1">(auto from name, editable)</span>
-                </Label>
-                <Input
-                  id="code"
-                  value={formData.code}
-                  onChange={(e) =>
-                    setFormData({ ...formData, code: e.target.value.toUpperCase().replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "") })
-                  }
-                  placeholder="e.g. MILK, COFFEE_CHERRIES, MAIZE"
-                  className="border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 font-mono"
-                  required
-                />
+              <div>
+                <DialogTitle className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                  Create Commodity
+                </DialogTitle>
+                <DialogDescription className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                  Define a new commodity (e.g. Milk, Coffee Cherries, Maize) with pricing, storage, and collection settings
+                </DialogDescription>
               </div>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="categoryId" className="text-base font-semibold text-gray-700">
-                Category <span className="text-red-500">*</span>
-              </Label>
-              <SearchableSelect
-                value={formData.categoryId}
-                onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
-                options={categories.map((cat) => ({ label: cat.name, value: cat.id }))}
-                placeholder="Select category"
-                searchPlaceholder="Search categories..."
-                emptyText="No category found."
-                className="border-2 border-blue-200 focus:border-blue-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="unitOfMeasure" className="text-base font-semibold text-gray-700">
-                  Unit of Measure <span className="text-red-500">*</span>
-                </Label>
-                <SearchableSelect
-                  value={formData.unitOfMeasure}
-                  onValueChange={(value) => setFormData({ ...formData, unitOfMeasure: value })}
-                  options={[
-                    { label: "Liters", value: "liters" },
-                    { label: "Kg", value: "kg" },
-                    { label: "Bags", value: "bags" },
-                    { label: "Tons", value: "tons" },
-                    { label: "Units", value: "units" },
-                    { label: "Gallons", value: "gallons" },
-                    { label: "Tonnes", value: "tonnes" },
-                    { label: "Quintals", value: "quintals" },
-                    { label: "Bunches", value: "bunches" },
-                    { label: "Crates", value: "crates" },
-                    { label: "Pieces", value: "pieces" },
-                    { label: "Boxes", value: "boxes" },
-                  ]}
-                  placeholder="Select unit"
-                  searchPlaceholder="Search units..."
-                  emptyText="No unit found."
-                  className="border-2 border-blue-200 focus:border-blue-500"
-                />
+          <form onSubmit={handleSubmit} className="flex flex-1 flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900/50">
+                <h4 className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-200">Basic info</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Commodity Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => {
+                        const name = e.target.value
+                        const autoCode = name.trim().toUpperCase().replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "") || ""
+                        setFormData({ ...formData, name, code: autoCode })
+                      }}
+                      placeholder="e.g. Milk, Coffee Cherries, Maize"
+                      className="border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-slate-700 dark:bg-slate-800"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="code" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Code <span className="text-red-500">*</span>
+                      <span className="ml-1 text-xs font-normal text-slate-500">(auto from name)</span>
+                    </Label>
+                    <Input
+                      id="code"
+                      value={formData.code}
+                      onChange={(e) =>
+                        setFormData({ ...formData, code: e.target.value.toUpperCase().replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "") })
+                      }
+                      placeholder="e.g. MILK, COFFEE_CHERRIES"
+                      className="border-slate-200 bg-white font-mono focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-slate-700 dark:bg-slate-800"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="mt-4 space-y-2">
+                  <Label htmlFor="categoryId" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Category <span className="text-red-500">*</span>
+                  </Label>
+                  <SearchableSelect
+                    value={formData.categoryId}
+                    onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+                    options={categories.map((cat) => ({ label: cat.name, value: cat.id }))}
+                    placeholder="Select category"
+                    searchPlaceholder="Search categories..."
+                    emptyText="No category found."
+                    className="h-10 border-slate-200 dark:border-slate-700"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="storageType" className="text-base font-semibold text-gray-700">
-                  Storage Type <span className="text-red-500">*</span>
-                </Label>
-                <SearchableSelect
-                  value={formData.storageType}
-                  onValueChange={(value) => setFormData({ ...formData, storageType: value })}
-                  options={[
-                    { label: "Tank", value: "tank" },
-                    { label: "Bags", value: "bags" },
-                    { label: "Silo", value: "silo" },
-                    { label: "Warehouse", value: "warehouse" },
-                    { label: "Cold Storage", value: "cold_storage" },
-                  ]}
-                  placeholder="Select storage type"
-                  searchPlaceholder="Search storage type..."
-                  emptyText="No storage type found."
-                  className="border-2 border-blue-200 focus:border-blue-500"
-                />
+              <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900/50">
+                <h4 className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-200">Unit & storage</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="unitOfMeasure" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Unit of Measure <span className="text-red-500">*</span>
+                    </Label>
+                    <SearchableSelect
+                      value={formData.unitOfMeasure}
+                      onValueChange={(value) => setFormData({ ...formData, unitOfMeasure: value })}
+                      options={[
+                        { label: "Liters", value: "liters" },
+                        { label: "Kg", value: "kg" },
+                        { label: "Bags", value: "bags" },
+                        { label: "Tons", value: "tons" },
+                        { label: "Units", value: "units" },
+                        { label: "Gallons", value: "gallons" },
+                        { label: "Tonnes", value: "tonnes" },
+                        { label: "Quintals", value: "quintals" },
+                        { label: "Bunches", value: "bunches" },
+                        { label: "Crates", value: "crates" },
+                        { label: "Pieces", value: "pieces" },
+                        { label: "Boxes", value: "boxes" },
+                      ]}
+                      placeholder="Select unit"
+                      searchPlaceholder="Search units..."
+                      emptyText="No unit found."
+                      className="h-10 border-slate-200 dark:border-slate-700"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="storageType" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Storage Type <span className="text-red-500">*</span>
+                    </Label>
+                    <SearchableSelect
+                      value={formData.storageType}
+                      onValueChange={(value) => setFormData({ ...formData, storageType: value })}
+                      options={[
+                        { label: "Tank", value: "tank" },
+                        { label: "Bags", value: "bags" },
+                        { label: "Silo", value: "silo" },
+                        { label: "Warehouse", value: "warehouse" },
+                        { label: "Cold Storage", value: "cold_storage" },
+                      ]}
+                      placeholder="Select storage type"
+                      searchPlaceholder="Search storage type..."
+                      emptyText="No storage type found."
+                      className="h-10 border-slate-200 dark:border-slate-700"
+                    />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="isPerishable"
+                    checked={formData.isPerishable}
+                    onChange={(e) => setFormData({ ...formData, isPerishable: e.target.checked })}
+                    className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400 dark:border-slate-600 dark:text-slate-100"
+                  />
+                  <Label htmlFor="isPerishable" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                    Perishable (e.g. dairy — requires cold chain)
+                  </Label>
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="isPerishable"
-                checked={formData.isPerishable}
-                onChange={(e) => setFormData({ ...formData, isPerishable: e.target.checked })}
-                className="rounded border-blue-300"
-              />
-              <Label htmlFor="isPerishable" className="text-base font-semibold text-gray-700">
-                Perishable (e.g. Dairy - requires cold chain)
-              </Label>
-            </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900/50">
+                <h4 className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-200">Pricing method</h4>
+                <div className="space-y-2">
+                  <SearchableSelect
+                    value={formData.pricingMethod}
+                    onValueChange={(value) => setFormData({ ...formData, pricingMethod: value as any })}
+                    options={[
+                      { label: "Spot (immediate payment at collection)", value: "SPOT" },
+                      { label: "Grade-based (price varies by quality)", value: "GRADE_BASED" },
+                      { label: "Deferred / post-sale", value: "DEFERRED" },
+                      { label: "Post-sale (after processing/sale)", value: "POST_SALE" },
+                    ]}
+                    placeholder="Select pricing method"
+                    searchPlaceholder="Search..."
+                    emptyText="No pricing method found."
+                    className="h-10 border-slate-200 dark:border-slate-700"
+                  />
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    How this commodity is priced at collection
+                  </p>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="pricingMethod" className="text-base font-semibold text-gray-700">
-                Pricing Method <span className="text-red-500">*</span>
-              </Label>
-              <SearchableSelect
-                value={formData.pricingMethod}
-                onValueChange={(value) =>
-                  setFormData({ ...formData, pricingMethod: value as any })
-                }
-                options={[
-                  { label: "Spot Price (Immediate payment at collection)", value: "SPOT" },
-                  { label: "Grade-Based (Price varies by quality grade)", value: "GRADE_BASED" },
-                  { label: "Deferred / Post-Sale (Payment after sale)", value: "DEFERRED" },
-                  { label: "Post-Sale (Payment after processing/sale)", value: "POST_SALE" },
-                ]}
-                placeholder="Select pricing method"
-                searchPlaceholder="Search pricing method..."
-                emptyText="No pricing method found."
-                className="border-2 border-blue-200 focus:border-blue-500"
-              />
-              <p className="text-xs text-blue-700">
-                Choose how this commodity is priced: immediate spot price, grade-based pricing, or deferred payment
-              </p>
-            </div>
+              <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900/50">
+                <h4 className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-200">Collection defaults</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="defaultCollectionCenterType" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Default center type
+                    </Label>
+                    <SearchableSelect
+                      value={formData.defaultCollectionCenterType}
+                      onValueChange={(value) => setFormData({ ...formData, defaultCollectionCenterType: value })}
+                      options={[
+                        { label: "Collection Center (Milk, Agri, etc.)", value: "MCC" },
+                        { label: "Coffee Washing Station", value: "coffee_washing_station" },
+                        { label: "Warehouse", value: "warehouse" },
+                        { label: "Collection Point", value: "collection_point" },
+                      ]}
+                      placeholder="Select center type"
+                      searchPlaceholder="Search..."
+                      emptyText="No center type found."
+                      className="h-10 border-slate-200 dark:border-slate-700"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="defaultCollectionFrequency" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Default frequency
+                    </Label>
+                    <SearchableSelect
+                      value={formData.defaultCollectionFrequency}
+                      onValueChange={(value) => setFormData({ ...formData, defaultCollectionFrequency: value })}
+                      options={[
+                        { label: "Daily (e.g. dairy)", value: "daily" },
+                        { label: "Weekly (e.g. coffee)", value: "weekly" },
+                        { label: "Seasonal", value: "seasonal" },
+                        { label: "Harvest window", value: "harvest_window" },
+                      ]}
+                      placeholder="Select frequency"
+                      searchPlaceholder="Search..."
+                      emptyText="No frequency found."
+                      className="h-10 border-slate-200 dark:border-slate-700"
+                    />
+                  </div>
+                </div>
+              </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="defaultCollectionCenterType" className="text-base font-semibold text-gray-700">Default Collection Center Type</Label>
-                <SearchableSelect
-                  value={formData.defaultCollectionCenterType}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, defaultCollectionCenterType: value })
-                  }
-                  options={[
-                    { label: "MCC (Milk Collection Center)", value: "MCC" },
-                    { label: "Coffee Washing Station", value: "coffee_washing_station" },
-                    { label: "Warehouse", value: "warehouse" },
-                    { label: "Collection Point", value: "collection_point" },
-                  ]}
-                  placeholder="Select center type"
-                  searchPlaceholder="Search center type..."
-                  emptyText="No center type found."
-                  className="border-2 border-blue-200 focus:border-blue-500"
-                />
-                <p className="text-xs text-blue-700">
-                  Type of collection center where this commodity is typically collected
+              <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900/50">
+                <h4 className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-200">Status</h4>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="isActive"
+                    checked={formData.isActive}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                    className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400 dark:border-slate-600 dark:text-slate-100"
+                  />
+                  <Label htmlFor="isActive" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                    Active (available for collections)
+                  </Label>
+                </div>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Inactive commodities do not appear in collection forms
                 </p>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="defaultCollectionFrequency" className="text-base font-semibold text-gray-700">Default Collection Frequency</Label>
-                <SearchableSelect
-                  value={formData.defaultCollectionFrequency}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, defaultCollectionFrequency: value })
-                  }
-                  options={[
-                    { label: "Daily (e.g. Dairy)", value: "daily" },
-                    { label: "Weekly (e.g. Coffee during harvest)", value: "weekly" },
-                    { label: "Seasonal (e.g. Crops)", value: "seasonal" },
-                    { label: "Harvest Window (e.g. Cereals)", value: "harvest_window" },
-                  ]}
-                  placeholder="Select frequency"
-                  searchPlaceholder="Search frequency..."
-                  emptyText="No frequency found."
-                  className="border-2 border-blue-200 focus:border-blue-500"
-                />
-                <p className="text-xs text-blue-700">
-                  Default recording cadence for this commodity
-                </p>
-              </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                  className="rounded border-2 border-blue-200"
-                />
-                <Label htmlFor="isActive" className="text-base font-semibold text-gray-700 cursor-pointer">
-                  Active (Commodity will be available for collections)
-                </Label>
+            <div className="border-t border-slate-200 bg-white px-6 py-4 dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                  className="border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                >
+                  Create Commodity
+                </Button>
               </div>
-              <p className="text-xs text-blue-700">
-                Inactive commodities will not appear in collection forms
-              </p>
             </div>
-
-            <DialogFooter className="gap-2 pt-4 border-t border-blue-100">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsDialogOpen(false)}
-                className="border-blue-200 hover:bg-blue-50"
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                Create Commodity
-              </Button>
-            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

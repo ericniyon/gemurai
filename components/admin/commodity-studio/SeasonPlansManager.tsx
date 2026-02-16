@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Plus, Calendar, Package } from "lucide-react"
+import { Plus, Calendar, Package, Loader2 } from "lucide-react"
 
 export function SeasonPlansManager() {
   const [commodities, setCommodities] = useState<any[]>([])
@@ -114,18 +114,25 @@ export function SeasonPlansManager() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Select Commodity</Label>
-            <Select value={selectedCommodity} onValueChange={setSelectedCommodity}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a commodity" />
-              </SelectTrigger>
-              <SelectContent>
-                {commodities.map((commodity) => (
-                  <SelectItem key={commodity.id} value={commodity.id}>
-                    {commodity.name} ({commodity.code})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isLoading ? (
+              <div className="flex h-10 w-full items-center gap-2 rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                <span>Loading commodities...</span>
+              </div>
+            ) : (
+              <Select value={selectedCommodity} onValueChange={setSelectedCommodity}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a commodity" />
+                </SelectTrigger>
+                <SelectContent>
+                  {commodities.map((commodity) => (
+                    <SelectItem key={commodity.id} value={commodity.id}>
+                      {commodity.name} ({commodity.code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {selectedCommodity && (

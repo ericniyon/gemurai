@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server"
 import { verifyAuthToken } from "@/lib/token"
 import { cookies } from "next/headers"
 import { prisma } from "@/lib/prisma"
+import { getNextDisplayId } from "@/lib/display-id"
 import { hash } from "bcryptjs"
 
 // Check if a table exists
@@ -70,6 +71,7 @@ export async function GET(request: NextRequest) {
             : undefined,
           select: {
             id: true,
+            displayId: true,
             email: true,
             name: true,
             phone: true,
@@ -95,6 +97,7 @@ export async function GET(request: NextRequest) {
 
         const transformedUsers = users.map(user => ({
           id: user.id,
+          displayId: user.displayId ?? undefined,
           email: user.email,
           name: user.name,
           phone: user.phone,
@@ -117,6 +120,7 @@ export async function GET(request: NextRequest) {
           where: roleFilter ? { role: roleFilter as any } : undefined,
           select: {
             id: true,
+            displayId: true,
             email: true,
             name: true,
             phone: true,
@@ -177,107 +181,113 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { email, password, role, name, phone } = body
+    const {
+      email,
+      password,
+      role,
+      name,
+      phone,
+      // Optional: personal, identification, contact
+      gender,
+      dateOfBirth,
+      nationalId,
+      alternatePhone,
+      district,
+      country,
+      city,
+      address,
+      postalCode,
+      languagePreference,
+      // Organization (when userType is cooperative | company | ngo)
+      userType,
+      businessName,
+      tin,
+      businessSize,
+      contactPerson,
+    } = body
 
-    // Log incoming request data for debugging
-    console.log('📋 User creation request received:', {
-      email: email || 'MISSING',
-      hasPassword: !!password,
-      role: role || 'MISSING',
-      roleType: typeof role,
-      name: name || 'MISSING',
-      phone: phone || 'MISSING',
-      fullBody: body
-    });
+    const isOrganization = ['cooperative', 'company', 'ngo'].includes(String(userType || '').toLowerCase())
 
-    // Validate input
-    if (!email || !password || !role) {
-      console.error('❌ Missing required fields:', {
-        hasEmail: !!email,
-        hasPassword: !!password,
-        hasRole: !!role
-      });
+    // Resolve display name and required name validation
+    const displayName = isOrganization
+      ? (contactPerson || '').trim()
+      : (name || '').trim()
+
+    if (!displayName || displayName.length < 2) {
       return NextResponse.json(
-        { success: false, message: "Missing required fields: email, password, and role are required" },
+        { success: false, message: isOrganization ? "Contact person name is required (min 2 characters)" : "Name is required (min 2 characters)" },
         { status: 400 }
       )
     }
 
-    // Determine if role is an ID or a name
-    let roleRecord;
-    let roleName;
-    
-    // Check if role looks like an ID (long string with alphanumeric characters)
-    const isRoleId = role.length > 20 && /^[a-z0-9]+$/i.test(role);
-    
-    if (isRoleId) {
-      console.log(`🔍 Role appears to be an ID: "${role}"`);
-      // Look up role by ID
-      roleRecord = await prisma.role.findUnique({
-        where: { id: role }
-      });
-      roleName = roleRecord?.name;
-      console.log(`🔄 Role ID "${role}" resolved to name: "${roleName}"`);
-    } else {
-      console.log(`🔍 Role appears to be a name: "${role}"`);
-      // Normalize role name (trim and uppercase)
-      roleName = role.trim().toUpperCase();
-      console.log(`🔄 Role normalized from "${role}" to "${roleName}"`);
-      
-      // Map CUSTOMER to CONSUMER for database compatibility
-      if (roleName === 'CUSTOMER') {
-        roleName = 'CONSUMER';
-        console.log(`🔄 Mapped CUSTOMER to CONSUMER for database compatibility`);
-      }
-      
-      // Validate role is one of the allowed values (including MCC roles)
-      const allowedRoles = [
-        'SUPER_ADMIN', 
-        'ADMIN', 
-        'EMPLOYER', 
-        'DCC', 
-        'CONSUMER', 
-        'AGENT',
-        'MCC_MANAGER',
-        'FIELD_AGENT',
-        'COOP_ADMIN',
-        'FARMER',
-        'ACCOUNTANT'
-      ];
-      if (!allowedRoles.includes(roleName)) {
-        console.error(`❌ Invalid role name "${roleName}". Allowed roles:`, allowedRoles);
+    // Validate input (role is optional; can be assigned later)
+    if (!email || !password) {
+      console.error('❌ Missing required fields:', { hasEmail: !!email, hasPassword: !!password })
+      return NextResponse.json(
+        { success: false, message: "Missing required fields: email and password are required" },
+        { status: 400 }
+      )
+    }
+
+    if (isOrganization) {
+      if (!(businessName || '').trim() || (businessName || '').trim().length < 2) {
         return NextResponse.json(
-          { success: false, message: `Invalid role "${role}". Allowed roles: ${allowedRoles.join(', ')}` },
+          { success: false, message: "Organization name is required (min 2 characters)" },
           { status: 400 }
         )
       }
-      
-      // Look up role by name
-      roleRecord = await prisma.role.findUnique({
-        where: { name: roleName }
-      });
+      if (!(tin || '').trim() || (tin || '').trim().length < 5) {
+        return NextResponse.json(
+          { success: false, message: "TIN is required (min 5 characters)" },
+          { status: 400 }
+        )
+      }
+      const validSizes = ['SMALL', 'MEDIUM', 'LARGE']
+      if (!businessSize || !validSizes.includes(String(businessSize).toUpperCase())) {
+        return NextResponse.json(
+          { success: false, message: "Business size is required (SMALL, MEDIUM, or LARGE)" },
+          { status: 400 }
+        )
+      }
     }
 
-    // Validate that we have a valid role
-    if (!roleRecord) {
-      console.error(`❌ Role not found: original="${role}", resolved name="${roleName}"`);
-      
-      // Log all available roles for debugging
-      const availableRoles = await prisma.role.findMany({
-        select: { name: true, id: true }
-      });
-      console.error('Available roles in database:', availableRoles);
-      
-      return NextResponse.json(
-        { 
-          success: false, 
-          message: `Role not found. Original role: "${role}", Resolved name: "${roleName}". Available roles: ${availableRoles.map(r => `${r.name} (${r.id})`).join(', ')}` 
-        },
-        { status: 400 }
-      );
-    }
+    // Role is optional: resolve if provided, otherwise user can be assigned a role later
+    let roleRecord: { id: string; name: string } | null = null;
+    let roleName: string | null = null;
+    const roleProvided = (role || '').trim().length > 0;
 
-    console.log(`✅ Role validated: ${roleRecord.name} (ID: ${roleRecord.id})`);
+    if (roleProvided) {
+      const roleVal = (role || '').trim();
+      const isRoleId = roleVal.length > 20 && /^[a-z0-9]+$/i.test(roleVal);
+
+      if (isRoleId) {
+        roleRecord = await prisma.role.findUnique({ where: { id: roleVal } });
+        roleName = roleRecord?.name ?? null;
+      } else {
+        roleName = roleVal.toUpperCase();
+        if (roleName === 'CUSTOMER') roleName = 'CONSUMER';
+        const allowedRoles = [
+          'SUPER_ADMIN', 'ADMIN', 'EMPLOYER', 'DCC', 'CONSUMER', 'AGENT',
+          'MCC_MANAGER', 'FIELD_AGENT', 'COOP_ADMIN', 'FARMER', 'ACCOUNTANT'
+        ];
+        if (!allowedRoles.includes(roleName)) {
+          return NextResponse.json(
+            { success: false, message: `Invalid role "${role}". Allowed: ${allowedRoles.join(', ')}` },
+            { status: 400 }
+          );
+        }
+        roleRecord = await prisma.role.findUnique({ where: { name: roleName } });
+      }
+
+      if (!roleRecord) {
+        const availableRoles = await prisma.role.findMany({ select: { name: true, id: true } });
+        return NextResponse.json(
+          { success: false, message: `Role not found. Available: ${availableRoles.map(r => r.name).join(', ')}` },
+          { status: 400 }
+        );
+      }
+      console.log(`✅ Role validated: ${roleRecord.name} (ID: ${roleRecord.id})`);
+    }
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -304,43 +314,74 @@ export async function POST(request: Request) {
       // Use new schema
       console.log("Creating user with new role system schema");
       try {
-        const user = await prisma.user.create({
-          data: {
-            email,
-            name: name || "",
-            phone: phone || null,
-            password: hashedPassword,
-            isActive: true,
-          },
-        })
-
-        console.log(`✅ User created successfully: ${user.email}`);
-
-        // Create role assignment (role already validated above)
-
-        const roleAssignment = await prisma.userRoleAssignment.create({
-          data: {
-            userId: user.id,
-            roleId: roleRecord.id,
-            assignedBy: admin.id,
-            assignedAt: new Date()
+        const userData: Record<string, unknown> = {
+          email: email.trim().toLowerCase(),
+          name: displayName,
+          phone: (phone || '').trim() || null,
+          password: hashedPassword,
+          isActive: true,
+        }
+        if (gender?.trim()) userData.gender = gender.trim()
+        if (dateOfBirth) userData.dateOfBirth = new Date(dateOfBirth)
+        if (nationalId?.trim()) userData.national_id = nationalId.trim()
+        if (alternatePhone?.trim()) userData.alternatePhone = alternatePhone.trim()
+        if (district?.trim()) userData.district = district.trim()
+        if (country?.trim()) userData.country = country.trim()
+        if (city?.trim()) userData.city = city.trim()
+        if (address?.trim()) userData.address = address.trim()
+        if (postalCode?.trim()) userData.postalCode = postalCode.trim()
+        if (languagePreference?.trim()) userData.languagePreference = languagePreference.trim()
+        if (isOrganization) {
+          userData.organizationType = String(userType).toUpperCase()
+          userData.businessName = (businessName || '').trim()
+          userData.tin = (tin || '').trim()
+          userData.businessSize = String(businessSize).toUpperCase()
+          userData.contactPerson = (contactPerson || '').trim()
+        }
+        try {
+          userData.displayId = await getNextDisplayId(prisma)
+        } catch (e) {
+          console.error("Failed to generate displayId:", e)
+        }
+        let user: Awaited<ReturnType<typeof prisma.user.create>>
+        try {
+          user = await prisma.user.create({ data: userData as any })
+        } catch (err: any) {
+          if (err?.code === "P2002" && String(err?.meta?.target || "").includes("displayId")) {
+            userData.displayId = await getNextDisplayId(prisma)
+            user = await prisma.user.create({ data: userData as any })
+          } else {
+            throw err
           }
-        })
+        }
 
-        console.log(`✅ Successfully assigned role ${roleName} to user ${user.email}`);
+        console.log(`✅ User created successfully: ${user.email}${user.displayId ? ` (${user.displayId})` : ""}`);
+
+        if (roleRecord) {
+          await prisma.userRoleAssignment.create({
+            data: {
+              userId: user.id,
+              roleId: roleRecord.id,
+              assignedBy: admin.id,
+              assignedAt: new Date()
+            }
+          });
+          console.log(`✅ Assigned role ${roleName} to user ${user.email}`);
+        }
 
         return NextResponse.json({
           success: true,
           user: {
             id: user.id,
+            displayId: user.displayId ?? undefined,
             email: user.email,
             name: user.name,
             phone: user.phone,
-            role: roleName,
+            role: roleName ?? 'No Role',
             createdAt: user.createdAt,
             isActive: user.isActive,
           },
-          message: `User created successfully with ${roleName} role`
+          message: roleName ? `User created with ${roleName} role` : 'User created. Assign a role later from user management.'
         })
       } catch (error) {
         console.error("New schema user creation failed:", error);
@@ -356,8 +397,13 @@ export async function POST(request: Request) {
         throw error;
       }
     } else {
-      // Use old schema
+      // Use old schema (role column on user; use CONSUMER as default when not provided)
       console.log("Creating user with old role system schema");
+      const fallbackRole = roleName ?? 'CONSUMER';
+      let displayId: string | undefined;
+      try {
+        displayId = await getNextDisplayId(prisma)
+      } catch (_) {}
       try {
         const user = await prisma.user.create({
           data: {
@@ -365,8 +411,9 @@ export async function POST(request: Request) {
             name: name || "",
             phone: phone || null,
             password: hashedPassword,
-            role: roleName, // Use role name for old schema
+            role: fallbackRole,
             isActive: true,
+            ...(displayId && { displayId }),
           },
         })
 
@@ -374,6 +421,7 @@ export async function POST(request: Request) {
           success: true,
           user: {
             id: user.id,
+            displayId: user.displayId ?? undefined,
             email: user.email,
             name: user.name,
             phone: user.phone,
@@ -381,7 +429,7 @@ export async function POST(request: Request) {
             createdAt: user.createdAt,
             isActive: user.isActive,
           },
-          message: `User created successfully with ${user.role} role`
+          message: roleName ? `User created with ${user.role} role` : 'User created. Assign a role later from user management.'
         })
       } catch (error) {
         console.error("Old schema user creation failed:", error);

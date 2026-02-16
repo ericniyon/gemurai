@@ -23,31 +23,65 @@ async function tableExists(tableName: string): Promise<boolean> {
   }
 }
 
+// Optional field validators (only validate when value is provided)
+function optionalString(value: unknown, minLen: number, maxLen: number, label: string): string | null {
+  if (value == null || value === "") return null
+  const s = String(value).trim()
+  if (s.length > 0 && s.length < minLen) return `${label} must be at least ${minLen} characters`
+  if (s.length > maxLen) return `${label} must be at most ${maxLen} characters`
+  return null
+}
+function optionalDate(value: unknown): string | null {
+  if (value == null || value === "") return null
+  const d = value instanceof Date ? value : new Date(String(value))
+  if (Number.isNaN(d.getTime())) return "Date of birth must be a valid date"
+  const now = new Date()
+  if (d > now) return "Date of birth cannot be in the future"
+  return null
+}
+
 // Enhanced validation function for individual registration
 function validateIndividualRegistration(data: any) {
   const errors: string[] = []
 
-  // Required fields for individual
+  // Required: personal
   if (!data.name || data.name.trim().length < 2) {
     errors.push("Full name must be at least 2 characters long")
   }
 
+  // Required: contact
   if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
     errors.push("Please provide a valid email address")
   }
-
   if (!data.phone || data.phone.trim().length < 10) {
     errors.push("Please provide a valid phone number")
   }
 
+  // Required: account
   if (!data.password || data.password.length < 6) {
     errors.push("Password must be at least 6 characters long")
   }
-
-  // Optional: password strength validation
   if (data.password && !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(data.password)) {
     errors.push("Password must contain at least one uppercase letter, one lowercase letter, and one number")
   }
+
+  // Optional: personal
+  const genderErr = optionalString(data.gender, 1, 50, "Gender")
+  if (genderErr) errors.push(genderErr)
+  const dobErr = optionalDate(data.dateOfBirth)
+  if (dobErr) errors.push(dobErr)
+
+  // Optional: identification
+  const nationalIdErr = optionalString(data.nationalId, 5, 50, "National ID")
+  if (nationalIdErr) errors.push(nationalIdErr)
+
+  // Optional: contact
+  const altPhoneErr = optionalString(data.alternatePhone, 10, 20, "Alternate phone")
+  if (altPhoneErr) errors.push(altPhoneErr)
+  const districtErr = optionalString(data.district, 2, 100, "District")
+  if (districtErr) errors.push(districtErr)
+  const addressErr = optionalString(data.address, 5, 500, "Address")
+  if (addressErr) errors.push(addressErr)
 
   return errors
 }
@@ -84,11 +118,17 @@ function validateCompanyRegistration(data: any) {
   if (!data.businessSize || !['SMALL', 'MEDIUM', 'LARGE'].includes(data.businessSize)) {
     errors.push("Please select a valid business size (SMALL, MEDIUM, or LARGE)")
   }
-
-  // Optional: password strength validation
   if (data.password && !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(data.password)) {
     errors.push("Password must contain at least one uppercase letter, one lowercase letter, and one number")
   }
+
+  // Optional contact for company
+  const altPhoneErr = optionalString(data.alternatePhone, 10, 20, "Alternate phone")
+  if (altPhoneErr) errors.push(altPhoneErr)
+  const districtErr = optionalString(data.district, 2, 100, "District")
+  if (districtErr) errors.push(districtErr)
+  const addressErr = optionalString(data.address, 5, 500, "Address")
+  if (addressErr) errors.push(addressErr)
 
   return errors
 }
@@ -98,17 +138,27 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { 
       registrationType, // 'individual' or 'company'
-      // Individual fields
+      // Personal (required for individual: name)
       name, 
+      // Identification (optional)
+      nationalId,
+      // Contact (required: email, phone)
       email, 
       phone, 
+      alternatePhone,
+      district,
+      address,
+      // Personal optional
+      gender,
+      dateOfBirth,
+      // Account
       password, 
       // Company fields
       businessName,
       tin,
       businessSize,
       contactPerson,
-      // Common fields
+      // Common
       role = 'CONSUMER', 
       additionalData = {} 
     } = body
@@ -121,31 +171,31 @@ export async function POST(request: NextRequest) {
       role 
     })
 
-    // Validate registration type
-    if (!registrationType || !['individual', 'company'].includes(registrationType)) {
+    const validRegistrationTypes = ['individual', 'cooperative', 'company', 'ngo'] as const
+    if (!registrationType || !validRegistrationTypes.includes(registrationType as any)) {
       return NextResponse.json(
         { 
           success: false, 
-          message: "Registration type must be either 'individual' or 'company'",
+          message: "Registration type must be one of: Cooperative, Company, NGO, Individual",
           errors: ["Invalid registration type"]
         },
         { status: 400 }
       )
     }
 
-    // Enhanced validation based on registration type
+    const isOrganization = ['cooperative', 'company', 'ngo'].includes(registrationType)
+
     let validationErrors: string[] = []
     if (registrationType === 'individual') {
-      validationErrors = validateIndividualRegistration({ name, email, phone, password })
+      validationErrors = validateIndividualRegistration({
+        name, email, phone, password,
+        gender, dateOfBirth, nationalId, alternatePhone, district, address,
+      })
     } else {
       validationErrors = validateCompanyRegistration({ 
-        businessName, 
-        tin, 
-        businessSize, 
-        contactPerson, 
-        email, 
-        phone, 
-        password 
+        businessName, tin, businessSize, contactPerson, 
+        email, phone, password,
+        alternatePhone, district, address,
       })
     }
 
@@ -197,30 +247,45 @@ export async function POST(request: NextRequest) {
       console.log("🔧 Registration using new role system schema");
       
       try {
-        // Prepare user data based on registration type
-        const userData = {
+        // Base required fields
+        const userData: Record<string, unknown> = {
           email: email.toLowerCase().trim(),
           phone: phone.trim(),
           password: hashedPassword,
           isActive: true,
-          ...additionalData // Allow additional user data
         }
 
-        // Add name or business information based on registration type
         if (registrationType === 'individual') {
           userData.name = name.trim()
+          if (gender?.trim()) userData.gender = gender.trim()
+          if (dateOfBirth) userData.dateOfBirth = new Date(dateOfBirth)
+          if (nationalId?.trim()) userData.national_id = nationalId.trim()
+          if (alternatePhone?.trim()) userData.alternatePhone = alternatePhone.trim()
+          if (district?.trim()) userData.district = district.trim()
+          if (address?.trim()) userData.address = address.trim()
         } else {
-          // For company registration, store business info in additionalData
-          userData.name = contactPerson.trim() // Use contact person as the main name
+          userData.organizationType = registrationType.toUpperCase() // COOPERATIVE | COMPANY | NGO
+          userData.name = contactPerson.trim()
           userData.businessName = businessName.trim()
           userData.tin = tin.trim()
           userData.businessSize = businessSize
           userData.contactPerson = contactPerson.trim()
+          if (alternatePhone?.trim()) userData.alternatePhone = alternatePhone.trim()
+          if (district?.trim()) userData.district = district.trim()
+          if (address?.trim()) userData.address = address.trim()
         }
 
-        // Create user without role/permissions (new schema)
+        // Allow extra safe fields from additionalData (no overwrite of required)
+        const allowedExtra = ['gender', 'dateOfBirth', 'national_id', 'alternatePhone', 'district', 'address']
+        for (const key of allowedExtra) {
+          if (additionalData[key] != null && additionalData[key] !== '' && userData[key] === undefined) {
+            if (key === 'dateOfBirth') userData.dateOfBirth = new Date(additionalData[key])
+            else userData[key] = typeof additionalData[key] === 'string' ? additionalData[key].trim() : additionalData[key]
+          }
+        }
+
         const user = await prisma.user.create({
-          data: userData,
+          data: userData as any,
         })
 
         console.log(`✅ User created: ${user.email}`);
@@ -301,31 +366,35 @@ export async function POST(request: NextRequest) {
 
         console.log(`✅ Registration completed successfully for ${user.email}`);
 
-        // Prepare response data based on registration type
-        const responseUser = {
+        // Prepare response data (personal, identification, contact)
+        const responseUser: Record<string, unknown> = {
           id: user.id,
+          name: user.name,
           email: user.email,
           phone: user.phone,
           role: finalRole,
           permissions: permissions,
           isActive: user.isActive,
-          createdAt: user.createdAt
+          createdAt: user.createdAt,
+        }
+        if (user.gender) responseUser.gender = user.gender
+        if (user.dateOfBirth) responseUser.dateOfBirth = user.dateOfBirth
+        if (user.national_id) responseUser.nationalId = user.national_id
+        if (user.alternatePhone) responseUser.alternatePhone = user.alternatePhone
+        if (user.district) responseUser.district = user.district
+        if (user.address) responseUser.address = user.address
+        if (isOrganization) {
+          if ((user as any).organizationType) responseUser.organizationType = (user as any).organizationType
+          if (user.businessName) responseUser.businessName = user.businessName
+          if (user.tin) responseUser.tin = user.tin
+          if (user.businessSize) responseUser.businessSize = user.businessSize
+          if (user.contactPerson) responseUser.contactPerson = user.contactPerson
         }
 
-        if (registrationType === 'individual') {
-          responseUser.name = user.name
-        } else {
-          // For company registration, include business information
-          responseUser.name = user.name // This is the contact person
-          responseUser.businessName = user.businessName
-          responseUser.tin = user.tin
-          responseUser.businessSize = user.businessSize
-          responseUser.contactPerson = user.contactPerson
-        }
-
+        const typeLabel = registrationType === 'individual' ? 'Individual' : registrationType.charAt(0).toUpperCase() + registrationType.slice(1)
         return NextResponse.json({
           success: true,
-          message: `${registrationType === 'individual' ? 'Individual' : 'Company'} registration successful`,
+          message: `${typeLabel} registration successful`,
           user: responseUser,
           token
         })
@@ -350,7 +419,7 @@ export async function POST(request: NextRequest) {
         if (registrationType === 'individual') {
           userData.name = name.trim()
         } else {
-          // For company registration in old schema, store business info in name field
+          // For organization registration in old schema, store org info in name field
           userData.name = `${contactPerson.trim()} (${businessName.trim()})`
         }
 
@@ -401,9 +470,10 @@ export async function POST(request: NextRequest) {
           responseUser.contactPerson = contactPerson
         }
 
+        const typeLabel = registrationType === 'individual' ? 'Individual' : registrationType.charAt(0).toUpperCase() + registrationType.slice(1)
         return NextResponse.json({
           success: true,
-          message: `${registrationType === 'individual' ? 'Individual' : 'Company'} registration successful`,
+          message: `${typeLabel} registration successful`,
           user: responseUser,
           token
         })

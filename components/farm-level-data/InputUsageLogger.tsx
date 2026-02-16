@@ -18,7 +18,12 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Plus, Package, TrendingUp, User } from "lucide-react"
 
-export function InputUsageLogger() {
+interface InputUsageLoggerProps {
+  triggerOpenAddDialog?: boolean
+  onTriggerConsumed?: () => void
+}
+
+export function InputUsageLogger({ triggerOpenAddDialog, onTriggerConsumed }: InputUsageLoggerProps = {}) {
   const [farmers, setFarmers] = useState<any[]>([])
   const [seasonPlans, setSeasonPlans] = useState<any[]>([])
   const [inputCatalog, setInputCatalog] = useState<any[]>([])
@@ -38,6 +43,13 @@ export function InputUsageLogger() {
   useEffect(() => {
     fetchData()
   }, [])
+
+  useEffect(() => {
+    if (triggerOpenAddDialog) {
+      setIsDialogOpen(true)
+      onTriggerConsumed?.()
+    }
+  }, [triggerOpenAddDialog, onTriggerConsumed])
 
   useEffect(() => {
     if (formData.farmerId) {

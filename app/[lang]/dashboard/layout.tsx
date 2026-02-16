@@ -92,7 +92,7 @@ interface NavigationItem {
 }
 
 // Define navigation items for ADMIN users (platform administration focus)
-// Dashboard, System Settings (Users, MCCs, Pricing Scheme), Commodity Studio, Reports, Settings
+// Dashboard, System Settings (Users, Collection Centers, Pricing Scheme), Commodity Studio, Reports, Settings
 const getAdminNavigationItems = (lang: string): NavigationItem[] => [
   { 
     id: "admin-dashboard",
@@ -116,7 +116,7 @@ const getAdminNavigationItems = (lang: string): NavigationItem[] => [
       },
       {
         id: "admin-mccs",
-        name: "MCCs",
+        name: "Collection Centers",
         href: `/${lang}/dashboard/admin/mccs`,
         icon: Building2,
         roles: ["ADMIN", "SUPER_ADMIN"]
@@ -240,8 +240,8 @@ const getAdminNavigationItems = (lang: string): NavigationItem[] => [
   }
 ]
 
-// Define navigation items for MCC_MANAGER and other operational roles
-// Order: Dashboard → HarvestPlus (daily ops) → Farm-Level Data (incl. Onboarding) → MCC (Dairy) → Agriculture
+// Define navigation items for MCC_MANAGER (Collection Center Manager) and other operational roles
+// Order: Dashboard → Operations → Collections → HarvestPlus → Farm-Level Data → Collection Center
 const getMCCManagerNavigationItems = (lang: string): NavigationItem[] => [
   { 
     id: "mcc-dashboard",
@@ -287,12 +287,12 @@ const getMCCManagerNavigationItems = (lang: string): NavigationItem[] => [
     requiredPermissions: [],
     roles: ["MCC_MANAGER", "SUPER_ADMIN"]
   },
-  // MCC (Dairy) - single page (Sales, Customers, Suppliers, Ikofi, Warehouses are tabs)
+  // Collection Center - single page (Sales, Customers, Suppliers, Ikofi, Warehouses, collections tabs)
   {
     id: "mcc-dairy",
-    name: "MCC (Dairy)",
+    name: "Collection Center",
     href: `/${lang}/dashboard/mcc`,
-    icon: Droplets,
+    icon: Building2,
     requiredPermissions: [],
     roles: ["MCC_MANAGER", "SUPER_ADMIN"]
   },
@@ -305,7 +305,7 @@ const getMCCManagerNavigationItems = (lang: string): NavigationItem[] => [
     requiredPermissions: [],
     roles: ["EMPLOYER", "SUPER_ADMIN", "BRANCH_MANAGER"],
     children: [
-      { id: "inventory-milk", name: "Milk Inventory", href: `/${lang}/dashboard/mcc`, icon: Droplets, requiredPermissions: [], roles: ["EMPLOYER", "SUPER_ADMIN", "BRANCH_MANAGER"] },
+      { id: "inventory-milk", name: "Collection Center Inventory", href: `/${lang}/dashboard/mcc`, icon: Building2, requiredPermissions: [], roles: ["EMPLOYER", "SUPER_ADMIN", "BRANCH_MANAGER"] },
       { id: "inventory-pharmacy", name: "Pharmacy Inventory", href: `/${lang}/dashboard/pharmacy`, icon: Pill, requiredPermissions: [], roles: ["EMPLOYER", "SUPER_ADMIN", "BRANCH_MANAGER"] }
     ]
   },

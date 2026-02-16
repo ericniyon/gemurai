@@ -40,12 +40,28 @@ export async function GET(
         where: { id },
         select: {
           id: true,
+          displayId: true,
           email: true,
           name: true,
           phone: true,
           createdAt: true,
           updatedAt: true,
           isActive: true,
+          national_id: true,
+          gender: true,
+          dateOfBirth: true,
+          alternatePhone: true,
+          district: true,
+          country: true,
+          city: true,
+          address: true,
+          postalCode: true,
+          languagePreference: true,
+          organizationType: true,
+          businessName: true,
+          tin: true,
+          businessSize: true,
+          contactPerson: true,
           userRole: {
             select: {
               role: {
@@ -67,9 +83,10 @@ export async function GET(
         )
       }
 
-      // Transform user to include role name for compatibility
+      // Transform user to include role name and full profile for compatibility
       const transformedUser = {
         id: user.id,
+        displayId: user.displayId ?? undefined,
         email: user.email,
         name: user.name,
         phone: user.phone,
@@ -77,6 +94,21 @@ export async function GET(
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         isActive: user.isActive,
+        nationalId: user.national_id ?? undefined,
+        gender: user.gender ?? undefined,
+        dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().slice(0, 10) : undefined,
+        alternatePhone: user.alternatePhone ?? undefined,
+        district: user.district ?? undefined,
+        country: user.country ?? undefined,
+        city: user.city ?? undefined,
+        address: user.address ?? undefined,
+        postalCode: user.postalCode ?? undefined,
+        languagePreference: user.languagePreference ?? undefined,
+        organizationType: user.organizationType ?? undefined,
+        businessName: user.businessName ?? undefined,
+        tin: user.tin ?? undefined,
+        businessSize: user.businessSize ?? undefined,
+        contactPerson: user.contactPerson ?? undefined,
       }
 
       return NextResponse.json({ success: true, user: transformedUser })
@@ -89,13 +121,29 @@ export async function GET(
           where: { id },
           select: {
             id: true,
+            displayId: true,
             email: true,
             name: true,
             phone: true,
-            role: true, // Old schema has role directly on user
+            role: true,
             createdAt: true,
             updatedAt: true,
             isActive: true,
+            national_id: true,
+            gender: true,
+            dateOfBirth: true,
+            alternatePhone: true,
+            district: true,
+            country: true,
+            city: true,
+            address: true,
+            postalCode: true,
+            languagePreference: true,
+            organizationType: true,
+            businessName: true,
+            tin: true,
+            businessSize: true,
+            contactPerson: true,
           },
         })
 
@@ -106,7 +154,14 @@ export async function GET(
           )
         }
 
-        return NextResponse.json({ success: true, user })
+        const u = user as any
+        const withExtras = {
+          ...u,
+          nationalId: u.national_id ?? undefined,
+          dateOfBirth: u.dateOfBirth ? (u.dateOfBirth as Date).toISOString().slice(0, 10) : undefined,
+        }
+        delete withExtras.national_id
+        return NextResponse.json({ success: true, user: withExtras })
       } catch (oldSchemaError) {
         console.error("Both schemas failed:", { newSchemaError, oldSchemaError })
         throw oldSchemaError
@@ -126,6 +181,14 @@ export async function GET(
       { status: 500 }
     )
   }
+}
+
+// PUT /api/v1/superadmin/users/[id] (same as PATCH for compatibility)
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  return PATCH(request, { params })
 }
 
 // PATCH /api/v1/superadmin/users/[id]
@@ -156,7 +219,29 @@ export async function PATCH(
 
     const { id } = params
     const body = await request.json()
-    const { email, name, phone, role, password, isActive } = body
+    const {
+      email,
+      name,
+      phone,
+      role,
+      password,
+      isActive,
+      nationalId,
+      gender,
+      dateOfBirth,
+      alternatePhone,
+      district,
+      country,
+      city,
+      address,
+      postalCode,
+      languagePreference,
+      userType,
+      businessName,
+      tin,
+      businessSize,
+      contactPerson,
+    } = body
 
     // Prepare update data
     const updateData: any = {}
@@ -165,6 +250,21 @@ export async function PATCH(
     if (phone !== undefined) updateData.phone = phone
     if (password !== undefined) updateData.password = await hash(password, 12)
     if (isActive !== undefined) updateData.isActive = isActive
+    if (nationalId !== undefined) updateData.national_id = nationalId?.trim() || null
+    if (gender !== undefined) updateData.gender = gender?.trim() || null
+    if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null
+    if (alternatePhone !== undefined) updateData.alternatePhone = alternatePhone?.trim() || null
+    if (district !== undefined) updateData.district = district?.trim() || null
+    if (country !== undefined) updateData.country = country?.trim() || null
+    if (city !== undefined) updateData.city = city?.trim() || null
+    if (address !== undefined) updateData.address = address?.trim() || null
+    if (postalCode !== undefined) updateData.postalCode = postalCode?.trim() || null
+    if (languagePreference !== undefined) updateData.languagePreference = languagePreference?.trim() || null
+    if (userType !== undefined) updateData.organizationType = userType?.trim() || null
+    if (businessName !== undefined) updateData.businessName = businessName?.trim() || null
+    if (tin !== undefined) updateData.tin = tin?.trim() || null
+    if (businessSize !== undefined) updateData.businessSize = businessSize?.trim() || null
+    if (contactPerson !== undefined) updateData.contactPerson = contactPerson?.trim() || null
 
     // Try new schema first, fallback to old schema if it fails
     try {

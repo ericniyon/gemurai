@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useParams } from "next/navigation"
 import Link from "next/link"
@@ -96,6 +96,9 @@ export default function CollectionsPage() {
   const [cropCollections, setCropCollections] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [activeTab, setActiveTab] = useState<"commodity" | "milk" | "crop">("commodity")
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const listSectionRef = useRef<HTMLDivElement>(null)
 
   const canAccess =
     user &&
@@ -138,6 +141,7 @@ export default function CollectionsPage() {
         const d = await cropRes.json()
         setCropCollections(d.data || [])
       }
+      setLastUpdated(new Date())
     } catch (e) {
       console.error("Error fetching collections:", e)
     } finally {
@@ -157,9 +161,18 @@ export default function CollectionsPage() {
 
   const handleTypeSelect = (type: CollectionType) => {
     setCollectionType(type)
-    if (type === "commodity") setCommodityFormOpen(true)
-    if (type === "milk") setMilkFormOpen(true)
-    if (type === "crop") setCropFormOpen(true)
+    if (type === "commodity") {
+      setActiveTab("commodity")
+      setCommodityFormOpen(true)
+    }
+    if (type === "milk") {
+      setActiveTab("milk")
+      setMilkFormOpen(true)
+    }
+    if (type === "crop") {
+      setActiveTab("crop")
+      setCropFormOpen(true)
+    }
   }
 
   const onFormSuccess = () => {
@@ -246,8 +259,8 @@ export default function CollectionsPage() {
         </div>
 
         <div className="relative z-10 mx-auto w-full px-4 py-10 sm:px-6 lg:px-8">
-          {/* Header - aligned with dashboard */}
-          <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          {/* Header - title then big action buttons */}
+          <header className="mb-10 flex flex-col gap-8">
             <div className="space-y-3">
               <div className="inline-flex items-center gap-3 rounded-full bg-white/80 px-4 py-1.5 shadow-sm ring-1 ring-gray-200">
                 <ClipboardList className="h-4 w-4 text-blue-600" />
@@ -263,29 +276,50 @@ export default function CollectionsPage() {
                   Record and view commodity, milk, and crop collections with analytics per type.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3">
+            </div>
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
                 {visibleTypes.map((opt) => {
                   const Icon = opt.icon
                   const isSelected = collectionType === opt.id
+                  const unselectedBorder =
+                    "border-2 border-sky-200 hover:border-sky-300"
                   return (
-                    <Button
+                    <button
                       key={opt.id}
                       type="button"
-                      variant={isSelected ? "default" : "outline"}
                       onClick={() => handleTypeSelect(opt.id)}
                       className={cn(
-                        "inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200",
+                        "flex flex-col items-center justify-center gap-3 rounded-2xl px-6 py-8 transition-all duration-200 min-h-[180px] text-left",
                         isSelected
-                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30"
-                          : "border border-slate-200 bg-white text-gray-700 hover:border-blue-300 hover:bg-slate-50 hover:text-blue-700"
+                          ? "border-2 border-blue-500 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30 hover:-translate-y-0.5"
+                          : cn("bg-white text-gray-800 hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5", unselectedBorder)
                       )}
                     >
-                      <Icon className={cn("h-4 w-4 shrink-0", isSelected ? "text-white" : opt.iconColor)} />
-                      {opt.name}
-                      <ArrowRight className={cn("h-4 w-4 shrink-0", isSelected ? "text-white/90" : "text-gray-500")} />
-                    </Button>
+                      <div className={cn(
+                        "rounded-xl p-3",
+                        isSelected ? "bg-white/20" : opt.iconBg
+                      )}>
+                        <Icon className={cn("h-8 w-8 shrink-0", isSelected ? "text-white" : opt.iconColor)} />
+                      </div>
+                      <span className={cn(
+                        "text-base font-bold text-center leading-tight",
+                        isSelected ? "text-white" : "text-gray-900"
+                      )}>
+                        {opt.name}
+                      </span>
+                      <span className={cn(
+                        "text-center text-xs leading-snug max-w-[200px]",
+                        isSelected ? "text-white/80" : "text-gray-500"
+                      )}>
+                        {opt.description}
+                      </span>
+                      <ArrowRight className={cn("h-5 w-5 shrink-0", isSelected ? "text-white/90" : "text-gray-400")} />
+                    </button>
                   )
                 })}
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
                 <Button
                   variant="outline"
                   onClick={handleRefresh}
@@ -295,13 +329,24 @@ export default function CollectionsPage() {
                   <RefreshCw className={cn("h-4 w-4", (loading || refreshing) && "animate-spin")} />
                   Refresh
                 </Button>
+                {lastUpdated && !loading && (
+                  <span className="text-xs text-gray-500">
+                    Updated {lastUpdated.toLocaleTimeString()}
+                  </span>
+                )}
               </div>
             </div>
           </header>
 
-          {/* Summary cards - dashboard style (rounded-3xl, gradient bar, hover lift) */}
+          {/* Summary cards - clickable to switch tab and scroll to list */}
           <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 mb-10">
-            <Card className="relative overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <Card
+              role="button"
+              tabIndex={0}
+              onClick={() => { setActiveTab("commodity"); listSectionRef.current?.scrollIntoView({ behavior: "smooth" }) }}
+              onKeyDown={(e) => e.key === "Enter" && (setActiveTab("commodity"), listSectionRef.current?.scrollIntoView({ behavior: "smooth" }))}
+              className="relative cursor-pointer overflow-hidden rounded-3xl border-2 border-blue-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+            >
               <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-b from-blue-100/50 via-indigo-100/30 to-transparent" />
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
@@ -330,7 +375,13 @@ export default function CollectionsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="relative overflow-hidden rounded-3xl border border-sky-100 bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <Card
+              role="button"
+              tabIndex={0}
+              onClick={() => { setActiveTab("milk"); listSectionRef.current?.scrollIntoView({ behavior: "smooth" }) }}
+              onKeyDown={(e) => e.key === "Enter" && (setActiveTab("milk"), listSectionRef.current?.scrollIntoView({ behavior: "smooth" }))}
+              className="relative cursor-pointer overflow-hidden rounded-3xl border-2 border-sky-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2"
+            >
               <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-b from-sky-100/50 via-blue-100/30 to-transparent" />
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
@@ -359,7 +410,13 @@ export default function CollectionsPage() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="relative overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+            <Card
+              role="button"
+              tabIndex={0}
+              onClick={() => { setActiveTab("crop"); listSectionRef.current?.scrollIntoView({ behavior: "smooth" }) }}
+              onKeyDown={(e) => e.key === "Enter" && (setActiveTab("crop"), listSectionRef.current?.scrollIntoView({ behavior: "smooth" }))}
+              className="relative cursor-pointer overflow-hidden rounded-3xl border-2 border-emerald-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2"
+            >
               <div className="absolute right-0 top-0 h-full w-24 bg-gradient-to-b from-emerald-100/50 via-teal-100/30 to-transparent" />
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
@@ -391,8 +448,8 @@ export default function CollectionsPage() {
           </section>
 
           {/* Listings + analytics per type (tabs) */}
-          <Card className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-lg">
-            <Tabs defaultValue="commodity" className="w-full">
+          <Card ref={listSectionRef} className="overflow-hidden rounded-3xl border-2 border-slate-200 bg-white shadow-md scroll-mt-6">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "commodity" | "milk" | "crop")} className="w-full">
               <CardHeader className="pb-2">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <CardTitle className="text-lg font-bold text-gray-900">Collections by type</CardTitle>
@@ -446,7 +503,17 @@ export default function CollectionsPage() {
                       <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
                     </div>
                   ) : commodityCollections.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-gray-500">No commodity collections yet.</p>
+                    <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                      <div className="rounded-2xl bg-slate-100 p-4">
+                        <Package className="h-10 w-10 text-slate-400" />
+                      </div>
+                      <p className="text-sm font-medium text-gray-700">No commodity collections yet</p>
+                      <p className="text-sm text-gray-500 max-w-sm">Record dairy, coffee, or cereal intake with quality and pricing.</p>
+                      <Button onClick={() => handleTypeSelect("commodity")} className="gap-2 rounded-xl bg-blue-600 hover:bg-blue-700">
+                        Record commodity collection
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   ) : (
                     <div className="overflow-x-auto rounded-xl border border-slate-200/80">
                       <Table>
@@ -524,7 +591,17 @@ export default function CollectionsPage() {
                       <Loader2 className="h-8 w-8 animate-spin text-sky-600" />
                     </div>
                   ) : milkCollections.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-gray-500">No milk collections yet.</p>
+                    <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                      <div className="rounded-2xl bg-sky-100 p-4">
+                        <Droplets className="h-10 w-10 text-sky-500" />
+                      </div>
+                      <p className="text-sm font-medium text-gray-700">No milk collections yet</p>
+                      <p className="text-sm text-gray-500 max-w-sm">Record dairy milk with quality tests and deductions.</p>
+                      <Button onClick={() => handleTypeSelect("milk")} className="gap-2 rounded-xl bg-sky-600 hover:bg-sky-700">
+                        Record milk collection
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   ) : (
                     <div className="overflow-x-auto rounded-xl border border-slate-200/80">
                       <Table>
@@ -532,6 +609,7 @@ export default function CollectionsPage() {
                           <TableRow className="bg-slate-50/80">
                             <TableHead className="font-semibold text-gray-700">Date</TableHead>
                             <TableHead className="font-semibold text-gray-700">Farmer</TableHead>
+                            <TableHead className="font-semibold text-gray-700">Agent</TableHead>
                             <TableHead className="font-semibold text-gray-700">Liters</TableHead>
                             <TableHead className="font-semibold text-gray-700">Amount</TableHead>
                             <TableHead className="font-semibold text-gray-700">Quality</TableHead>
@@ -542,6 +620,7 @@ export default function CollectionsPage() {
                             <TableRow key={c.id} className="hover:bg-slate-50/50">
                               <TableCell className="font-medium text-gray-900">{formatDate(c.collectionDate)}</TableCell>
                               <TableCell className="text-gray-700">{c.farmers?.name || "—"}</TableCell>
+                              <TableCell className="text-gray-600 text-sm">{c.agent?.name || "—"}</TableCell>
                               <TableCell className="text-gray-900">{c.totalLiters != null ? c.totalLiters.toLocaleString() : "—"}</TableCell>
                               <TableCell className="font-medium text-gray-900">{formatCurrency(c.totalAmount)}</TableCell>
                               <TableCell>
@@ -594,7 +673,17 @@ export default function CollectionsPage() {
                       <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
                     </div>
                   ) : cropCollections.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-gray-500">No crop collections yet.</p>
+                    <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                      <div className="rounded-2xl bg-emerald-100 p-4">
+                        <Wheat className="h-10 w-10 text-emerald-500" />
+                      </div>
+                      <p className="text-sm font-medium text-gray-700">No crop collections yet</p>
+                      <p className="text-sm text-gray-500 max-w-sm">Record maize, beans, or other crops with quality and grading.</p>
+                      <Button onClick={() => handleTypeSelect("crop")} className="gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700">
+                        Record crop collection
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   ) : (
                     <div className="overflow-x-auto rounded-xl border border-slate-200/80">
                       <Table>
@@ -643,6 +732,7 @@ export default function CollectionsPage() {
           if (!open) setCollectionType(null)
         }}
         onSuccess={onFormSuccess}
+        overrideMccId={user?.mccId || undefined}
       />
       <AddCollectionForm
         open={milkFormOpen}

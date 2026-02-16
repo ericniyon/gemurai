@@ -160,9 +160,9 @@ export default function CommodityStudioPage() {
           </Card>
         </div>
 
-        {/* Tabs Section - Improved Design */}
-        <Card className="bg-white border border-gray-200 shadow-sm overflow-hidden">
-          <CardContent className="p-0">
+        {/* Tabs Section - Improved Design (overflow-visible so dropdowns are not clipped) */}
+        <Card className="bg-white border border-gray-200 shadow-sm overflow-visible">
+          <CardContent className="p-0 overflow-visible">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               {/* Enhanced Tab Header */}
               <div className="border-b border-gray-200 bg-white">
@@ -207,8 +207,8 @@ export default function CommodityStudioPage() {
                 </div>
               </div>
 
-              {/* Tab Content */}
-              <div className="p-6 sm:p-8 lg:p-10 bg-white">
+              {/* Tab Content - min-height so Quality/Frequency/Input Catalog have room for dropdowns */}
+              <div className="p-6 sm:p-8 lg:p-10 bg-white overflow-visible min-h-[70vh]">
                 <TabsContent value="categories" className="mt-0">
                   <CommodityCategoriesManager />
                 </TabsContent>
@@ -217,15 +217,15 @@ export default function CommodityStudioPage() {
                   <CommoditiesManager />
                 </TabsContent>
 
-                <TabsContent value="quality" className="mt-0">
+                <TabsContent value="quality" className="mt-0 overflow-visible">
                   <QualitySchemaBuilder />
                 </TabsContent>
 
-                <TabsContent value="frequency" className="mt-0">
+                <TabsContent value="frequency" className="mt-0 overflow-visible">
                   <FrequencySeasonManager />
                 </TabsContent>
 
-                <TabsContent value="input-catalog" className="mt-0">
+                <TabsContent value="input-catalog" className="mt-0 overflow-visible">
                   <InputCatalogManager />
                 </TabsContent>
               </div>

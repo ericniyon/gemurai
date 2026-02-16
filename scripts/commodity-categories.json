@@ -1,0 +1,43 @@
+{
+  "categories": [
+    {
+      "name": "Cereals",
+      "description": "Grain crops primarily used for food and feed.",
+      "commodities": [
+        { "name": "Maize", "unit_type": "kg", "is_perishable": false, "storage_type": "silo" },
+        { "name": "Rice", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" },
+        { "name": "Wheat", "unit_type": "kg", "is_perishable": false, "storage_type": "silo" },
+        { "name": "Sorghum", "unit_type": "kg", "is_perishable": false, "storage_type": "silo" },
+        { "name": "Millet", "unit_type": "kg", "is_perishable": false, "storage_type": "silo" },
+        { "name": "Barley", "unit_type": "kg", "is_perishable": false, "storage_type": "silo" },
+        { "name": "Oats", "unit_type": "kg", "is_perishable": false, "storage_type": "silo" }
+      ]
+    },
+    {
+      "name": "Pulses & Legumes",
+      "description": "Protein-rich leguminous crops.",
+      "commodities": [
+        { "name": "Beans", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" },
+        { "name": "Soybeans", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" },
+        { "name": "Peas", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" },
+        { "name": "Chickpeas", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" },
+        { "name": "Lentils", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" },
+        { "name": "Pigeon Peas", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" },
+        { "name": "Groundnuts", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" }
+      ]
+    },
+    {
+      "name": "Cash Crops",
+      "description": "Commercial crops primarily grown for sale or export.",
+      "commodities": [
+        { "name": "Coffee", "unit_type": "kg", "is_perishable": false, "storage_type": "bags" },
+        { "name": "Tea", "unit_type": "kg", "is_perishable": true, "storage_type": "warehouse" },
+        { "name": "Cocoa", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" },
+        { "name": "Cotton", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" },
+        { "name": "Pyrethrum", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" },
+        { "name": "Tobacco", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" },
+        { "name": "Sugarcane", "unit_type": "kg", "is_perishable": false, "storage_type": "warehouse" }
+      ]
+    }
+  ]
+}

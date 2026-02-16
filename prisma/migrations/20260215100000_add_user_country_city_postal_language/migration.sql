@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "country" TEXT;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "city" TEXT;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "postalCode" TEXT;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "languagePreference" TEXT;

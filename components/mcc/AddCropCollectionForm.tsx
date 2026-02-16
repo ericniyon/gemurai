@@ -14,8 +14,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { SearchableSelect } from "@/components/ui/searchable-select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { toast } from "sonner"
-import { Wheat, Loader2, User, Package, Calculator, FileText, Warehouse as WarehouseIcon } from "lucide-react"
+import { Wheat, Loader2, User, Package, Calculator, FileText, Warehouse as WarehouseIcon, Search, Truck, UserCheck } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useAuthStore } from "@/lib/stores/auth-store"
 
@@ -85,13 +92,72 @@ export function AddCropCollectionForm({
     gpsLongitude: null,
   })
 
-  const [farmers, setFarmers] = useState<any[]>([])
+  const [farmers, setFarmers] = useState<Array<{ id: string; name: string; farmerCode?: string | null; phone?: string }>>([])
   const [cropTypes, setCropTypes] = useState<any[]>([])
   const [globalWarehouses, setGlobalWarehouses] = useState<{ id: string; name: string; code: string }[]>([])
   const [warehouseLocations, setWarehouseLocations] = useState<{ id: string; name: string; code: string }[]>([])
   const [productsForReceiving, setProductsForReceiving] = useState<{ id: string; name: string; unit: string }[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof CropCollectionFormData, string>>>({})
+  const [farmerCodeInput, setFarmerCodeInput] = useState("")
+  const [lookingUpFarmer, setLookingUpFarmer] = useState(false)
+  const [deliveredBy, setDeliveredBy] = useState<"farmer" | "agent">("farmer")
+  const [agentId, setAgentId] = useState("")
+  const [agents, setAgents] = useState<Array<{ id: string; name: string; email?: string; phone?: string; displayId?: string | null }>>([])
+  const [agentCodeInput, setAgentCodeInput] = useState("")
+  const [lookingUpAgent, setLookingUpAgent] = useState(false)
+
+  const selectedFarmer = formData.farmerId ? farmers.find((f) => f.id === formData.farmerId) : null
+  const selectedAgent = agentId ? agents.find((a) => a.id === agentId) : null
+
+  const lookupFarmerByCode = (code: string) => {
+    const trimmed = (code || "").trim()
+    if (!trimmed) {
+      setFormData((prev) => ({ ...prev, farmerId: "" }))
+      setErrors((e) => ({ ...e, farmerId: "Enter a farmer code to look up." }))
+      return
+    }
+    setLookingUpFarmer(true)
+    setErrors((e) => ({ ...e, farmerId: undefined }))
+    const match = farmers.find(
+      (f) => (f.farmerCode ?? "").toString().toLowerCase() === trimmed.toLowerCase()
+    )
+    setTimeout(() => {
+      setLookingUpFarmer(false)
+      if (match) {
+        setFormData((prev) => ({ ...prev, farmerId: match.id }))
+        setFarmerCodeInput(match.farmerCode?.toString() ?? trimmed)
+        toast.success(`Found: ${match.name}`)
+      } else {
+        setFormData((prev) => ({ ...prev, farmerId: "" }))
+        setErrors((e) => ({ ...e, farmerId: `No farmer found with code "${trimmed}". Check the code or search by name.` }))
+        toast.error(`No farmer found with code "${trimmed}"`)
+      }
+    }, 300)
+  }
+
+  const lookupAgentByCode = (code: string) => {
+    const trimmed = (code || "").trim()
+    if (!trimmed) {
+      setAgentId("")
+      return
+    }
+    setLookingUpAgent(true)
+    const match = agents.find(
+      (a) => (a.displayId ?? "").toString().toLowerCase() === trimmed.toLowerCase()
+    )
+    setTimeout(() => {
+      setLookingUpAgent(false)
+      if (match) {
+        setAgentId(match.id)
+        setAgentCodeInput(match.displayId?.toString() ?? trimmed)
+        toast.success(`Found: ${match.name}`)
+      } else {
+        setAgentId("")
+        toast.error(`No agent found with code "${trimmed}"`)
+      }
+    }, 300)
+  }
 
   useEffect(() => {
     if (open && user?.mccId && token) {
@@ -100,6 +166,38 @@ export function AddCropCollectionForm({
       fetchGlobalWarehouses()
     }
   }, [open, user?.mccId, token])
+
+  useEffect(() => {
+    if (!open) return
+    const fetchAgents = async () => {
+      try {
+        const res = await fetch("/api/v1/mcc/agents", {
+          credentials: "include",
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setAgents(data.data ?? [])
+        }
+      } catch {
+        setAgents([])
+      }
+    }
+    fetchAgents()
+  }, [open, token])
+
+  useEffect(() => {
+    if (!open) setFarmerCodeInput("")
+    else if (formData.farmerId && selectedFarmer?.farmerCode)
+      setFarmerCodeInput(selectedFarmer.farmerCode.toString())
+    else if (!formData.farmerId) setFarmerCodeInput("")
+  }, [open, formData.farmerId, selectedFarmer?.farmerCode])
+
+  useEffect(() => {
+    if (!open) setAgentCodeInput("")
+    else if (agentId && selectedAgent?.displayId) setAgentCodeInput(selectedAgent.displayId.toString())
+    else if (!agentId) setAgentCodeInput("")
+  }, [open, agentId, selectedAgent?.displayId])
 
   useEffect(() => {
     if (!formData.warehouseId || !open || !token) {
@@ -177,7 +275,13 @@ export function AddCropCollectionForm({
       })
       if (response.ok) {
         const data = await response.json()
-        setFarmers(data.data || [])
+        const list = (data.data || []).map((f: any) => ({
+          id: f.id,
+          name: f.name,
+          farmerCode: f.farmerCode ?? null,
+          phone: f.phone,
+        }))
+        setFarmers(list)
       }
     } catch (error) {
       console.error("Error fetching farmers:", error)
@@ -222,8 +326,11 @@ export function AddCropCollectionForm({
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof CropCollectionFormData, string>> = {}
-    if (!formData.farmerId) newErrors.farmerId = "Farmer is required"
-    if (!formData.cropTypeId) newErrors.cropTypeId = "Crop type is required"
+    if (!formData.farmerId) newErrors.farmerId = deliveredBy === "agent" ? "When an agent delivers, farmer (farmer code) is required" : "Farmer is required"
+    if (deliveredBy === "agent" && !agentId) {
+      toast.error("Please select the agent (Umucunda) who brought this collection")
+      return false
+    }
     if (!formData.quantity || formData.quantity <= 0) newErrors.quantity = "Quantity must be greater than 0"
     if (!formData.pricePerUnit || formData.pricePerUnit <= 0)
       newErrors.pricePerUnit = "Price per unit must be greater than 0"
@@ -259,6 +366,7 @@ export function AddCropCollectionForm({
         },
         body: JSON.stringify({
           farmerId: formData.farmerId,
+          agentId: deliveredBy === "agent" && agentId ? agentId : undefined,
           mccId: user.mccId,
           collectionDate: new Date().toISOString(),
           cropTypeId: formData.cropTypeId,
@@ -282,6 +390,10 @@ export function AddCropCollectionForm({
         toast.success("Crop collection recorded successfully")
         onSuccess?.()
         onOpenChange(false)
+        setDeliveredBy("farmer")
+        setAgentId("")
+        setAgentCodeInput("")
+        setFarmerCodeInput("")
         setFormData({
           farmerId: "",
           cropTypeId: "",
@@ -350,28 +462,232 @@ export function AddCropCollectionForm({
                 <Package className="h-4 w-4 text-emerald-600" />
                 Collection details
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="farmerId" className="text-sm font-medium text-gray-700">
-                    Farmer <span className="text-rose-500">*</span>
+              {/* Who is delivering: Farmer (direct) or Agent (Umucunda) */}
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                  <Truck className="h-4 w-4 text-emerald-600" />
+                  Who is delivering this collection?
+                </Label>
+                <div className="flex gap-4 flex-wrap">
+                  <label className="flex items-center gap-2 cursor-pointer rounded-xl border-2 border-slate-200 px-4 py-3 transition-all hover:border-emerald-400 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/5">
+                    <input
+                      type="radio"
+                      name="deliveredBy"
+                      checked={deliveredBy === "farmer"}
+                      onChange={() => {
+                        setDeliveredBy("farmer")
+                        setAgentId("")
+                        setAgentCodeInput("")
+                      }}
+                      className="h-4 w-4 text-emerald-600 border-gray-300"
+                    />
+                    <User className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium">Farmer (direct)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer rounded-xl border-2 border-slate-200 px-4 py-3 transition-all hover:border-emerald-400 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/5">
+                    <input
+                      type="radio"
+                      name="deliveredBy"
+                      checked={deliveredBy === "agent"}
+                      onChange={() => setDeliveredBy("agent")}
+                      className="h-4 w-4 text-emerald-600 border-gray-300"
+                    />
+                    <UserCheck className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium">Agent (Umucunda)</span>
+                  </label>
+                </div>
+                {deliveredBy === "agent" && (
+                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                    Agent collections must be registered with the farmer code. First select or look up the agent who brought the collection (by code or name), then select the farmer (by name or code) for whom it is.
+                  </p>
+                )}
+              </div>
+              {deliveredBy === "agent" && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-gray-700">
+                    Agent (Umucunda) who brought this collection <span className="text-rose-500">*</span>
                   </Label>
-                  <SearchableSelect
-                    value={formData.farmerId}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, farmerId: value }))
-                    }
-                    options={farmers.map((farmer) => ({
-                      value: farmer.id,
-                      label: [farmer.name, farmer.phone].filter(Boolean).join(" · "),
-                    }))}
-                    placeholder="Select farmer"
-                    searchPlaceholder="Search farmer..."
-                    className={inputClasses + (errors.farmerId ? " border-rose-400" : "")}
-                  />
-                  {errors.farmerId && (
-                    <p className="text-xs text-rose-500">{errors.farmerId}</p>
+                  <p className="text-xs text-slate-500">Type the agent code and use the look-up icon, or search by name. Then select the farmer below.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                    <div className="space-y-1.5 min-w-0">
+                      <Label htmlFor="agentCodeLookup" className="text-xs font-medium text-gray-600">Agent code</Label>
+                      <div className="relative">
+                        <Input
+                          id="agentCodeLookup"
+                          type="text"
+                          value={agentCodeInput}
+                          onChange={(e) => {
+                            const v = e.target.value
+                            setAgentCodeInput(v)
+                            if (!v.trim()) setAgentId("")
+                          }}
+                          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), lookupAgentByCode(agentCodeInput))}
+                          placeholder="e.g. A-001"
+                          className="h-11 rounded-xl border-2 border-emerald-200 pr-11"
+                          disabled={lookingUpAgent}
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); lookupAgentByCode(agentCodeInput) }}
+                          disabled={lookingUpAgent || !agentCodeInput.trim()}
+                          title="Look up agent"
+                          aria-label="Look up agent by code"
+                          className="absolute right-2 top-1/2 z-10 -translate-y-1/2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-emerald-100 hover:text-emerald-600 disabled:opacity-50 disabled:pointer-events-none"
+                        >
+                          {lookingUpAgent ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5 min-w-0">
+                      <Label className="text-xs font-medium text-gray-600">Don&apos;t know the code? Search by name</Label>
+                      <Select value={agentId} onValueChange={(v) => { setAgentId(v); const a = agents.find((x) => x.id === v); if (a?.displayId) setAgentCodeInput(a.displayId.toString()); else if (!v) setAgentCodeInput("") }}>
+                        <SelectTrigger className="h-11 rounded-xl border-2 border-emerald-200">
+                          <SelectValue placeholder="Search by name or code..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {agents.map((a) => (
+                            <SelectItem key={a.id} value={a.id}>
+                              {a.displayId ? `${a.name} (Code: ${a.displayId}) — ${a.phone || ""}` : `${a.name}${a.phone ? ` — ${a.phone}` : ""}${a.email ? ` (${a.email})` : ""}`}
+                            </SelectItem>
+                          ))}
+                          {agents.length === 0 && <SelectItem value="_none" disabled>No agents found</SelectItem>}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  {selectedAgent && (
+                    <div className="rounded-xl border border-sky-200 bg-sky-50/80 p-3 space-y-1.5 text-sm">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">Agent information (fetched)</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div><span className="text-gray-500">Name</span><p className="font-medium text-gray-900">{selectedAgent.name || "—"}</p></div>
+                        <div><span className="text-gray-500">Code</span><p className="font-medium text-gray-900">{selectedAgent.displayId || "—"}</p></div>
+                        <div><span className="text-gray-500">Phone</span><p className="font-medium text-gray-900">{selectedAgent.phone || "—"}</p></div>
+                      </div>
+                    </div>
                   )}
                 </div>
+              )}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-gray-700">
+                  Farmer (for whom is this collection) <span className="text-rose-500">*</span>
+                </Label>
+                <p className="text-xs text-slate-500">
+                  Type the farmer code and use the look-up icon, or search by name.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                  <div className="space-y-1.5 min-w-0">
+                    <Label htmlFor="farmerCodeLookup" className="text-xs font-medium text-gray-600">
+                      Farmer code
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="farmerCodeLookup"
+                        type="text"
+                        value={farmerCodeInput}
+                        onChange={(e) => {
+                          const v = e.target.value
+                          setFarmerCodeInput(v)
+                          if (!v.trim()) setFormData((prev) => ({ ...prev, farmerId: "" }))
+                        }}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && (e.preventDefault(), lookupFarmerByCode(farmerCodeInput))
+                        }
+                        placeholder="e.g. F-001"
+                        className={
+                          "h-11 rounded-xl border-2 pr-11 " +
+                          (errors.farmerId ? "border-rose-400 bg-rose-50" : "border-emerald-200")
+                        }
+                        disabled={lookingUpFarmer}
+                      />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          lookupFarmerByCode(farmerCodeInput)
+                        }}
+                        disabled={lookingUpFarmer || !farmerCodeInput.trim()}
+                        title="Look up farmer"
+                        aria-label="Look up farmer by code"
+                        className="absolute right-2 top-1/2 z-10 -translate-y-1/2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-emerald-100 hover:text-emerald-600 disabled:opacity-50 disabled:pointer-events-none"
+                      >
+                        {lookingUpFarmer ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Search className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5 min-w-0">
+                    <Label className="text-xs font-medium text-gray-600">
+                      Don&apos;t know the code? Search by name
+                    </Label>
+                    <SearchableSelect
+                      value={formData.farmerId}
+                      onValueChange={(value) => {
+                        setFormData((prev) => ({ ...prev, farmerId: value }))
+                        setErrors((e) => ({ ...e, farmerId: undefined }))
+                        const f = farmers.find((x) => x.id === value)
+                        if (f?.farmerCode) setFarmerCodeInput(f.farmerCode.toString())
+                        else if (!value) setFarmerCodeInput("")
+                      }}
+                      options={farmers.map((farmer) => ({
+                        value: farmer.id,
+                        label: farmer.farmerCode
+                          ? `${farmer.name} (Code: ${farmer.farmerCode}) — ${farmer.phone || ""}`
+                          : [farmer.name, farmer.phone].filter(Boolean).join(" · "),
+                      }))}
+                      placeholder="Search by name or farmer code..."
+                      searchPlaceholder="Search farmer..."
+                      className={
+                        "h-11 rounded-xl " +
+                        (errors.farmerId ? "!border-2 !border-rose-400 !bg-rose-50" : "!border-2 !border-emerald-200")
+                      }
+                    />
+                  </div>
+                </div>
+                {errors.farmerId && (
+                  <p className="text-xs text-rose-500">{errors.farmerId}</p>
+                )}
+                {selectedFarmer ? (
+                  (() => {
+                    const displayCode =
+                      (selectedFarmer.farmerCode ?? farmerCodeInput) || "—"
+                    return (
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
+                            Farmer information (fetched)
+                          </p>
+                          <span className="text-xs font-medium text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded">
+                            Code: {displayCode}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                          <div>
+                            <span className="text-gray-500">Name</span>
+                            <p className="font-medium text-gray-900">{selectedFarmer.name || "—"}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Code</span>
+                            <p className="font-medium text-gray-900">{displayCode}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Phone</span>
+                            <p className="font-medium text-gray-900">{selectedFarmer.phone || "—"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()
+                ) : (
+                  <p className="text-xs text-slate-500">
+                    Enter a code and use the look-up icon, or search by name above.
+                  </p>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="cropTypeId" className="text-sm font-medium text-gray-700">
                     Crop type <span className="text-rose-500">*</span>

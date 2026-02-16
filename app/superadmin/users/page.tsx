@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
 import { 
   MoreHorizontal, 
@@ -50,7 +51,7 @@ import {
   Mail,
   Calendar,
   Shield,
-  Users as UsersIcon
+  Users as UsersIcon,
 } from "lucide-react"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
@@ -97,12 +98,23 @@ export default function UsersPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [createUserType, setCreateUserType] = useState<"individual" | "cooperative" | "company" | "ngo">("individual")
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
     phone: "",
-    role: "CUSTOMER",
-    password: "Login@Gemurai2025"
+    role: "",
+    password: "Login@Gemurai2025",
+    gender: "",
+    dateOfBirth: "",
+    nationalId: "",
+    alternatePhone: "",
+    district: "",
+    address: "",
+    businessName: "",
+    contactPerson: "",
+    tin: "",
+    businessSize: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSwalOpen, setIsSwalOpen] = useState(false)
@@ -125,7 +137,11 @@ export default function UsersPage() {
     email: "",
     phone: "",
     role: "",
-    password: ""
+    password: "",
+    businessName: "",
+    contactPerson: "",
+    tin: "",
+    businessSize: "",
   })
   
   const { toast } = useToast()
@@ -139,8 +155,35 @@ export default function UsersPage() {
     }
     setIsCreateDialogOpen(open)
     if (!open) {
-      setNewUser({ name: "", email: "", phone: "", role: "CUSTOMER", password: "Login@Gemurai2025" })
-      setValidationErrors({ name: "", email: "", phone: "", role: "", password: "" })
+      setCreateUserType("individual")
+      setNewUser({
+        name: "",
+        email: "",
+        phone: "",
+        role: "",
+        password: "Login@Gemurai2025",
+        gender: "",
+        dateOfBirth: "",
+        nationalId: "",
+        alternatePhone: "",
+        district: "",
+        address: "",
+        businessName: "",
+        contactPerson: "",
+        tin: "",
+        businessSize: "",
+      })
+      setValidationErrors({
+        name: "",
+        email: "",
+        phone: "",
+        role: "",
+        password: "",
+        businessName: "",
+        contactPerson: "",
+        tin: "",
+        businessSize: "",
+      })
     }
   }
 
@@ -206,13 +249,19 @@ export default function UsersPage() {
     return ""
   }
 
+  const isOrgType = ["cooperative", "company", "ngo"].includes(createUserType)
+
   const validateAllFields = () => {
     const errors = {
-      name: validateName(newUser.name),
+      name: isOrgType ? validateName(newUser.contactPerson) : validateName(newUser.name),
       email: validateEmail(newUser.email),
       phone: validatePhone(newUser.phone),
       role: validateRole(newUser.role),
-      password: validatePassword(newUser.password)
+      password: validatePassword(newUser.password),
+      businessName: isOrgType ? (newUser.businessName?.trim().length >= 2 ? "" : "Organization name is required (min 2 characters)") : "",
+      contactPerson: isOrgType ? validateName(newUser.contactPerson) : "",
+      tin: isOrgType ? ((newUser.tin?.trim().length ?? 0) >= 5 ? "" : "TIN is required (min 5 characters)") : "",
+      businessSize: isOrgType ? (["SMALL", "MEDIUM", "LARGE"].includes(newUser.businessSize) ? "" : "Select business size") : "",
     }
     
     setValidationErrors(errors)
@@ -534,11 +583,22 @@ export default function UsersPage() {
         },
         credentials: "include",
         body: JSON.stringify({
+          userType: createUserType,
           name: newUser.name,
           email: newUser.email,
-          phone: newUser.phone || undefined, // Only include phone if provided
+          phone: newUser.phone || undefined,
           role: roleToSend,
-          password: newUser.password
+          password: newUser.password,
+          gender: newUser.gender || undefined,
+          dateOfBirth: newUser.dateOfBirth || undefined,
+          nationalId: newUser.nationalId || undefined,
+          alternatePhone: newUser.alternatePhone || undefined,
+          district: newUser.district || undefined,
+          address: newUser.address || undefined,
+          businessName: newUser.businessName || undefined,
+          contactPerson: newUser.contactPerson || undefined,
+          tin: newUser.tin || undefined,
+          businessSize: newUser.businessSize || undefined,
         })
       })
 
@@ -565,8 +625,7 @@ export default function UsersPage() {
         
         // Close the Create User dialog after SweetAlert2 is closed
         setIsCreateDialogOpen(false)
-        setNewUser({ name: "", email: "", phone: "", role: "CUSTOMER", password: "Login@Gemurai2025" })
-        setValidationErrors({ name: "", email: "", phone: "", role: "", password: "" })
+        handleDialogClose(false)
         fetchUsers()
       } else {
         throw new Error(data.message || "Failed to create user")
@@ -588,10 +647,8 @@ export default function UsersPage() {
       })
       setIsSwalOpen(false)
       
-      // Close the Create User dialog after SweetAlert2 is closed
       setIsCreateDialogOpen(false)
-      setNewUser({ name: "", email: "", phone: "", role: "CUSTOMER", password: "Login@Gemurai2025" })
-      setValidationErrors({ name: "", email: "", phone: "", role: "", password: "" })
+      handleDialogClose(false)
     } finally {
       setIsSubmitting(false)
     }
@@ -1160,7 +1217,7 @@ export default function UsersPage() {
       {/* Create User Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={handleDialogClose} modal={!isSwalOpen}>
         <DialogContent
-          className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto rounded-[28px] border border-white/60 bg-white/95 shadow-[0_25px_70px_rgba(15,23,42,0.2)] backdrop-blur-xl px-0 py-0"
+          className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto rounded-[28px] border border-white/60 bg-white/95 shadow-[0_25px_70px_rgba(15,23,42,0.2)] backdrop-blur-xl px-0 py-0"
           onInteractOutside={(e) => {
             if (!isSwalOpen) e.preventDefault()
           }}
@@ -1171,117 +1228,263 @@ export default function UsersPage() {
           <DialogHeader className="px-6 pt-6 pb-3 space-y-1">
             <DialogTitle className="text-xl font-semibold text-gray-900">Create New User</DialogTitle>
             <p className="text-sm text-gray-500">
-              Invite a teammate and assign the correct permissions for their role.
+              Invite a user and assign role. Choose type: Individual, Cooperative, Company, or NGO.
             </p>
           </DialogHeader>
-          <div className="space-y-4 px-6 pb-6">
+          <div className="space-y-5 px-6 pb-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Name *</label>
-              <Input
-                value={newUser.name}
-                onChange={(e) => {
-                  setNewUser({ ...newUser, name: e.target.value })
-                  setValidationErrors({ ...validationErrors, name: validateName(e.target.value) })
-                }}
-                placeholder="Enter full name"
-                className={`h-12 sm:h-10 rounded-xl border bg-white/80 backdrop-blur-sm ${
-                  validationErrors.name ? "border-red-500 focus:border-red-500" : "border-blue-100"
-                }`}
-              />
-              {validationErrors.name && (
-                <p className="text-xs text-red-500">{validationErrors.name}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email *</label>
-              <Input
-                type="email"
-                value={newUser.email}
-                onChange={(e) => {
-                  setNewUser({ ...newUser, email: e.target.value })
-                  setValidationErrors({ ...validationErrors, email: validateEmail(e.target.value) })
-                }}
-                placeholder="Enter email address"
-                className="h-12 sm:h-10 rounded-xl bg-white/80 backdrop-blur-sm"
-                style={{
-                  border: validationErrors.email ? "1px solid rgb(248, 113, 113)" : "1px solid rgb(191, 219, 254)",
-                  paddingLeft: "1rem",
-                }}
-              />
-              {validationErrors.email && (
-                <p className="text-xs text-red-500">{validationErrors.email}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Phone Number *</label>
-              <Input
-                type="tel"
-                value={newUser.phone}
-                onChange={(e) => {
-                  setNewUser({ ...newUser, phone: e.target.value })
-                  setValidationErrors({ ...validationErrors, phone: validatePhone(e.target.value) })
-                }}
-                placeholder="Enter phone number (e.g., +250700000000)"
-                className="h-12 sm:h-10 rounded-xl bg-white/80 backdrop-blur-sm"
-                style={{
-                  border: validationErrors.phone ? "1px solid rgb(248, 113, 113)" : "1px solid rgb(191, 219, 254)",
-                  paddingLeft: "1rem",
-                }}
-              />
-              {validationErrors.phone && (
-                <p className="text-xs text-red-500">{validationErrors.phone}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Role *</label>
+              <Label className="text-sm font-medium">User type</Label>
               <Select
-                value={newUser.role}
-                onValueChange={(value) => {
-                  setNewUser({ ...newUser, role: value })
-                  setValidationErrors({ ...validationErrors, role: validateRole(value) })
-                }}
+                value={createUserType}
+                onValueChange={(v: "individual" | "cooperative" | "company" | "ngo") => setCreateUserType(v)}
               >
-                <SelectTrigger
-                  className={`h-12 sm:h-10 rounded-xl border bg-white/80 backdrop-blur-sm ${
-                    validationErrors.role ? "border-red-500 focus:border-red-500" : "border-blue-100"
-                  }`}
-                >
+                <SelectTrigger className="h-10 rounded-xl border border-blue-100 bg-white/80">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {roles.map((role) => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="individual">Individual</SelectItem>
+                  <SelectItem value="cooperative">Cooperative</SelectItem>
+                  <SelectItem value="company">Company</SelectItem>
+                  <SelectItem value="ngo">NGO</SelectItem>
                 </SelectContent>
               </Select>
-              {validationErrors.role && (
-                <p className="text-xs text-red-500">{validationErrors.role}</p>
-              )}
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Password *</label>
-              <Input
-                type="password"
-                value={newUser.password}
-                onChange={(e) => {
-                  setNewUser({ ...newUser, password: e.target.value })
-                  setValidationErrors({ ...validationErrors, password: validatePassword(e.target.value) })
-                }}
-                placeholder="Enter secure password"
-                className="h-12 sm:h-10 rounded-xl bg-white/80 backdrop-blur-sm"
-                style={{
-                  border: validationErrors.password ? "1px solid rgb(248, 113, 113)" : "1px solid rgb(191, 219, 254)",
-                  paddingLeft: "1rem",
-                }}
-              />
-              {validationErrors.password && (
-                <p className="text-xs text-red-500">{validationErrors.password}</p>
-              )}
-              <p className="text-xs text-gray-500">
-                Password must be at least 8 characters with uppercase, lowercase, number, and special character
-              </p>
+
+            {isOrgType ? (
+              <>
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Organization information</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1 sm:col-span-2">
+                      <Label>Organization name *</Label>
+                      <Input
+                        value={newUser.businessName}
+                        onChange={(e) => setNewUser({ ...newUser, businessName: e.target.value })}
+                        placeholder="e.g. ABC Cooperative"
+                        className={`h-10 rounded-xl ${validationErrors.businessName ? "border-red-500" : ""}`}
+                      />
+                      {validationErrors.businessName && <p className="text-xs text-red-500">{validationErrors.businessName}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Contact person full name *</Label>
+                      <Input
+                        value={newUser.contactPerson}
+                        onChange={(e) => setNewUser({ ...newUser, contactPerson: e.target.value })}
+                        placeholder="Full name"
+                        className={`h-10 rounded-xl ${validationErrors.contactPerson ? "border-red-500" : ""}`}
+                      />
+                      {validationErrors.contactPerson && <p className="text-xs text-red-500">{validationErrors.contactPerson}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <Label>TIN (Tax ID) *</Label>
+                      <Input
+                        value={newUser.tin}
+                        onChange={(e) => setNewUser({ ...newUser, tin: e.target.value })}
+                        placeholder="9 digits"
+                        maxLength={9}
+                        className={`h-10 rounded-xl ${validationErrors.tin ? "border-red-500" : ""}`}
+                      />
+                      {validationErrors.tin && <p className="text-xs text-red-500">{validationErrors.tin}</p>}
+                    </div>
+                    <div className="space-y-1 sm:col-span-2">
+                      <Label>Business size *</Label>
+                      <Select
+                        value={newUser.businessSize}
+                        onValueChange={(v) => setNewUser({ ...newUser, businessSize: v })}
+                      >
+                        <SelectTrigger className={`h-10 rounded-xl ${validationErrors.businessSize ? "border-red-500" : ""}`}>
+                          <SelectValue placeholder="Select size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SMALL">Small</SelectItem>
+                          <SelectItem value="MEDIUM">Medium</SelectItem>
+                          <SelectItem value="LARGE">Large</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {validationErrors.businessSize && <p className="text-xs text-red-500">{validationErrors.businessSize}</p>}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact person details (optional)</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label>Gender</Label>
+                      <Select value={newUser.gender || "_"} onValueChange={(v) => setNewUser({ ...newUser, gender: v === "_" ? "" : v })}>
+                        <SelectTrigger className="h-10 rounded-xl"><SelectValue placeholder="Optional" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="_">—</SelectItem>
+                          <SelectItem value="MALE">Male</SelectItem>
+                          <SelectItem value="FEMALE">Female</SelectItem>
+                          <SelectItem value="OTHER">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Date of birth</Label>
+                      <Input
+                        type="date"
+                        value={newUser.dateOfBirth}
+                        onChange={(e) => setNewUser({ ...newUser, dateOfBirth: e.target.value })}
+                        className="h-10 rounded-xl"
+                      />
+                    </div>
+                    <div className="space-y-1 sm:col-span-2">
+                      <Label>National ID</Label>
+                      <Input
+                        value={newUser.nationalId}
+                        onChange={(e) => setNewUser({ ...newUser, nationalId: e.target.value })}
+                        placeholder="Optional"
+                        className="h-10 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Personal information</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label>Full name *</Label>
+                      <Input
+                        value={newUser.name}
+                        onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                        placeholder="Full name"
+                        className={`h-10 rounded-xl ${validationErrors.name ? "border-red-500" : ""}`}
+                      />
+                      {validationErrors.name && <p className="text-xs text-red-500">{validationErrors.name}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Gender</Label>
+                      <Select value={newUser.gender || "_"} onValueChange={(v) => setNewUser({ ...newUser, gender: v === "_" ? "" : v })}>
+                        <SelectTrigger className="h-10 rounded-xl"><SelectValue placeholder="Optional" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="_">—</SelectItem>
+                          <SelectItem value="MALE">Male</SelectItem>
+                          <SelectItem value="FEMALE">Female</SelectItem>
+                          <SelectItem value="OTHER">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1 sm:col-span-2">
+                      <Label>Date of birth</Label>
+                      <Input
+                        type="date"
+                        value={newUser.dateOfBirth}
+                        onChange={(e) => setNewUser({ ...newUser, dateOfBirth: e.target.value })}
+                        className="h-10 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Identification</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1">
+                      <Label>National ID</Label>
+                      <Input
+                        value={newUser.nationalId}
+                        onChange={(e) => setNewUser({ ...newUser, nationalId: e.target.value })}
+                        placeholder="Optional"
+                        className="h-10 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact information</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1 sm:col-span-2">
+                  <Label>Email *</Label>
+                  <Input
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                    placeholder="email@example.com"
+                    className={`h-10 rounded-xl ${validationErrors.email ? "border-red-500" : ""}`}
+                  />
+                  {validationErrors.email && <p className="text-xs text-red-500">{validationErrors.email}</p>}
+                </div>
+                <div className="space-y-1">
+                  <Label>Phone *</Label>
+                  <Input
+                    type="tel"
+                    value={newUser.phone}
+                    onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                    placeholder="+250700000000"
+                    className={`h-10 rounded-xl ${validationErrors.phone ? "border-red-500" : ""}`}
+                  />
+                  {validationErrors.phone && <p className="text-xs text-red-500">{validationErrors.phone}</p>}
+                </div>
+                <div className="space-y-1">
+                  <Label>Alternate phone</Label>
+                  <Input
+                    type="tel"
+                    value={newUser.alternatePhone}
+                    onChange={(e) => setNewUser({ ...newUser, alternatePhone: e.target.value })}
+                    placeholder="Optional"
+                    className="h-10 rounded-xl"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>District</Label>
+                  <Input
+                    value={newUser.district}
+                    onChange={(e) => setNewUser({ ...newUser, district: e.target.value })}
+                    placeholder="Optional"
+                    className="h-10 rounded-xl"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Address</Label>
+                  <Input
+                    value={newUser.address}
+                    onChange={(e) => setNewUser({ ...newUser, address: e.target.value })}
+                    placeholder="Street, sector, etc. (optional)"
+                    className="h-10 rounded-xl"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Account & access</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1 sm:col-span-2">
+                  <Label>Role *</Label>
+                  <Select
+                    value={newUser.role}
+                    onValueChange={(v) => setNewUser({ ...newUser, role: v })}
+                  >
+                    <SelectTrigger className={`h-10 rounded-xl ${validationErrors.role ? "border-red-500" : ""}`}>
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roles.map((r) => (
+                        <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {validationErrors.role && <p className="text-xs text-red-500">{validationErrors.role}</p>}
+                </div>
+                <div className="space-y-1 sm:col-span-2">
+                  <Label>Password *</Label>
+                  <Input
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                    placeholder="Min 8 chars, upper, lower, number, special"
+                    className={`h-10 rounded-xl ${validationErrors.password ? "border-red-500" : ""}`}
+                  />
+                  {validationErrors.password && <p className="text-xs text-red-500">{validationErrors.password}</p>}
+                  <p className="text-xs text-gray-500">Uppercase, lowercase, number, and special character (@$!%*?&)</p>
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row justify-end gap-3 px-6 pb-6 border-t border-white/60 pt-4">
@@ -1289,14 +1492,14 @@ export default function UsersPage() {
               variant="outline"
               onClick={() => handleDialogClose(false)}
               disabled={isSubmitting}
-              className="h-12 sm:h-10 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-300 font-medium"
+              className="h-10 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
             >
               Cancel
             </Button>
             <Button
               onClick={handleCreateUser}
               disabled={isSubmitting}
-              className="h-12 sm:h-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="h-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>

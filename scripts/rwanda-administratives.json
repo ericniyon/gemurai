@@ -1,0 +1,28 @@
+{
+  "East": {
+    "Bugesera": {
+      "Gashora": {
+        "Biryogo": [
+          "Bidudu",
+          "Biryogo",
+          "Buhoro",
+          "Gihanama",
+          "Kagarama",
+          "Kanyonyomba",
+          "Karutete",
+          "Kivugiza",
+          "Rugunga"
+        ],
+        "Kabuye": ["Bidudu", "Kabuye", "Karizinge", "Rwagasiga", "Rweteto"],
+        "Kagomasi": [
+          "Akagako",
+          "Kagomasi",
+          "Kiruhura",
+          "Kuruganda",
+          "Runzenze",
+          "Rushubi"
+        ]
+      }
+    }
+  }
+}

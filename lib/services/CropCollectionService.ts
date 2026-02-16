@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 
 export interface CropCollectionInput {
   farmerId: string
+  agentId?: string | null // Umucunda who delivered on behalf of farmer
   mccId: string
   cropPeriodId?: string
   collectionDate: Date
@@ -172,6 +173,7 @@ export class CropCollectionService {
       const collection = await tx.crop_collections.create({
         data: {
           farmerId: data.farmerId,
+          agentId: data.agentId ?? null,
           mccId: data.mccId,
           cropPeriodId: data.cropPeriodId ?? null,
           collectionDate: data.collectionDate,

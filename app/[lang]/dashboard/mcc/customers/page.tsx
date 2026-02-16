@@ -52,7 +52,12 @@ interface CustomerStats {
   totalRevenue: number
 }
 
-export default function CustomersPage() {
+interface CustomersPageProps {
+  triggerOpenAddDialog?: boolean
+  onTriggerConsumed?: () => void
+}
+
+export default function CustomersPage({ triggerOpenAddDialog, onTriggerConsumed }: CustomersPageProps = {}) {
   const { user } = useAuth()
   const params = useParams()
   const lang = (params?.lang as string) || "en"
@@ -123,6 +128,13 @@ export default function CustomersPage() {
       fetchCustomers(currentPage)
     }
   }, [user, currentPage, searchQuery])
+
+  useEffect(() => {
+    if (triggerOpenAddDialog) {
+      setAddCustomerOpen(true)
+      onTriggerConsumed?.()
+    }
+  }, [triggerOpenAddDialog, onTriggerConsumed])
 
   const handleRefresh = () => {
     setIsRefreshing(true)

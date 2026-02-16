@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import dynamic from "next/dynamic"
 import { useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -80,6 +80,7 @@ const InventoryRentalsContent = dynamic(
   }
 )
 
+
 const WAREHOUSE_TYPES = [
   { value: "COLLECTION_CENTER", label: "Collection Center" },
   { value: "PROCESSING_PLANT", label: "Processing Plant" },
@@ -119,7 +120,23 @@ interface StockRecord {
   location?: { id: string; name: string }
 }
 
-export default function MCCWarehousesPage() {
+interface MCCWarehousesPageProps {
+  triggerAddWarehouse?: boolean
+  onTriggerAddWarehouseConsumed?: () => void
+  triggerAddProduct?: boolean
+  onTriggerAddProductConsumed?: () => void
+  triggerRecordAsset?: boolean
+  onTriggerRecordAssetConsumed?: () => void
+}
+
+export default function MCCWarehousesPage({
+  triggerAddWarehouse,
+  onTriggerAddWarehouseConsumed,
+  triggerAddProduct,
+  onTriggerAddProductConsumed,
+  triggerRecordAsset,
+  onTriggerRecordAssetConsumed,
+}: MCCWarehousesPageProps = {}) {
   const { user } = useAuth()
   const params = useParams()
   const lang = (params?.lang as string) || "en"
@@ -151,8 +168,21 @@ export default function MCCWarehousesPage() {
   const [locationsByWh, setLocationsByWh] = useState<Record<string, LocationRecord[]>>({})
   const [stockByWh, setStockByWh] = useState<Record<string, { list: StockRecord[]; loading: boolean }>>({})
   const [warehouseSection, setWarehouseSection] = useState<string>("warehouses")
+  const [openAssetDialogFn, setOpenAssetDialogFn] = useState<(() => void) | null>(null)
 
   const mccId = user?.mccId
+
+  const registerOpenAssetDialog = useCallback((open: () => void) => {
+    setOpenAssetDialogFn(() => open)
+  }, [])
+
+  useEffect(() => {
+    if (triggerAddWarehouse) {
+      setAddErrors({})
+      setAddOpen(true)
+      onTriggerAddWarehouseConsumed?.()
+    }
+  }, [triggerAddWarehouse, onTriggerAddWarehouseConsumed])
 
   const WAREHOUSE_SIDEBAR_ITEMS = [
     { value: "warehouses", label: "All warehouses", icon: Building2 },
@@ -535,59 +565,103 @@ export default function MCCWarehousesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-[#0099f2]/5">
-      <div className="relative">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-180px] right-[-120px] h-[420px] w-[420px] rounded-full bg-gradient-to-br from-blue-500/20 via-indigo-400/10 to-purple-400/10 blur-3xl" />
-          <div className="absolute bottom-[-160px] left-[-160px] h-[380px] w-[380px] rounded-full bg-gradient-to-tr from-emerald-400/15 via-sky-400/10 to-blue-400/5 blur-3xl" />
-        </div>
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col">
+      <div className="flex flex-1 w-full min-h-0">
+        {/* Sidebar — compact, clear hierarchy */}
+        <aside className="w-52 shrink-0 border-r border-slate-200/80 bg-white py-5 px-3 shadow-sm">
+          <div className="mb-4 px-2">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Warehouses</h2>
+            <p className="mt-0.5 text-sm font-medium text-slate-700">Sites & assets</p>
+          </div>
+          <nav className="space-y-0.5">
+            {WAREHOUSE_SIDEBAR_ITEMS.map((item) => {
+              const Icon = item.icon
+              const isActive = warehouseSection === item.value
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setWarehouseSection(item.value)}
+                  className={cn(
+                    "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-all",
+                    isActive
+                      ? "bg-slate-900 text-white shadow-md"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  )}
+                >
+                  <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-slate-500")} />
+                  <span>{item.label}</span>
+                </button>
+              )
+            })}
+          </nav>
+        </aside>
 
-        <div className="relative z-10 flex w-full min-h-[calc(100vh-8rem)]">
-          {/* Sidebar */}
-          <aside className="w-56 shrink-0 border-r border-gray-200 bg-white/90 backdrop-blur-sm py-6 px-3">
-            <nav className="space-y-0.5">
-              {WAREHOUSE_SIDEBAR_ITEMS.map((item) => {
-                const Icon = item.icon
-                const isActive = warehouseSection === item.value
-                return (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => setWarehouseSection(item.value)}
-                    className={cn(
-                      "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    )}
+        {/* Main content */}
+        <main className="flex-1 min-w-0 px-4 py-6 sm:px-6 lg:px-8 overflow-auto">
+          {/* Top bar: context-aware actions */}
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white">
+                <Warehouse className="h-4 w-4" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-slate-900">
+                  {warehouseSection === "warehouses"
+                    ? "Warehouses"
+                    : warehouseSection === "stock"
+                      ? "Stock"
+                      : warehouseSection === "products"
+                        ? "Products & inventory"
+                        : warehouseSection === "assets"
+                          ? "Assets"
+                          : warehouseSection === "rentals"
+                            ? "Rentals"
+                            : warehouseSection === "requests"
+                              ? "Requests"
+                              : "Warehouses"}
+                </h1>
+                <p className="text-xs text-slate-500">
+                  {warehouseSection === "warehouses" && "Manage MCC warehouse locations and link to inventory."}
+                  {warehouseSection === "stock" && "View stock at linked global warehouses."}
+                  {warehouseSection === "products" && "Products, inventory, and stock quantities."}
+                  {warehouseSection === "assets" && "Record and track equipment assets for rentals."}
+                  {warehouseSection === "rentals" && "Equipment rentals and returns."}
+                  {warehouseSection === "requests" && "Farmer equipment requests."}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {warehouseSection === "warehouses" && (
+                <>
+                  <Button
+                    onClick={() => { setAddErrors({}); setAddOpen(true); }}
+                    className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-slate-800"
                   >
-                    <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-blue-600" : "text-gray-500")} />
-                    <span>{item.label}</span>
-                  </button>
-                )
-              })}
-            </nav>
-          </aside>
-
-          {/* Main content */}
-          <div className="flex-1 min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-            <header className="mb-6 flex flex-wrap items-center gap-3">
-              <Button
-                onClick={() => { setAddErrors({}); setAddOpen(true); }}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30"
-              >
-                <Plus className="h-4 w-4" />
-                Add warehouse
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="rounded-xl border border-gray-200 bg-white/80 hover:bg-white shadow-sm"
-              >
-                <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
-              </Button>
-            </header>
+                    <Plus className="h-4 w-4" />
+                    Add warehouse
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleRefresh}
+                    disabled={refreshing}
+                    className="rounded-lg border-slate-200 bg-white hover:bg-slate-50"
+                  >
+                    <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
+                  </Button>
+                </>
+              )}
+              {warehouseSection === "assets" && (
+                <Button
+                  onClick={() => openAssetDialogFn?.()}
+                  className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700"
+                >
+                  <Plus className="h-4 w-4" />
+                  Record asset
+                </Button>
+              )}
+            </div>
+          </div>
 
             {warehouseSection === "warehouses" && (
               <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 mb-8">
@@ -963,17 +1037,49 @@ export default function MCCWarehousesPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="products" className="mt-0">
+          <TabsContent value="products" className="mt-0" forceMount hidden={warehouseSection !== "products"}>
             <Card className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
               <CardContent className="p-4">
-                <InventoryRentalsContent embedTab="warehouse-hub" />
+                <InventoryRentalsContent
+                  embedTab="warehouse-hub"
+                  triggerOpenAddProduct={triggerAddProduct}
+                  onTriggerAddProductConsumed={onTriggerAddProductConsumed}
+                />
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="assets" className="mt-0">
-            <Card className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <TabsContent value="assets" className="mt-0" forceMount hidden={warehouseSection !== "assets"}>
+            {/* Record asset bar — prominent CTA when on Assets */}
+            <div className="mb-6 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-4 sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600 text-white">
+                    <Briefcase className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900">Record equipment assets</h3>
+                    <p className="text-xs text-slate-600">
+                      Register chillers, milk meters, trackers, and other equipment to track status and issue rentals.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => openAssetDialogFn?.()}
+                  className="shrink-0 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-700"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Record asset
+                </Button>
+              </div>
+            </div>
+            <Card className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               <CardContent className="p-4">
-                <InventoryRentalsContent embedTab="assets" />
+                <InventoryRentalsContent
+                  embedTab="assets"
+                  registerOpenAssetDialog={registerOpenAssetDialog}
+                  triggerOpenRecordAsset={triggerRecordAsset}
+                  onTriggerRecordAssetConsumed={onTriggerRecordAssetConsumed}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -992,7 +1098,7 @@ export default function MCCWarehousesPage() {
             </Card>
           </TabsContent>
         </Tabs>
-        </div>
+        </main>
       </div>
 
       {/* Add warehouse dialog — redesigned */}
@@ -1400,7 +1506,6 @@ export default function MCCWarehousesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   )
 }

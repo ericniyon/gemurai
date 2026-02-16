@@ -27,8 +27,10 @@ import {
   Droplets,
   Coffee,
   Wheat,
-  Layers,
   Warehouse as WarehouseIcon,
+  Truck,
+  UserCheck,
+  Search,
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
@@ -44,9 +46,9 @@ interface CommodityCollectionFormProps {
 }
 
 const STEPS = [
-  { id: 1, title: "Collection Type", icon: Layers, short: "Type" },
-  { id: 2, title: "Commodity & Details", icon: Package, short: "Commodity & Details" },
-  { id: 3, title: "Quality & Advances", icon: ClipboardList, short: "Quality & Advances" },
+  { id: 1, title: "Who is delivering?", icon: User, short: "Deliverer & Farmer" },
+  { id: 2, title: "Product type & commodity", icon: Package, short: "Type & Commodity" },
+  { id: 3, title: "Quantity, quality & advances", icon: ClipboardList, short: "Details" },
   { id: 4, title: "Review", icon: FileCheck, short: "Review" },
 ]
 
@@ -80,11 +82,12 @@ export function CommodityCollectionForm({
   const [farmers, setFarmers] = useState<any[]>([])
   const [agents, setAgents] = useState<any[]>([])
   const [step, setStep] = useState(1)
+  const [deliveredBy, setDeliveredBy] = useState<"farmer" | "agent">("farmer")
   const [formData, setFormData] = useState({
     collectionTypeId: "", // "all" or category id
     commodityId: "",
     farmerId: "",
-    agentId: overrideAgentId || "", // Required for Milk & Dairy; pre-filled when agent app
+    agentId: overrideAgentId || "", // Set when collection brought by agent (Umucunda)
     quantity: 0,
     pricePerUnit: 0,
     qualityData: {} as Record<string, any>,
@@ -105,7 +108,67 @@ export function CommodityCollectionForm({
   const [loadingFarmers, setLoadingFarmers] = useState(false)
   const [loadingAgents, setLoadingAgents] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [farmerCodeInput, setFarmerCodeInput] = useState("")
+  const [lookingUpFarmer, setLookingUpFarmer] = useState(false)
+  const [agentCodeInput, setAgentCodeInput] = useState("")
+  const [lookingUpAgent, setLookingUpAgent] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
+
+  const selectedFarmer = formData.farmerId ? farmers.find((f) => f.id === formData.farmerId) : null
+  const selectedAgent = formData.agentId ? agents.find((a) => a.id === formData.agentId) : null
+
+  const lookupFarmerByCode = (code: string) => {
+    const trimmed = (code || "").trim()
+    if (!trimmed) {
+      setFormData((p) => ({ ...p, farmerId: "" }))
+      setErrors((e) => ({ ...e, farmerId: "Enter a farmer code to look up." }))
+      return
+    }
+    setLookingUpFarmer(true)
+    setErrors((e) => ({ ...e, farmerId: "" }))
+    // Brief delay so "Looking up..." is visible; lookup is from in-memory list
+    const match = farmers.find(
+      (f) => (f.farmerCode || "").toString().toLowerCase() === trimmed.toLowerCase()
+    )
+    setTimeout(() => {
+      setLookingUpFarmer(false)
+      if (match) {
+        setFormData((p) => ({ ...p, farmerId: match.id }))
+        setFarmerCodeInput(match.farmerCode?.toString() ?? trimmed)
+        toast.success(`Found: ${match.name}`)
+      } else {
+        setFormData((p) => ({ ...p, farmerId: "" }))
+        setErrors((e) => ({ ...e, farmerId: `No farmer found with code "${trimmed}". Check the code or search by name below.` }))
+        toast.error(`No farmer found with code "${trimmed}"`)
+      }
+    }, 300)
+  }
+
+  const lookupAgentByCode = (code: string) => {
+    const trimmed = (code || "").trim()
+    if (!trimmed) {
+      setFormData((p) => ({ ...p, agentId: "" }))
+      setErrors((e) => ({ ...e, agentId: "Enter an agent code to look up." }))
+      return
+    }
+    setLookingUpAgent(true)
+    setErrors((e) => ({ ...e, agentId: "" }))
+    const match = agents.find(
+      (a) => (a.displayId || "").toString().toLowerCase() === trimmed.toLowerCase()
+    )
+    setTimeout(() => {
+      setLookingUpAgent(false)
+      if (match) {
+        setFormData((p) => ({ ...p, agentId: match.id }))
+        setAgentCodeInput(match.displayId?.toString() ?? trimmed)
+        toast.success(`Found: ${match.name}`)
+      } else {
+        setFormData((p) => ({ ...p, agentId: "" }))
+        setErrors((e) => ({ ...e, agentId: `No agent found with code "${trimmed}". Check the code or search by name.` }))
+        toast.error(`No agent found with code "${trimmed}"`)
+      }
+    }, 300)
+  }
 
   useEffect(() => {
     if (open && effectiveMccId) {
@@ -184,9 +247,27 @@ export function CommodityCollectionForm({
 
   useEffect(() => {
     if (open && overrideAgentId) {
+      setDeliveredBy("agent")
       setFormData((p) => ({ ...p, agentId: overrideAgentId }))
+    } else if (open && !overrideAgentId) {
+      setDeliveredBy("farmer")
+      setFormData((p) => ({ ...p, agentId: "" }))
     }
   }, [open, overrideAgentId])
+
+  useEffect(() => {
+    if (!open) setFarmerCodeInput("")
+    else if (formData.farmerId && selectedFarmer?.farmerCode)
+      setFarmerCodeInput(selectedFarmer.farmerCode.toString())
+    else if (!formData.farmerId) setFarmerCodeInput("")
+  }, [open, formData.farmerId, selectedFarmer?.farmerCode])
+
+  useEffect(() => {
+    if (!open) setAgentCodeInput("")
+    else if (formData.agentId && selectedAgent?.displayId)
+      setAgentCodeInput(selectedAgent.displayId.toString())
+    else if (!formData.agentId) setAgentCodeInput("")
+  }, [open, formData.agentId, selectedAgent?.displayId])
 
   // Auto-capture GPS location when dialog opens (if browser supports it and user allows)
   useEffect(() => {
@@ -245,7 +326,7 @@ export function CommodityCollectionForm({
     setLoadingAgents(true)
     try {
       const token = localStorage.getItem("Gemurai_token")
-      const response = await fetch("/api/v1/farm-level-data/agents", {
+      const response = await fetch("/api/v1/mcc/agents", {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (response.ok) {
@@ -299,21 +380,23 @@ export function CommodityCollectionForm({
   const validateStep = (s: number): boolean => {
     const newErrors: Record<string, string> = {}
     if (s === 1) {
-      if (!formData.collectionTypeId) newErrors.collectionTypeId = "Select a collection type"
+      if (!formData.farmerId) newErrors.farmerId = "Select the farmer (use farmer code if agent delivery)"
+      if (deliveredBy === "agent" && !formData.agentId) newErrors.agentId = "Select agent (Umucunda) who brought this collection"
     }
     if (s === 2) {
+      if (!formData.collectionTypeId) newErrors.collectionTypeId = "Select a collection type"
       if (!formData.commodityId) newErrors.commodityId = "Select a commodity"
-      if (!formData.farmerId) newErrors.farmerId = "Select a farmer"
-      if (isMilkDairy && !isAgentContext && !formData.agentId) newErrors.agentId = "Select agent (Abacunda)"
+    }
+    if (s === 3) {
       if (!formData.quantity || formData.quantity <= 0) newErrors.quantity = "Enter valid quantity"
       if (!formData.pricePerUnit || formData.pricePerUnit <= 0) newErrors.pricePerUnit = "Enter valid price"
-    }
-    if (s === 3 && selectedCommodity?.qualityFields?.length) {
-      selectedCommodity.qualityFields.forEach((f: any) => {
-        if (f.isMandatory && (formData.qualityData[f.fieldName] === undefined || formData.qualityData[f.fieldName] === "")) {
-          newErrors[`quality-${f.fieldName}`] = `${f.fieldName} is required`
-        }
-      })
+      if (selectedCommodity?.qualityFields?.length) {
+        selectedCommodity.qualityFields.forEach((f: any) => {
+          if (f.isMandatory && (formData.qualityData[f.fieldName] === undefined || formData.qualityData[f.fieldName] === "")) {
+            newErrors[`quality-${f.fieldName}`] = `${f.fieldName} is required`
+          }
+        })
+      }
     }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -331,9 +414,8 @@ export function CommodityCollectionForm({
       toast.error("Please fill in all required fields")
       return
     }
-    const selectedType = collectionTypeOptions.find((o) => o.id === formData.collectionTypeId)
-    if (selectedType?.name === "Milk & Dairy" && !isAgentContext && !formData.agentId) {
-      toast.error("Agent (Abacunda) is required for Milk & Dairy collections")
+    if (deliveredBy === "agent" && !formData.agentId) {
+      toast.error("Please select the agent (Umucunda) who brought this collection")
       return
     }
     if (!effectiveMccId) {
@@ -361,7 +443,7 @@ export function CommodityCollectionForm({
           pricePerUnit: formData.pricePerUnit,
           advances: formData.advances || 0,
           agentAdvance: formData.agentAdvance || 0,
-          agentId: isMilkDairy ? (formData.agentId || overrideAgentId) : overrideAgentId || undefined,
+          agentId: deliveredBy === "agent" && formData.agentId ? formData.agentId : (overrideAgentId || undefined),
           notes: formData.notes || undefined,
           warehouseId: formData.warehouseId || undefined,
           locationId: formData.locationId || undefined,
@@ -376,6 +458,7 @@ export function CommodityCollectionForm({
         toast.success("Commodity collection recorded successfully")
         onSuccess?.()
         onOpenChange(false)
+        setDeliveredBy("farmer")
         setFormData({
           collectionTypeId: "",
           commodityId: "",
@@ -559,79 +642,346 @@ export function CommodityCollectionForm({
 
         <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <div className="flex-1 overflow-y-auto px-6 py-6 min-h-[320px]">
-            {/* Step 1: Collection Type */}
+            {/* Step 1: Who is delivering? + Farmer (farmer code) + Agent if agent */}
             {step === 1 && (
-              <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div>
+                  <Label className="text-base font-semibold text-slate-800 flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-[#0099f2]" />
+                    Who is delivering this collection?
+                  </Label>
+                  <p className="mt-1 text-sm text-slate-500">Choose Farmer (direct) or Agent (Umucunda). If agent, select the agent and the farmer code for whom the collection is.</p>
+                </div>
+                {(loadingFarmers || (!isAgentContext && loadingAgents)) ? (
+                  <div className="flex flex-col items-center justify-center py-12 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50">
+                    <Loader2 className="h-10 w-10 animate-spin text-[#0099f2] mb-3" />
+                    <p className="text-sm font-medium text-slate-600">Loading farmers and agents...</p>
+                  </div>
+                ) : (
+                  <>
+                    {!isAgentContext && (
+                      <div className="space-y-3">
+                        <div className="flex gap-4 flex-wrap">
+                          <label className="flex items-center gap-2 cursor-pointer rounded-xl border-2 border-slate-200 px-4 py-3 transition-all hover:border-[#0099f2]/40 has-[:checked]:border-[#0099f2] has-[:checked]:bg-[#0099f2]/5">
+                            <input
+                              type="radio"
+                              name="deliveredBy"
+                              checked={deliveredBy === "farmer"}
+                              onChange={() => { setDeliveredBy("farmer"); setFormData((p) => ({ ...p, agentId: "" })); setAgentCodeInput("") }}
+                              className="h-4 w-4 text-[#0099f2] border-slate-300"
+                            />
+                            <User className="h-4 w-4 text-slate-500" />
+                            <span className="text-sm font-medium">Farmer (direct)</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer rounded-xl border-2 border-slate-200 px-4 py-3 transition-all hover:border-[#0099f2]/40 has-[:checked]:border-[#0099f2] has-[:checked]:bg-[#0099f2]/5">
+                            <input
+                              type="radio"
+                              name="deliveredBy"
+                              checked={deliveredBy === "agent"}
+                              onChange={() => setDeliveredBy("agent")}
+                              className="h-4 w-4 text-[#0099f2] border-slate-300"
+                            />
+                            <UserCheck className="h-4 w-4 text-slate-500" />
+                            <span className="text-sm font-medium">Agent (Umucunda)</span>
+                          </label>
+                        </div>
+                        {deliveredBy === "agent" && (
+                          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                            Agent collections must be registered with the farmer code. First select or look up the agent who brought the collection (by code or name), then select the farmer (by name or code) for whom it is.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {!isAgentContext && deliveredBy === "agent" && (
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium text-slate-700">
+                          Agent (Umucunda) who brought this collection <span className="text-red-500">*</span>
+                        </Label>
+                        <p className="text-xs text-slate-500">
+                          Type the agent code and use the look-up icon, or search by name. Then select the farmer below.
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                          <div className="space-y-1.5 min-w-0">
+                            <Label htmlFor="agentCodeLookup" className="text-xs font-medium text-slate-600">
+                              Agent code
+                            </Label>
+                            <div className="relative">
+                              <Input
+                                id="agentCodeLookup"
+                                type="text"
+                                value={agentCodeInput}
+                                onChange={(e) => {
+                                  const v = e.target.value
+                                  setAgentCodeInput(v)
+                                  if (!v.trim()) {
+                                    setFormData((p) => ({ ...p, agentId: "" }))
+                                    setErrors((e) => ({ ...e, agentId: "" }))
+                                  }
+                                }}
+                                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), lookupAgentByCode(agentCodeInput))}
+                                placeholder="e.g. A-001"
+                                className={cn(
+                                  "h-11 rounded-xl border-slate-200 pr-11",
+                                  errors.agentId && "border-red-300"
+                                )}
+                                disabled={loadingAgents || lookingUpAgent}
+                              />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  e.stopPropagation()
+                                  lookupAgentByCode(agentCodeInput)
+                                }}
+                                disabled={loadingAgents || lookingUpAgent || !agentCodeInput.trim()}
+                                title="Look up agent"
+                                aria-label="Look up agent by code"
+                                className="absolute right-2 top-1/2 z-10 -translate-y-1/2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-slate-500 hover:bg-[#0099f2]/10 hover:text-[#0099f2] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-colors"
+                              >
+                                {lookingUpAgent ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Search className="h-4 w-4" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                          <div className="space-y-1.5 min-w-0">
+                            <Label className="text-xs font-medium text-slate-600">Don&apos;t know the code? Search by name</Label>
+                            <SearchableSelect
+                              value={formData.agentId}
+                              onValueChange={(v) => {
+                                setFormData((p) => ({ ...p, agentId: v }))
+                                setErrors((e) => ({ ...e, agentId: "" }))
+                                const a = agents.find((x) => x.id === v)
+                                if (a?.displayId) setAgentCodeInput(a.displayId.toString())
+                                else if (!v) setAgentCodeInput("")
+                              }}
+                              options={agents.map((a) => ({
+                                value: a.id,
+                                label: a.displayId
+                                  ? `${a.name} (Code: ${a.displayId}) — ${a.phone || ""}`
+                                  : `${a.name}${a.phone ? ` — ${a.phone}` : ""}${a.email ? ` (${a.email})` : ""}`,
+                              }))}
+                              placeholder={loadingAgents ? "Loading..." : "Search by name or code..."}
+                              searchPlaceholder="Search agents..."
+                              emptyText="No agent found."
+                              className={cn("h-11 rounded-xl !border-slate-200", errors.agentId && "!border-red-300")}
+                              disabled={loadingAgents}
+                            />
+                          </div>
+                        </div>
+                        {errors.agentId && <p className="text-xs text-red-600">{errors.agentId}</p>}
+                        {selectedAgent && (
+                          <div className="rounded-xl border border-sky-200 bg-sky-50/80 p-3 space-y-1.5 text-sm">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">Agent information (fetched)</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                              <div><span className="text-slate-500">Name</span><p className="font-medium text-slate-900">{selectedAgent.name || "—"}</p></div>
+                              <div><span className="text-slate-500">Code</span><p className="font-medium text-slate-900">{selectedAgent.displayId || "—"}</p></div>
+                              <div><span className="text-slate-500">Phone</span><p className="font-medium text-slate-900">{selectedAgent.phone || "—"}</p></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium text-slate-700">
+                          Farmer (for whom is this collection) <span className="text-red-500">*</span>
+                        </Label>
+                        <p className="mt-1 text-sm text-slate-500">
+                          Type the farmer code and use the look-up icon, or search by name. Once the farmer is found, you can continue.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                        <div className="space-y-1.5 min-w-0">
+                          <Label htmlFor="farmerCodeLookup" className="text-xs font-medium text-slate-600">
+                            Farmer code
+                          </Label>
+                          <div className="relative">
+                            <Input
+                              id="farmerCodeLookup"
+                              type="text"
+                              value={farmerCodeInput}
+                              onChange={(e) => {
+                                const v = e.target.value
+                                setFarmerCodeInput(v)
+                                if (!v.trim()) {
+                                  setFormData((p) => ({ ...p, farmerId: "" }))
+                                  setErrors((e) => ({ ...e, farmerId: "" }))
+                                }
+                              }}
+                              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), lookupFarmerByCode(farmerCodeInput))}
+                              placeholder="e.g. F-001"
+                              className={cn(
+                                "h-11 rounded-xl border-slate-200 pr-11",
+                                errors.farmerId && "border-red-300"
+                              )}
+                              disabled={loadingFarmers || lookingUpFarmer}
+                            />
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                lookupFarmerByCode(farmerCodeInput)
+                              }}
+                              disabled={loadingFarmers || lookingUpFarmer || !farmerCodeInput.trim()}
+                              title="Look up farmer"
+                              aria-label="Look up farmer by code"
+                              className="absolute right-2 top-1/2 z-10 -translate-y-1/2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-slate-500 hover:bg-[#0099f2]/10 hover:text-[#0099f2] disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-colors"
+                            >
+                              {lookingUpFarmer ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Search className="h-4 w-4" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5 min-w-0">
+                          <Label className="text-xs font-medium text-slate-600">Don&apos;t know the code? Search by name</Label>
+                          <SearchableSelect
+                            value={formData.farmerId}
+                            onValueChange={(v) => {
+                              setFormData((p) => ({ ...p, farmerId: v }))
+                              setErrors((e) => ({ ...e, farmerId: "" }))
+                              const f = farmers.find((x) => x.id === v)
+                              if (f?.farmerCode) setFarmerCodeInput(f.farmerCode.toString())
+                              else if (!v) setFarmerCodeInput("")
+                            }}
+                            options={farmers.map((f) => ({
+                              value: f.id,
+                              label: f.farmerCode
+                                ? `${f.name} (Code: ${f.farmerCode}) — ${f.phone || ""}`
+                                : `${f.name} — ${f.phone || ""}`,
+                            }))}
+                            placeholder={loadingFarmers ? "Loading..." : "Search by name or code..."}
+                            searchPlaceholder="Search by name or farmer code..."
+                            emptyText="No farmer found."
+                            className={cn("h-11 rounded-xl !border-slate-200", errors.farmerId && "!border-red-300")}
+                            disabled={loadingFarmers}
+                          />
+                        </div>
+                      </div>
+                      {errors.farmerId && <p className="text-xs text-red-600">{errors.farmerId}</p>}
+
+                      {selectedFarmer ? (
+                        (() => {
+                          const displayCode = (selectedFarmer.farmerCode ?? (selectedFarmer as { farmer_code?: string }).farmer_code ?? farmerCodeInput) || "—"
+                          return (
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 space-y-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">
+                                  Farmer information (fetched)
+                                </p>
+                                <span className="text-xs font-medium text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded">
+                                  Code: {displayCode}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                                <div>
+                                  <span className="text-slate-500">Name</span>
+                                  <p className="font-medium text-slate-900">{selectedFarmer.name || "—"}</p>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500">Code</span>
+                                  <p className="font-medium text-slate-900">{displayCode}</p>
+                                </div>
+                                <div>
+                                  <span className="text-slate-500">Phone</span>
+                                  <p className="font-medium text-slate-900">{selectedFarmer.phone || "—"}</p>
+                                </div>
+                              </div>
+                              <p className="text-xs text-emerald-700 pt-1">You can continue to the next step.</p>
+                            </div>
+                          )
+                        })()
+                      ) : (
+                        <p className="text-xs text-slate-500">
+                          Enter a code and use the look-up icon, or search by name above.
+                        </p>
+                      )}
+                    </div>
+
+                    {isAgentContext && (
+                      <p className="text-sm text-slate-600 rounded-xl bg-slate-100 px-3 py-2">
+                        <span className="font-medium">Recording as agent:</span> You. Select the farmer (by code) for whom this collection is.
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Step 2: Collection type + Commodity (product type) */}
+            {step === 2 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div>
                   <Label className="text-base font-semibold text-slate-800">What type of collection?</Label>
-                  <p className="mt-1 text-sm text-slate-500">Select Milk, Commodities, or another type to continue</p>
+                  <p className="mt-1 text-sm text-slate-500">Select category (e.g. Milk & Dairy) then choose the commodity</p>
                 </div>
                 {loadingCommodities ? (
                   <div className="flex flex-col items-center justify-center py-12 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50">
                     <Loader2 className="h-10 w-10 animate-spin text-[#0099f2] mb-3" />
                     <p className="text-sm font-medium text-slate-600">Loading collection types...</p>
-                    <p className="text-xs text-slate-500 mt-1">Fetching commodities</p>
                   </div>
                 ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {collectionTypeOptions.map((opt) => {
-                    const Icon = getCollectionTypeIcon(opt.name)
-                    const isSelected = formData.collectionTypeId === opt.id
-                    const count =
-                      opt.id === "all"
-                        ? commodities.length
-                        : commodities.filter((c) => c.category?.id === opt.id).length
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => {
-                          setFormData((p) => ({
-                            ...p,
-                            collectionTypeId: opt.id,
-                            commodityId: "",
-                            agentId: opt.name !== "Milk & Dairy" ? "" : p.agentId,
-                          }))
-                          setSelectedCommodity(null)
-                        }}
-                        className={cn(
-                          "relative flex flex-col items-center gap-3 rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg",
-                          isSelected
-                            ? "border-[#0099f2] bg-[#0099f2]/5 shadow-md ring-2 ring-[#0099f2]/20"
-                            : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50"
-                        )}
-                      >
-                        <div
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {collectionTypeOptions.map((opt) => {
+                      const Icon = getCollectionTypeIcon(opt.name)
+                      const isSelected = formData.collectionTypeId === opt.id
+                      const count =
+                        opt.id === "all"
+                          ? commodities.length
+                          : commodities.filter((c) => c.category?.id === opt.id).length
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            setFormData((p) => ({
+                              ...p,
+                              collectionTypeId: opt.id,
+                              commodityId: "",
+                            }))
+                            setSelectedCommodity(null)
+                          }}
                           className={cn(
-                            "flex h-14 w-14 items-center justify-center rounded-xl",
-                            isSelected ? "bg-[#0099f2]/15 text-[#0099f2]" : "bg-slate-100 text-slate-600"
+                            "relative flex flex-col items-center gap-3 rounded-2xl border-2 p-6 text-left transition-all hover:shadow-lg",
+                            isSelected
+                              ? "border-[#0099f2] bg-[#0099f2]/5 shadow-md ring-2 ring-[#0099f2]/20"
+                              : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50"
                           )}
                         >
-                          <Icon className="h-7 w-7" />
-                        </div>
-                        <div className="w-full">
-                          <p className="font-semibold text-slate-900">{opt.name}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            {count} {count === 1 ? "commodity" : "commodities"} available
-                          </p>
-                        </div>
-                        {isSelected && <Check className="h-5 w-5 text-[#0099f2] absolute top-3 right-3" />}
-                      </button>
-                    )
-                  })}
-                </div>
+                          <div
+                            className={cn(
+                              "flex h-14 w-14 items-center justify-center rounded-xl",
+                              isSelected ? "bg-[#0099f2]/15 text-[#0099f2]" : "bg-slate-100 text-slate-600"
+                            )}
+                          >
+                            <Icon className="h-7 w-7" />
+                          </div>
+                          <div className="w-full">
+                            <p className="font-semibold text-slate-900">{opt.name}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {count} {count === 1 ? "commodity" : "commodities"} available
+                            </p>
+                          </div>
+                          {isSelected && <Check className="h-5 w-5 text-[#0099f2] absolute top-3 right-3" />}
+                        </button>
+                      )
+                    })}
+                  </div>
                 )}
                 {errors.collectionTypeId && <p className="text-xs text-red-600">{errors.collectionTypeId}</p>}
-              </div>
-            )}
 
-            {/* Step 2: Commodity & Collection Details (combined) */}
-            {step === 2 && (
-              <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                {/* Commodity */}
                 <div className="space-y-2">
                   <Label htmlFor="commodityId" className="text-sm font-medium text-slate-700">
-                    Commodity <span className="text-red-500">*</span>
+                    Commodity (product type) <span className="text-red-500">*</span>
                   </Label>
                   <p className="text-xs text-slate-500">
                     {loadingCommodities
@@ -655,94 +1005,48 @@ export function CommodityCollectionForm({
                     searchPlaceholder="Search commodities..."
                     emptyText="No commodity found."
                     className={cn(searchableSelectClass, errors.commodityId && "!border-red-300")}
-                    disabled={loadingCommodities}
+                    disabled={loadingCommodities || !formData.collectionTypeId}
                   />
                   {errors.commodityId && <p className="text-xs text-red-600">{errors.commodityId}</p>}
                 </div>
-
-                {/* Collection Details (farmer, agent, quantity, price) */}
-                {(loadingFarmers || (isMilkDairy && !isAgentContext && loadingAgents)) ? (
-                  <div className="flex flex-col items-center justify-center py-8 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50">
-                    <Loader2 className="h-8 w-8 animate-spin text-[#0099f2] mb-2" />
-                    <p className="text-sm font-medium text-slate-600">Loading farmers and agents...</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="farmerId" className="text-sm font-medium text-slate-700">Farmer <span className="text-red-500">*</span></Label>
-                      <SearchableSelect
-                        value={formData.farmerId}
-                        onValueChange={(v) => setFormData((p) => ({ ...p, farmerId: v }))}
-                        options={farmers.map((f) => ({ value: f.id, label: `${f.name} — ${f.phone}` }))}
-                        placeholder={loadingFarmers ? "Loading farmers..." : "Select farmer"}
-                        searchPlaceholder="Search farmers..."
-                        emptyText="No farmer found."
-                        className={cn(searchableSelectClass, errors.farmerId && "!border-red-300")}
-                        disabled={loadingFarmers}
-                      />
-                      {errors.farmerId && <p className="text-xs text-red-600">{errors.farmerId}</p>}
-                    </div>
-                    {isMilkDairy && !isAgentContext && (
-                      <div className="space-y-2">
-                        <Label htmlFor="agentId" className="text-sm font-medium text-slate-700">
-                          Agent (Abacunda) <span className="text-red-500">*</span>
-                        </Label>
-                        <p className="text-xs text-slate-500">Required for Milk & Dairy collections — select the field agent who collected</p>
-                        <SearchableSelect
-                          value={formData.agentId}
-                          onValueChange={(v) => setFormData((p) => ({ ...p, agentId: v }))}
-                          options={agents.map((a) => ({ value: a.id, label: `${a.name}${a.phone ? ` — ${a.phone}` : ""}` }))}
-                          placeholder={loadingAgents ? "Loading agents..." : "Select agent (Abacunda)"}
-                          searchPlaceholder="Search agents..."
-                          emptyText="No agent found."
-                          className={cn(searchableSelectClass, errors.agentId && "!border-red-300")}
-                          disabled={loadingAgents}
-                        />
-                        {errors.agentId && <p className="text-xs text-red-600">{errors.agentId}</p>}
-                      </div>
-                    )}
-                    {isMilkDairy && isAgentContext && (
-                      <p className="text-sm text-slate-600"><span className="font-medium">Recording as agent:</span> You</p>
-                    )}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="quantity" className="text-sm font-medium text-slate-700">Quantity <span className="text-red-500">*</span></Label>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            id="quantity"
-                            type="number"
-                            step="0.01"
-                            value={formData.quantity || ""}
-                            onChange={(e) => setFormData((p) => ({ ...p, quantity: parseFloat(e.target.value) || 0 }))}
-                            required
-                            className={cn(inputBase, errors.quantity && "border-red-300")}
-                          />
-                          <span className="text-sm text-slate-500 shrink-0">{selectedCommodity?.unitOfMeasure || "units"}</span>
-                        </div>
-                        {errors.quantity && <p className="text-xs text-red-600">{errors.quantity}</p>}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="pricePerUnit" className="text-sm font-medium text-slate-700">Price per Unit <span className="text-red-500">*</span></Label>
-                        <Input
-                          id="pricePerUnit"
-                          type="number"
-                          step="0.01"
-                          value={formData.pricePerUnit || ""}
-                          onChange={(e) => setFormData((p) => ({ ...p, pricePerUnit: parseFloat(e.target.value) || 0 }))}
-                          required
-                          className={cn(inputBase, errors.pricePerUnit && "border-red-300")}
-                        />
-                        {errors.pricePerUnit && <p className="text-xs text-red-600">{errors.pricePerUnit}</p>}
-                      </div>
-                    </div>
-                  </>
-                )}
               </div>
             )}
 
-            {/* Step 3: Quality & Advances (combined) */}
+            {/* Step 3: Quantity, price, quality, advances, warehouse */}
             {step === 3 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="quantity" className="text-sm font-medium text-slate-700">Quantity <span className="text-red-500">*</span></Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="quantity"
+                        type="number"
+                        step="0.01"
+                        value={formData.quantity || ""}
+                        onChange={(e) => setFormData((p) => ({ ...p, quantity: parseFloat(e.target.value) || 0 }))}
+                        required
+                        className={cn(inputBase, errors.quantity && "border-red-300")}
+                      />
+                      <span className="text-sm text-slate-500 shrink-0">{selectedCommodity?.unitOfMeasure || "units"}</span>
+                    </div>
+                    {errors.quantity && <p className="text-xs text-red-600">{errors.quantity}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pricePerUnit" className="text-sm font-medium text-slate-700">Price per Unit <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="pricePerUnit"
+                      type="number"
+                      step="0.01"
+                      value={formData.pricePerUnit || ""}
+                      onChange={(e) => setFormData((p) => ({ ...p, pricePerUnit: parseFloat(e.target.value) || 0 }))}
+                      required
+                      className={cn(inputBase, errors.pricePerUnit && "border-red-300")}
+                    />
+                    {errors.pricePerUnit && <p className="text-xs text-red-600">{errors.pricePerUnit}</p>}
+                  </div>
+                </div>
+
                 {selectedCommodity?.qualityFields?.length ? (
                   <div>
                     <h3 className="text-sm font-semibold text-slate-800 mb-3">Quality</h3>
@@ -845,9 +1149,13 @@ export function CommodityCollectionForm({
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-3 text-sm">
                   <p><span className="font-medium text-slate-600">Commodity:</span> {selectedCommodity?.name || "—"}</p>
-                  <p><span className="font-medium text-slate-600">Farmer:</span> {farmers.find((f) => f.id === formData.farmerId)?.name || "—"}</p>
-                  {isMilkDairy && (formData.agentId || overrideAgentId) && (
-                    <p><span className="font-medium text-slate-600">Agent (Abacunda):</span> {isAgentContext ? "You" : (agents.find((a) => a.id === formData.agentId)?.name || "—")}</p>
+                  <p><span className="font-medium text-slate-600">Farmer:</span> {farmers.find((f) => f.id === formData.farmerId)?.name || "—"}
+                    {farmers.find((f) => f.id === formData.farmerId)?.farmerCode && (
+                      <span className="text-slate-500 ml-1">(Code: {farmers.find((f) => f.id === formData.farmerId)?.farmerCode})</span>
+                    )}
+                  </p>
+                  {(deliveredBy === "agent" || isAgentContext) && (formData.agentId || overrideAgentId) && (
+                    <p><span className="font-medium text-slate-600">Agent (Umucunda):</span> {isAgentContext ? "You" : (agents.find((a) => a.id === formData.agentId)?.name || "—")}</p>
                   )}
                   <p><span className="font-medium text-slate-600">Quantity:</span> {formData.quantity} {selectedCommodity?.unitOfMeasure || "units"}</p>
                   <p><span className="font-medium text-slate-600">Price/Unit:</span> RF {formData.pricePerUnit?.toLocaleString()}</p>

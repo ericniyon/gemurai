@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
     const data = await req.json()
     const {
       farmerId,
+      agentId,
       mccId,
       cropPeriodId,
       collectionDate,
@@ -87,6 +88,7 @@ export async function POST(req: NextRequest) {
 
     const result = await CropCollectionService.recordCollection({
       farmerId,
+      agentId: agentId || undefined,
       mccId,
       cropPeriodId,
       collectionDate: collectionDate ? new Date(collectionDate) : new Date(),

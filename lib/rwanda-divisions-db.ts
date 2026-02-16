@@ -1,252 +1,326 @@
-import { sql } from "@/lib/database"
+import { prisma } from "@/lib/prisma"
 
-export interface Province {
+export interface RwandaProvinceDto {
   id: string
   name: string
+  slug?: string
 }
 
-export interface District {
+export interface RwandaDistrictDto {
   id: string
   name: string
-  province_id: string
+  provinceId: string
+  slug?: string
 }
 
-export interface Sector {
+export interface RwandaSectorDto {
   id: string
   name: string
-  district_id: string
+  districtId: string
+  slug?: string
 }
 
-export interface Cell {
+export interface RwandaCellDto {
   id: string
   name: string
-  sector_id: string
+  sectorId: string
+  slug?: string
 }
 
-export interface Village {
+export interface RwandaVillageDto {
   id: string
   name: string
-  cell_id: string
+  cellId: string
+  slug?: string
 }
 
-export class RwandaDivisionsDB {
-  // Get all provinces
-  static async getProvinces(): Promise<Province[]> {
-    try {
-      const result = await sql`
-        SELECT id, name FROM provinces ORDER BY name
-      `
-      return result as Province[]
-    } catch (error) {
-      console.error("Error fetching provinces:", error)
-      return []
-    }
+export interface SearchLocationResult {
+  type: "province" | "district" | "sector" | "cell" | "village"
+  id: string
+  name: string
+  path?: string
+}
+
+export async function getProvincesFromDb(): Promise<RwandaProvinceDto[]> {
+  const rows = await prisma.rwanda_province.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, slug: true },
+  })
+  return rows
+}
+
+export async function getDistrictsByProvinceFromDb(
+  provinceId: string
+): Promise<RwandaDistrictDto[]> {
+  const rows = await prisma.rwanda_district.findMany({
+    where: { provinceId },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, provinceId: true, slug: true },
+  })
+  return rows
+}
+
+export async function getSectorsByDistrictFromDb(
+  districtId: string
+): Promise<RwandaSectorDto[]> {
+  const rows = await prisma.rwanda_sector.findMany({
+    where: { districtId },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, districtId: true, slug: true },
+  })
+  return rows
+}
+
+export async function getCellsBySectorFromDb(
+  sectorId: string
+): Promise<RwandaCellDto[]> {
+  const rows = await prisma.rwanda_cell.findMany({
+    where: { sectorId },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, sectorId: true, slug: true },
+  })
+  return rows
+}
+
+export async function getVillagesByCellFromDb(
+  cellId: string
+): Promise<RwandaVillageDto[]> {
+  const rows = await prisma.rwanda_village.findMany({
+    where: { cellId },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, cellId: true, slug: true },
+  })
+  return rows
+}
+
+const SEARCH_LIMIT = 50
+
+export async function searchLocationsFromDb(
+  search: string
+): Promise<SearchLocationResult[]> {
+  const term = search.trim().toLowerCase()
+  if (!term) return []
+
+  const results: SearchLocationResult[] = []
+
+  const [provinces, districts, sectors, cells, villages] = await Promise.all([
+    prisma.rwanda_province.findMany({
+      where: {
+        OR: [
+          { name: { contains: term, mode: "insensitive" } },
+          { slug: { contains: term, mode: "insensitive" } },
+        ],
+      },
+      take: SEARCH_LIMIT,
+      select: { id: true, name: true },
+    }),
+    prisma.rwanda_district.findMany({
+      where: {
+        OR: [
+          { name: { contains: term, mode: "insensitive" } },
+          { slug: { contains: term, mode: "insensitive" } },
+        ],
+      },
+      take: SEARCH_LIMIT,
+      include: { province: { select: { name: true } } },
+    }),
+    prisma.rwanda_sector.findMany({
+      where: {
+        OR: [
+          { name: { contains: term, mode: "insensitive" } },
+          { slug: { contains: term, mode: "insensitive" } },
+        ],
+      },
+      take: SEARCH_LIMIT,
+      include: {
+        district: { select: { name: true, province: { select: { name: true } } } },
+      },
+    }),
+    prisma.rwanda_cell.findMany({
+      where: {
+        OR: [
+          { name: { contains: term, mode: "insensitive" } },
+          { slug: { contains: term, mode: "insensitive" } },
+        ],
+      },
+      take: SEARCH_LIMIT,
+      include: {
+        sector: {
+          select: {
+            name: true,
+            district: {
+              select: { name: true, province: { select: { name: true } } },
+            },
+          },
+        },
+      },
+    }),
+    prisma.rwanda_village.findMany({
+      where: {
+        OR: [
+          { name: { contains: term, mode: "insensitive" } },
+          { slug: { contains: term, mode: "insensitive" } },
+        ],
+      },
+      take: SEARCH_LIMIT,
+      include: {
+        cell: {
+          select: {
+            name: true,
+            sector: {
+              select: {
+                name: true,
+                district: {
+                  select: {
+                    name: true,
+                    province: { select: { name: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+  ])
+
+  for (const p of provinces) {
+    results.push({ type: "province", id: p.id, name: p.name, path: p.name })
+  }
+  for (const d of districts) {
+    results.push({
+      type: "district",
+      id: d.id,
+      name: d.name,
+      path: `${d.province.name} / ${d.name}`,
+    })
+  }
+  for (const s of sectors) {
+    const d = s.district
+    results.push({
+      type: "sector",
+      id: s.id,
+      name: s.name,
+      path: `${d.province.name} / ${d.name} / ${s.name}`,
+    })
+  }
+  for (const c of cells) {
+    const s = c.sector
+    const d = s.district
+    results.push({
+      type: "cell",
+      id: c.id,
+      name: c.name,
+      path: `${d.province.name} / ${d.name} / ${s.name} / ${c.name}`,
+    })
+  }
+  for (const v of villages) {
+    const c = v.cell
+    const s = c.sector
+    const d = s.district
+    results.push({
+      type: "village",
+      id: v.id,
+      name: v.name,
+      path: `${d.province.name} / ${d.name} / ${s.name} / ${c.name} / ${v.name}`,
+    })
   }
 
-  // Get districts by province ID
-  static async getDistrictsByProvince(provinceId: string): Promise<District[]> {
-    try {
-      const result = await sql`
-        SELECT id, name, province_id FROM districts 
-        WHERE province_id = ${provinceId} 
-        ORDER BY name
-      `
-      return result as District[]
-    } catch (error) {
-      console.error("Error fetching districts:", error)
-      return []
-    }
+  return results.slice(0, SEARCH_LIMIT)
+}
+
+export async function hasRwandaDataInDb(): Promise<boolean> {
+  try {
+    const count = await prisma.rwanda_province.count()
+    return count > 0
+  } catch {
+    return false
   }
+}
 
-  // Get sectors by district ID
-  static async getSectorsByDistrict(districtId: string): Promise<Sector[]> {
-    try {
-      const result = await sql`
-        SELECT id, name, district_id FROM sectors 
-        WHERE district_id = ${districtId} 
-        ORDER BY name
-      `
-      return result as Sector[]
-    } catch (error) {
-      console.error("Error fetching sectors:", error)
-      return []
-    }
+/** Validate that province -> district -> sector -> cell -> village form a valid hierarchy (by ID). */
+export async function validateHierarchyFromDb(
+  provinceId?: string | null,
+  districtId?: string | null,
+  sectorId?: string | null,
+  cellId?: string | null,
+  villageId?: string | null
+): Promise<boolean> {
+  if (!provinceId) return true
+  try {
+    const province = await prisma.rwanda_province.findUnique({ where: { id: provinceId } })
+    if (!province) return false
+    if (!districtId) return true
+
+    const district = await prisma.rwanda_district.findFirst({
+      where: { id: districtId, provinceId },
+    })
+    if (!district) return false
+    if (!sectorId) return true
+
+    const sector = await prisma.rwanda_sector.findFirst({
+      where: { id: sectorId, districtId },
+    })
+    if (!sector) return false
+    if (!cellId) return true
+
+    const cell = await prisma.rwanda_cell.findFirst({
+      where: { id: cellId, sectorId },
+    })
+    if (!cell) return false
+    if (!villageId) return true
+
+    const village = await prisma.rwanda_village.findFirst({
+      where: { id: villageId, cellId },
+    })
+    return !!village
+  } catch {
+    return false
   }
+}
 
-  // Get cells by sector ID
-  static async getCellsBySector(sectorId: string): Promise<Cell[]> {
-    try {
-      const result = await sql`
-        SELECT id, name, sector_id FROM cells 
-        WHERE sector_id = ${sectorId} 
-        ORDER BY name
-      `
-      return result as Cell[]
-    } catch (error) {
-      console.error("Error fetching cells:", error)
-      return []
+/** Get full address path for a village ID (DB only). Returns null if not found. */
+export async function getFullAddressPathFromDb(
+  villageId: string
+): Promise<{ province: string; district: string; sector: string; cell: string; village: string } | null> {
+  try {
+    const village = await prisma.rwanda_village.findUnique({
+      where: { id: villageId },
+      include: {
+        cell: {
+          include: {
+            sector: {
+              include: {
+                district: {
+                  include: { province: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+    if (!village?.cell?.sector?.district?.province) return null
+    const { cell, sector, district, province } = {
+      cell: village.cell,
+      sector: village.cell.sector,
+      district: village.cell.sector.district,
+      province: village.cell.sector.district.province,
     }
-  }
-
-  // Get villages by cell ID
-  static async getVillagesByCell(cellId: string): Promise<Village[]> {
-    try {
-      const result = await sql`
-        SELECT id, name, cell_id FROM villages 
-        WHERE cell_id = ${cellId} 
-        ORDER BY name
-      `
-      return result as Village[]
-    } catch (error) {
-      console.error("Error fetching villages:", error)
-      return []
+    return {
+      province: province.name,
+      district: district.name,
+      sector: sector.name,
+      cell: cell.name,
+      village: village.name,
     }
+  } catch {
+    return null
   }
+}
 
-  // Get full address path by village ID
-  static async getFullAddressPath(villageId: string) {
-    try {
-      const result = await sql`
-        SELECT 
-          v.id as village_id, v.name as village_name,
-          c.id as cell_id, c.name as cell_name,
-          s.id as sector_id, s.name as sector_name,
-          d.id as district_id, d.name as district_name,
-          p.id as province_id, p.name as province_name
-        FROM villages v
-        JOIN cells c ON v.cell_id = c.id
-        JOIN sectors s ON c.sector_id = s.id
-        JOIN districts d ON s.district_id = d.id
-        JOIN provinces p ON d.province_id = p.id
-        WHERE v.id = ${villageId}
-      `
-
-      if (result.length > 0) {
-        return result[0]
-      }
-      return null
-    } catch (error) {
-      console.error("Error fetching full address path:", error)
-      return null
-    }
-  }
-
-  // Validate administrative division hierarchy
-  static async validateHierarchy(
-    provinceId?: string,
-    districtId?: string,
-    sectorId?: string,
-    cellId?: string,
-    villageId?: string,
-  ): Promise<boolean> {
-    try {
-      if (!provinceId) return true
-
-      // Check if province exists
-      const provinceExists = await sql`
-        SELECT 1 FROM provinces WHERE id = ${provinceId}
-      `
-      if (provinceExists.length === 0) return false
-
-      if (!districtId) return true
-
-      // Check if district belongs to province
-      const districtExists = await sql`
-        SELECT 1 FROM districts WHERE id = ${districtId} AND province_id = ${provinceId}
-      `
-      if (districtExists.length === 0) return false
-
-      if (!sectorId) return true
-
-      // Check if sector belongs to district
-      const sectorExists = await sql`
-        SELECT 1 FROM sectors WHERE id = ${sectorId} AND district_id = ${districtId}
-      `
-      if (sectorExists.length === 0) return false
-
-      if (!cellId) return true
-
-      // Check if cell belongs to sector
-      const cellExists = await sql`
-        SELECT 1 FROM cells WHERE id = ${cellId} AND sector_id = ${sectorId}
-      `
-      if (cellExists.length === 0) return false
-
-      if (!villageId) return true
-
-      // Check if village belongs to cell
-      const villageExists = await sql`
-        SELECT 1 FROM villages WHERE id = ${villageId} AND cell_id = ${cellId}
-      `
-      return villageExists.length > 0
-    } catch (error) {
-      console.error("Error validating hierarchy:", error)
-      return false
-    }
-  }
-
-  // Search across all administrative levels
-  static async searchLocations(query: string) {
-    try {
-      const searchTerm = `%${query.toLowerCase()}%`
-
-      const provinces = await sql`
-        SELECT id, name, 'province' as type FROM provinces 
-        WHERE LOWER(name) LIKE ${searchTerm}
-        ORDER BY name
-      `
-
-      const districts = await sql`
-        SELECT d.id, d.name, 'district' as type, p.name as province_name 
-        FROM districts d 
-        JOIN provinces p ON d.province_id = p.id
-        WHERE LOWER(d.name) LIKE ${searchTerm}
-        ORDER BY d.name
-      `
-
-      const sectors = await sql`
-        SELECT s.id, s.name, 'sector' as type, d.name as district_name, p.name as province_name
-        FROM sectors s 
-        JOIN districts d ON s.district_id = d.id
-        JOIN provinces p ON d.province_id = p.id
-        WHERE LOWER(s.name) LIKE ${searchTerm}
-        ORDER BY s.name
-      `
-
-      const cells = await sql`
-        SELECT c.id, c.name, 'cell' as type, s.name as sector_name, d.name as district_name
-        FROM cells c
-        JOIN sectors s ON c.sector_id = s.id
-        JOIN districts d ON s.district_id = d.id
-        WHERE LOWER(c.name) LIKE ${searchTerm}
-        ORDER BY c.name
-      `
-
-      const villages = await sql`
-        SELECT v.id, v.name, 'village' as type, c.name as cell_name, s.name as sector_name
-        FROM villages v
-        JOIN cells c ON v.cell_id = c.id
-        JOIN sectors s ON c.sector_id = s.id
-        WHERE LOWER(v.name) LIKE ${searchTerm}
-        ORDER BY v.name
-      `
-
-      return {
-        provinces,
-        districts,
-        sectors,
-        cells,
-        villages,
-      }
-    } catch (error) {
-      console.error("Error searching locations:", error)
-      return {
-        provinces: [],
-        districts: [],
-        sectors: [],
-        cells: [],
-        villages: [],
-      }
-    }
-  }
+/** DB-backed helpers for validation and full address path. Use when DB has Rwanda data. */
+export const RwandaDivisionsDB = {
+  validateHierarchy: validateHierarchyFromDb,
+  getFullAddressPath: getFullAddressPathFromDb,
 }

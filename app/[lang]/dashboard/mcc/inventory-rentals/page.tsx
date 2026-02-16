@@ -242,8 +242,19 @@ export type InventoryEmbedTab = "warehouse-hub" | "assets" | "rentals" | "reques
 
 export function InventoryRentalsContent({
   embedTab: embedTabProp,
+  registerOpenAssetDialog,
+  triggerOpenAddProduct,
+  onTriggerAddProductConsumed,
+  triggerOpenRecordAsset,
+  onTriggerRecordAssetConsumed,
 }: {
   embedTab?: InventoryEmbedTab
+  /** When provided (e.g. from MCC Warehouses page), register a function to open the Add Asset dialog from the parent */
+  registerOpenAssetDialog?: (open: () => void) => void
+  triggerOpenAddProduct?: boolean
+  onTriggerAddProductConsumed?: () => void
+  triggerOpenRecordAsset?: boolean
+  onTriggerRecordAssetConsumed?: () => void
 } = {}) {
   const { user } = useAuth()
   const params = useParams()
@@ -270,6 +281,26 @@ export function InventoryRentalsContent({
       router.replace(`/${lang}/dashboard/mcc/warehouses`)
     }
   }, [fromWarehouses, embedTabProp, lang, router])
+
+  useEffect(() => {
+    if (typeof registerOpenAssetDialog === "function") {
+      registerOpenAssetDialog(() => setAssetDialogOpen(true))
+    }
+  }, [registerOpenAssetDialog])
+
+  useEffect(() => {
+    if (triggerOpenAddProduct) {
+      setProductDialogOpen(true)
+      onTriggerAddProductConsumed?.()
+    }
+  }, [triggerOpenAddProduct, onTriggerAddProductConsumed])
+
+  useEffect(() => {
+    if (triggerOpenRecordAsset) {
+      setAssetDialogOpen(true)
+      onTriggerRecordAssetConsumed?.()
+    }
+  }, [triggerOpenRecordAsset, onTriggerRecordAssetConsumed])
 
   const [activeTab, setActiveTab] = useState("warehouse-hub")
   const [initializing, setInitializing] = useState(true)

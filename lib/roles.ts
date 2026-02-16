@@ -11,7 +11,7 @@ export const ROLES: Role[] = [
   {
     id: "ADMIN",
     name: "Admin",
-    description: "Administrative access with limited permissions - NOT a system user. Focus on MCC management and content operations.",
+    description: "Administrative access with limited permissions - NOT a system user. Focus on collection center management and content operations.",
     permissions: [
       "dashboard.view",
       "dashboard.analytics",
@@ -334,8 +334,8 @@ export const ROLES: Role[] = [
   },
   {
     id: "MCC_MANAGER",
-    name: "MCC Manager",
-    description: "Administrator for a Milk Collection Center - manages MCC operations, staff, farmers, and collections",
+    name: "Collection Center Manager",
+    description: "Administrator for a Collection Center - manages operations, staff, farmers, and collections (milk, crops, commodities)",
     permissions: [
       "dashboard.view",
       "dashboard.analytics",
@@ -409,7 +409,7 @@ export const ROLES: Role[] = [
   {
     id: "COOP_ADMIN",
     name: "Cooperative Admin",
-    description: "Regional Manager / Cooperative Administrator - oversees multiple MCCs and regional operations",
+    description: "Regional Manager / Cooperative Administrator - oversees multiple collection centers and regional operations",
     permissions: [
       "dashboard.view",
       "dashboard.analytics",

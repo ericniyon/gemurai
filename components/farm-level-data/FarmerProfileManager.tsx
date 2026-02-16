@@ -16,25 +16,51 @@ import {
 import { SearchableSelect } from "@/components/ui/searchable-select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Plus, Edit, Trash2, User, MapPin, Phone, CreditCard, Users, Package, Wallet } from "lucide-react"
+import { Plus, Pencil, User, MapPin, Phone, CreditCard, Users, Package, Wallet, ChevronLeft, ChevronRight, Check, Tractor } from "lucide-react"
 
-export function FarmerProfileManager() {
+interface FarmerProfileManagerProps {
+  triggerOpenAddDialog?: boolean
+  onTriggerConsumed?: () => void
+}
+
+export function FarmerProfileManager({ triggerOpenAddDialog, onTriggerConsumed }: FarmerProfileManagerProps = {}) {
   const [farmers, setFarmers] = useState<any[]>([])
   const [mccs, setMccs] = useState<any[]>([])
   const [agents, setAgents] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingFarmer, setEditingFarmer] = useState<any>(null)
+  const [step, setStep] = useState(1)
+  const STEPS = [
+    { id: 1, title: "Personal & Collection Center", icon: User },
+    { id: 2, title: "Location", icon: MapPin },
+    { id: 3, title: "Farm details", icon: Tractor },
+    { id: 4, title: "Payment & Agents", icon: Wallet },
+  ]
+  const [provinces, setProvinces] = useState<{ id: string; name: string }[]>([])
+  const [districts, setDistricts] = useState<{ id: string; name: string }[]>([])
+  const [sectors, setSectors] = useState<{ id: string; name: string }[]>([])
+  const [cells, setCells] = useState<{ id: string; name: string }[]>([])
+  const [villages, setVillages] = useState<{ id: string; name: string }[]>([])
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     nationalId: "",
     mccId: "",
     location: "",
+    provinceId: "",
+    districtId: "",
+    sectorId: "",
+    cellId: "",
+    villageId: "",
     village: "",
     district: "",
     sector: "",
     cell: "",
+    herdSize: "",
+    address: "",
+    emergencyContact: "",
+    email: "",
     defaultCollectionCenterId: "",
     paymentMethod: "",
     ikofiId: "",
@@ -46,6 +72,70 @@ export function FarmerProfileManager() {
   useEffect(() => {
     fetchData()
   }, [])
+
+  useEffect(() => {
+    if (triggerOpenAddDialog) {
+      setIsDialogOpen(true)
+      onTriggerConsumed?.()
+    }
+  }, [triggerOpenAddDialog, onTriggerConsumed])
+
+  // Fetch Rwanda provinces when location step is shown
+  useEffect(() => {
+    if (!isDialogOpen || step !== 2) return
+    fetch("/api/rwanda-divisions?type=provinces")
+      .then((res) => res.ok && res.json())
+      .then((data) => setProvinces(Array.isArray(data) ? data : []))
+      .catch(() => setProvinces([]))
+  }, [isDialogOpen, step])
+
+  useEffect(() => {
+    if (!formData.provinceId) {
+      setDistricts([])
+      return
+    }
+    fetch(`/api/rwanda-divisions?type=districts&parentId=${encodeURIComponent(formData.provinceId)}`)
+      .then((res) => res.ok && res.json())
+      .then((data) => setDistricts(Array.isArray(data) ? data : []))
+      .catch(() => setDistricts([]))
+  }, [formData.provinceId])
+
+  useEffect(() => {
+    if (!formData.districtId) {
+      setSectors([])
+      return
+    }
+    fetch(`/api/rwanda-divisions?type=sectors&parentId=${encodeURIComponent(formData.districtId)}`)
+      .then((res) => res.ok && res.json())
+      .then((data) => setSectors(Array.isArray(data) ? data : []))
+      .catch(() => setSectors([]))
+  }, [formData.districtId])
+
+  useEffect(() => {
+    if (!formData.sectorId) {
+      setCells([])
+      return
+    }
+    const params = new URLSearchParams({ type: "cells", parentId: formData.sectorId })
+    if (formData.districtId) params.set("districtId", formData.districtId)
+    fetch(`/api/rwanda-divisions?${params.toString()}`)
+      .then((res) => res.ok && res.json())
+      .then((data) => setCells(Array.isArray(data) ? data : []))
+      .catch(() => setCells([]))
+  }, [formData.sectorId, formData.districtId])
+
+  useEffect(() => {
+    if (!formData.cellId) {
+      setVillages([])
+      return
+    }
+    const params = new URLSearchParams({ type: "villages", parentId: formData.cellId })
+    if (formData.sectorId) params.set("sectorId", formData.sectorId)
+    fetch(`/api/rwanda-divisions?${params.toString()}`)
+      .then((res) => res.ok && res.json())
+      .then((data) => setVillages(Array.isArray(data) ? data : []))
+      .catch(() => setVillages([]))
+  }, [formData.cellId, formData.sectorId])
 
   const fetchData = async () => {
     try {
@@ -84,12 +174,33 @@ export function FarmerProfileManager() {
     }
   }
 
+  const validateStep = (s: number) => {
+    if (s === 1) {
+      if (!formData.name?.trim() || !formData.phone?.trim() || !formData.nationalId?.trim() || !formData.mccId) {
+        toast.error("Please fill in all required fields (Name, Phone, National ID, Collection Center)")
+        return false
+      }
+    }
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (step < 4) {
+      if (!validateStep(step)) return
+      setStep(step + 1)
+      return
+    }
 
     if (!formData.name || !formData.phone || !formData.nationalId || !formData.mccId) {
       toast.error("Please fill in all required fields")
       return
+    }
+
+    const payload = {
+      ...formData,
+      herdSize: formData.herdSize === "" ? undefined : Number(formData.herdSize),
     }
 
     try {
@@ -106,13 +217,25 @@ export function FarmerProfileManager() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       const result = await response.json()
 
       if (response.ok && result.success) {
-        toast.success(editingFarmer ? "Farmer updated successfully" : "Farmer created successfully")
+        const createdFarmer = !editingFarmer && result.data ? result.data : null
+        if (createdFarmer) {
+          toast.success("Farmer created successfully", {
+            action: {
+              label: "Correct farm data",
+              onClick: () => {
+                handleEdit(createdFarmer)
+              },
+            },
+          })
+        } else {
+          toast.success("Farmer updated successfully")
+        }
         setIsDialogOpen(false)
         resetForm()
         fetchData()
@@ -126,16 +249,26 @@ export function FarmerProfileManager() {
   }
 
   const resetForm = () => {
+    setStep(1)
     setFormData({
       name: "",
       phone: "",
       nationalId: "",
       mccId: "",
       location: "",
+      provinceId: "",
+      districtId: "",
+      sectorId: "",
+      cellId: "",
+      villageId: "",
       village: "",
       district: "",
       sector: "",
       cell: "",
+      herdSize: "",
+      address: "",
+      emergencyContact: "",
+      email: "",
       defaultCollectionCenterId: "",
       paymentMethod: "",
       ikofiId: "",
@@ -148,16 +281,26 @@ export function FarmerProfileManager() {
 
   const handleEdit = (farmer: any) => {
     setEditingFarmer(farmer)
+    setStep(1)
     setFormData({
       name: farmer.name || "",
       phone: farmer.phone || "",
       nationalId: farmer.nationalId || "",
       mccId: farmer.mccId || "",
       location: farmer.location || "",
+      provinceId: "",
+      districtId: "",
+      sectorId: "",
+      cellId: "",
+      villageId: "",
       village: farmer.village || "",
       district: farmer.district || "",
       sector: farmer.sector || "",
       cell: farmer.cell || "",
+      herdSize: farmer.herdSize != null ? String(farmer.herdSize) : "",
+      address: farmer.address || "",
+      emergencyContact: farmer.emergencyContact || "",
+      email: farmer.email || "",
       defaultCollectionCenterId: farmer.defaultCollectionCenterId || "",
       paymentMethod: farmer.paymentMethod || "",
       ikofiId: farmer.ikofiId || "",
@@ -217,9 +360,10 @@ export function FarmerProfileManager() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleEdit(farmer)}
-                            className="border-blue-200 hover:bg-blue-50"
+                            className="border-blue-200 hover:bg-blue-50 text-blue-700 hover:text-blue-800"
                           >
-                            <Edit className="h-3 w-3" />
+                            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                            Correct farm data
                           </Button>
                         </div>
                       </div>
@@ -300,10 +444,10 @@ export function FarmerProfileManager() {
                 </div>
                 <div>
                   <DialogTitle className="text-xl font-bold text-slate-900">
-                    {editingFarmer ? "Edit Farmer Profile" : "Add Farmer Profile"}
+                    {editingFarmer ? "Correct farm data" : "Add Farmer Profile"}
                   </DialogTitle>
                   <DialogDescription className="mt-1 text-slate-600">
-                    {editingFarmer ? "Update farmer information" : "Create a new farmer profile with required details"}
+                    {editingFarmer ? "Update farmer and farm information (name, location, payment, agents)" : "Create a new farmer profile with required details"}
                   </DialogDescription>
                 </div>
               </div>
@@ -311,12 +455,44 @@ export function FarmerProfileManager() {
           </div>
 
           <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+            {/* Stepper */}
+            <div className="shrink-0 border-b border-slate-200/80 bg-slate-50/50 px-6 py-4">
+              <div className="flex items-center justify-between gap-2">
+                {STEPS.map((s, idx) => {
+                  const Icon = s.icon
+                  const isActive = step === s.id
+                  const isPast = step > s.id
+                  return (
+                    <div key={s.id} className="flex flex-1 items-center">
+                      <div
+                        className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                          isActive
+                            ? "bg-blue-100 text-blue-800 ring-2 ring-blue-300"
+                            : isPast
+                              ? "bg-blue-50 text-blue-700"
+                              : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="hidden sm:inline">{s.title}</span>
+                        {isPast && <Check className="h-4 w-4 shrink-0 text-blue-600" />}
+                      </div>
+                      {idx < STEPS.length - 1 && (
+                        <div className={`mx-1 h-0.5 flex-1 min-w-[8px] rounded ${step > s.id ? "bg-blue-300" : "bg-slate-200"}`} />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
             <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-6">
-              {/* Personal & MCC */}
+              {/* Step 1: Personal & Collection Center */}
+              {step === 1 && (
               <section className="space-y-4">
                 <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                   <User className="h-4 w-4 text-blue-600" />
-                  Personal & MCC
+                  Personal & Collection Center
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -338,9 +514,10 @@ export function FarmerProfileManager() {
                     </Label>
                     <Input
                       id="phone"
+                      type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="Phone number"
+                      placeholder="e.g. +250 788 123 456"
                       className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                       required
                     />
@@ -360,82 +537,201 @@ export function FarmerProfileManager() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="mccId" className="text-sm font-semibold text-slate-700">
-                      MCC <span className="text-red-500">*</span>
+                      Collection Center <span className="text-red-500">*</span>
                     </Label>
                     <SearchableSelect
                       value={formData.mccId}
                       onValueChange={(value) => setFormData({ ...formData, mccId: value })}
                       options={mccs.map((mcc) => ({ value: mcc.id, label: mcc.name }))}
-                      placeholder="Select MCC"
-                      searchPlaceholder="Search MCCs..."
-                      emptyText="No MCC found."
+                      placeholder="Select Collection Center"
+                      searchPlaceholder="Search collection centers..."
+                      emptyText="No collection center found."
                       className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
                     />
                   </div>
                 </div>
               </section>
+              )}
 
-              {/* Location */}
+              {/* Step 2: Location */}
+              {step === 2 && (
               <section className="space-y-4">
                 <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                   <MapPin className="h-4 w-4 text-blue-600" />
-                  Location
+                  Location (Rwanda administrative)
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="location" className="text-sm font-semibold text-slate-700">Location</Label>
+                    <Label className="text-sm font-semibold text-slate-700">Province</Label>
+                    <SearchableSelect
+                      value={formData.provinceId}
+                      onValueChange={(value) => setFormData((prev) => ({
+                        ...prev,
+                        provinceId: value,
+                        districtId: "",
+                        sectorId: "",
+                        cellId: "",
+                        villageId: "",
+                        district: "",
+                        sector: "",
+                        cell: "",
+                        village: "",
+                      }))}
+                      options={provinces.map((p) => ({ value: p.id, label: p.name }))}
+                      placeholder="Select province"
+                      searchPlaceholder="Search provinces..."
+                      emptyText="No province found."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-slate-700">District</Label>
+                    <SearchableSelect
+                      value={formData.districtId}
+                      onValueChange={(value) => setFormData((prev) => ({
+                        ...prev,
+                        districtId: value,
+                        district: districts.find((d) => d.id === value)?.name ?? prev.district,
+                        sectorId: "",
+                        cellId: "",
+                        villageId: "",
+                        sector: "",
+                        cell: "",
+                        village: "",
+                      }))}
+                      options={districts.map((d) => ({ value: d.id, label: d.name }))}
+                      placeholder="Select district"
+                      searchPlaceholder="Search districts..."
+                      emptyText="Select province first."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-slate-700">Sector</Label>
+                    <SearchableSelect
+                      value={formData.sectorId}
+                      onValueChange={(value) => setFormData((prev) => ({
+                        ...prev,
+                        sectorId: value,
+                        sector: sectors.find((s) => s.id === value)?.name ?? prev.sector,
+                        cellId: "",
+                        villageId: "",
+                        cell: "",
+                        village: "",
+                      }))}
+                      options={sectors.map((s) => ({ value: s.id, label: s.name }))}
+                      placeholder="Select sector"
+                      searchPlaceholder="Search sectors..."
+                      emptyText="Select district first."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-slate-700">Cell</Label>
+                    <SearchableSelect
+                      value={formData.cellId}
+                      onValueChange={(value) => setFormData((prev) => ({
+                        ...prev,
+                        cellId: value,
+                        cell: cells.find((c) => c.id === value)?.name ?? prev.cell,
+                        villageId: "",
+                        village: "",
+                      }))}
+                      options={cells.map((c) => ({ value: c.id, label: c.name }))}
+                      placeholder="Select cell"
+                      searchPlaceholder="Search cells..."
+                      emptyText="Select sector first."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label className="text-sm font-semibold text-slate-700">Village</Label>
+                    <SearchableSelect
+                      value={formData.villageId}
+                      onValueChange={(value) => setFormData((prev) => ({
+                        ...prev,
+                        villageId: value,
+                        village: villages.find((v) => v.id === value)?.name ?? prev.village,
+                      }))}
+                      options={villages.map((v) => ({ value: v.id, label: v.name }))}
+                      placeholder="Select village"
+                      searchPlaceholder="Search villages..."
+                      emptyText="Select cell first."
+                      className="h-11 rounded-xl !border !border-slate-200 !bg-white text-slate-900 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="location" className="text-sm font-semibold text-slate-700">Additional location (optional)</Label>
                     <Input
                       id="location"
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      placeholder="Location"
-                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="village" className="text-sm font-semibold text-slate-700">Village</Label>
-                    <Input
-                      id="village"
-                      value={formData.village}
-                      onChange={(e) => setFormData({ ...formData, village: e.target.value })}
-                      placeholder="Village"
-                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="district" className="text-sm font-semibold text-slate-700">District</Label>
-                    <Input
-                      id="district"
-                      value={formData.district}
-                      onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                      placeholder="District"
-                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sector" className="text-sm font-semibold text-slate-700">Sector</Label>
-                    <Input
-                      id="sector"
-                      value={formData.sector}
-                      onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-                      placeholder="Sector"
-                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                    />
-                  </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="cell" className="text-sm font-semibold text-slate-700">Cell</Label>
-                    <Input
-                      id="cell"
-                      value={formData.cell}
-                      onChange={(e) => setFormData({ ...formData, cell: e.target.value })}
-                      placeholder="Cell"
+                      placeholder="e.g. landmark, street"
                       className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     />
                   </div>
                 </div>
               </section>
+              )}
 
-              {/* Collection & Payment */}
+              {/* Step 3: Farm details */}
+              {step === 3 && (
+              <section className="space-y-4">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                  <Tractor className="h-4 w-4 text-blue-600" />
+                  Farm details
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="herdSize" className="text-sm font-semibold text-slate-700">Herd size</Label>
+                    <Input
+                      id="herdSize"
+                      type="number"
+                      min={0}
+                      value={formData.herdSize}
+                      onChange={(e) => setFormData({ ...formData, herdSize: e.target.value })}
+                      placeholder="Number of animals"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="address" className="text-sm font-semibold text-slate-700">Address</Label>
+                    <Input
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      placeholder="Full address"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emergencyContact" className="text-sm font-semibold text-slate-700">Emergency contact</Label>
+                    <Input
+                      id="emergencyContact"
+                      value={formData.emergencyContact}
+                      onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
+                      placeholder="Phone or name"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-semibold text-slate-700">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="Email address"
+                      className="h-11 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                </div>
+              </section>
+              )}
+
+              {/* Step 4: Collection & Payment + Assigned Agents */}
+              {step === 4 && (
+              <>
               <section className="space-y-4">
                 <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                   <Wallet className="h-4 w-4 text-blue-600" />
@@ -566,6 +862,8 @@ export function FarmerProfileManager() {
                   )}
                 </div>
               </section>
+              </>
+              )}
             </div>
 
             <DialogFooter className="shrink-0 gap-3 border-t border-slate-200/80 px-6 py-4 bg-slate-50/50">
@@ -580,11 +878,31 @@ export function FarmerProfileManager() {
               >
                 Cancel
               </Button>
+              {step > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(step - 1)}
+                  className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-100"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Back
+                </Button>
+              )}
               <Button
                 type="submit"
                 className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 font-semibold text-white shadow-lg shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
               >
-                {editingFarmer ? "Update Farmer" : "Create Farmer"}
+                {step < 4 ? (
+                  <>
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </>
+                ) : editingFarmer ? (
+                  "Save corrections"
+                ) : (
+                  "Create Farmer"
+                )}
               </Button>
             </DialogFooter>
           </form>

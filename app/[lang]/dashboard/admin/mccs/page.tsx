@@ -133,11 +133,11 @@ export default function AdminMCCsPage() {
       if (result.success) {
         setMccs(result.data || [])
       } else {
-        toast.error(result.error || "Failed to fetch MCCs")
+        toast.error(result.error || "Failed to fetch collection centers")
       }
     } catch (error) {
       console.error("Error fetching MCCs:", error)
-      toast.error("Failed to fetch MCCs")
+      toast.error("Failed to fetch collection centers")
     } finally {
       setIsLoading(false)
     }
@@ -226,7 +226,7 @@ export default function AdminMCCsPage() {
       const result = await response.json()
 
       if (result.success || response.ok) {
-        toast.success("MCC deleted successfully")
+        toast.success("Collection center deleted successfully")
         fetchMCCs()
       } else {
         toast.error(result.error || "Failed to delete MCC")
@@ -277,7 +277,7 @@ export default function AdminMCCsPage() {
       const result = await response.json()
 
       if (result.success || response.ok) {
-        toast.success(editingMCC ? "MCC updated successfully" : "MCC created successfully")
+        toast.success(editingMCC ? "Collection center updated successfully" : "Collection center created successfully")
         setIsDialogOpen(false)
         fetchMCCs()
       } else {
@@ -318,7 +318,7 @@ export default function AdminMCCsPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">MCC Management</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Collection Center Management</h1>
               <p className="text-gray-600 mt-1">Manage Milk Collection Centers</p>
             </div>
             <Button
@@ -326,7 +326,7 @@ export default function AdminMCCsPage() {
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add MCC
+              Add Collection Center
             </Button>
           </div>
         </div>
@@ -336,7 +336,7 @@ export default function AdminMCCsPage() {
           <Card className="border-2 border-blue-200 hover:border-blue-400 transition-all shadow-sm hover:shadow-md">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600">Total MCCs</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600">Total Collection Centers</CardTitle>
                 <Building2 className="h-5 w-5 text-blue-600" />
               </div>
             </CardHeader>
@@ -423,7 +423,7 @@ export default function AdminMCCsPage() {
         <Card className="border-2 border-blue-200">
           <CardHeader>
             <CardTitle className="text-xl font-bold text-blue-900">
-              MCCs ({filteredMCCs.length})
+              Collection Centers ({filteredMCCs.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -518,10 +518,10 @@ export default function AdminMCCsPage() {
                 ]}
                 data={filteredMCCs}
                 searchKey="search"
-                searchPlaceholder="Search MCCs..."
-                emptyMessage="No MCCs found"
+                searchPlaceholder="Search collection centers..."
+                emptyMessage="No collection centers found"
                 emptyDescription="Try adjusting your search or filters"
-                entityName="MCCs"
+                entityName="Collection Centers"
                 pageSize={10}
                 defaultSorting={[{ id: "name", desc: false }]}
                 onRowClick={(row) => handleEditMCC(row)}
@@ -541,11 +541,11 @@ export default function AdminMCCsPage() {
           <DialogContent className="bg-white opacity-100 max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-blue-900">
-                {editingMCC ? "Edit MCC" : "Create New MCC"}
+                {editingMCC ? "Edit Collection Center" : "Create New Collection Center"}
               </DialogTitle>
               <DialogDescription>
                 {editingMCC
-                  ? "Update MCC information and settings"
+                  ? "Update collection center information and settings"
                   : "Add a new Milk Collection Center to the system"}
               </DialogDescription>
             </DialogHeader>
@@ -564,7 +564,7 @@ export default function AdminMCCsPage() {
               <Progress value={(formStep / 4) * 100} className="h-2" />
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={(e) => e.preventDefault()}>
               <div className="min-h-[280px] py-4">
                 {/* Step 1: Basic Information */}
                 {formStep === 1 && (
@@ -808,8 +808,9 @@ export default function AdminMCCsPage() {
                     </Button>
                   ) : (
                     <Button
-                      type="submit"
+                      type="button"
                       disabled={isSubmitting}
+                      onClick={(e) => handleSubmit(e)}
                       className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
                     >
                       {isSubmitting ? (
@@ -818,9 +819,9 @@ export default function AdminMCCsPage() {
                           Saving...
                         </>
                       ) : editingMCC ? (
-                        "Update MCC"
+                        "Update Collection Center"
                       ) : (
-                        "Create MCC"
+                        "Create Collection Center"
                       )}
                     </Button>
                   )}

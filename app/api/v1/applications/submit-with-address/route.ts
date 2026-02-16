@@ -2,7 +2,11 @@ export const dynamic = "force-dynamic"
 
 import { NextResponse } from "next/server"
 import { sql } from "@/lib/database"
-import { RwandaDivisionsDB } from "@/lib/rwanda-divisions-db"
+import {
+  hasRwandaDataInDb,
+  RwandaDivisionsDB,
+} from "@/lib/rwanda-divisions-db"
+import { RwandaAdministrativeService } from "@/lib/rwanda-divisions"
 
 export const runtime = "nodejs"
 
@@ -14,15 +18,24 @@ export async function POST(request: Request) {
     console.log("Received form data:", formData)
     console.log("Received address data:", addressData)
 
-    // Validate address hierarchy if provided
+    // Validate address hierarchy if provided (DB when seeded, else in-memory)
     if (addressData && Object.values(addressData).some((val) => val)) {
-      const isValidHierarchy = await RwandaDivisionsDB.validateHierarchy(
-        addressData.province,
-        addressData.district,
-        addressData.sector,
-        addressData.cell,
-        addressData.village,
-      )
+      const useDb = await hasRwandaDataInDb()
+      const isValidHierarchy = useDb
+        ? await RwandaDivisionsDB.validateHierarchy(
+            addressData.province,
+            addressData.district,
+            addressData.sector,
+            addressData.cell,
+            addressData.village,
+          )
+        : RwandaAdministrativeService.validateHierarchy(
+            addressData.province,
+            addressData.district,
+            addressData.sector,
+            addressData.cell,
+            addressData.village,
+          )
 
       if (!isValidHierarchy) {
         return NextResponse.json({ error: "Invalid address hierarchy" }, { status: 400 })
@@ -60,10 +73,24 @@ export async function POST(request: Request) {
     if (result.length > 0) {
       const application = result[0]
 
-      // Get full address path for response
+      // Get full address path for response (DB when seeded, else in-memory)
       let fullAddress: Record<string, any> | null = null
       if (addressData?.village) {
-        fullAddress = await RwandaDivisionsDB.getFullAddressPath(addressData.village)
+        const useDb = await hasRwandaDataInDb()
+        if (useDb) {
+          fullAddress = await RwandaDivisionsDB.getFullAddressPath(addressData.village)
+        } else {
+          const path = RwandaAdministrativeService.getFullAddressPath(addressData.village)
+          fullAddress = path
+            ? {
+                province: path.province,
+                district: path.district,
+                sector: path.sector,
+                cell: path.cell,
+                village: path.village,
+              }
+            : null
+        }
       }
 
       return NextResponse.json({

@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
@@ -280,7 +281,7 @@ export function FrequencySeasonManager() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-2 border-blue-200 shadow-sm">
+      <Card className="border-2 border-blue-200 shadow-sm min-h-[520px] overflow-visible">
         <CardHeader className="border-b border-blue-200">
           <div className="flex items-center gap-3">
             <Calendar className="h-6 w-6 text-blue-600" />
@@ -295,18 +296,25 @@ export function FrequencySeasonManager() {
         <CardContent className="space-y-6 pt-6">
           <div className="space-y-2">
             <Label className="text-base font-semibold text-gray-700">Select Commodity</Label>
-            <Select value={selectedCommodity} onValueChange={setSelectedCommodity}>
-              <SelectTrigger className="h-11 border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                <SelectValue placeholder="Select a commodity" />
-              </SelectTrigger>
-              <SelectContent>
-                {commodities.map((commodity) => (
-                  <SelectItem key={commodity.id} value={commodity.id}>
-                    {commodity.name} ({commodity.code})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isLoading ? (
+              <div className="flex h-11 w-full items-center gap-2 rounded-lg border-2 border-blue-200 bg-slate-50 px-4 text-sm text-slate-600 dark:bg-slate-800/50 dark:text-slate-400">
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                <span>Loading commodities...</span>
+              </div>
+            ) : (
+              <SearchableSelect
+                value={selectedCommodity}
+                onValueChange={setSelectedCommodity}
+                options={commodities.map((c) => ({
+                  label: `${c.name} (${c.code})`,
+                  value: c.id,
+                }))}
+                placeholder="Select a commodity"
+                searchPlaceholder="Search commodities..."
+                emptyText="No commodity found."
+                className="h-11 border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              />
+            )}
           </div>
 
           {selectedCommodity && (
@@ -622,166 +630,189 @@ export function FrequencySeasonManager() {
 
       {/* Season Configuration Dialog */}
       <Dialog open={isSeasonDialogOpen} onOpenChange={setIsSeasonDialogOpen}>
-        <DialogContent className="max-w-2xl border-2 border-blue-500 bg-white opacity-100">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
-          <DialogHeader className="pb-4 border-b border-blue-200">
-            <DialogTitle className="text-2xl font-bold text-blue-900">Add Season Configuration</DialogTitle>
-            <DialogDescription className="text-blue-700 mt-2">
-              Define a season template for <span className="font-semibold">{selectedCommodityData?.name}</span>
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            onSubmit={handleCreateSeasonTemplate}
-            className="space-y-4"
-          >
-            <div className="space-y-2">
-              <Label htmlFor="season" className="text-base font-semibold text-gray-700">
-                Season <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={seasonFormData.season}
-                onValueChange={(value) => setSeasonFormData({ ...seasonFormData, season: value, customSeasonName: value === "custom" ? seasonFormData.customSeasonName : "" })}
-                required
-              >
-                <SelectTrigger className="border-2 border-blue-200 focus:border-blue-500">
-                  <SelectValue placeholder="Select season" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="A">Season A (March - May)</SelectItem>
-                  <SelectItem value="B">Season B (September - December)</SelectItem>
-                  <SelectItem value="C">Season C (June - August)</SelectItem>
-                  <SelectItem value="custom">Custom Season</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {seasonFormData.season === "custom" && (
-              <div className="space-y-2">
-                <Label htmlFor="customSeasonName" className="text-base font-semibold text-gray-700">
-                  Custom Season Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="customSeasonName"
-                  value={seasonFormData.customSeasonName}
-                  onChange={(e) => setSeasonFormData({ ...seasonFormData, customSeasonName: e.target.value })}
-                  placeholder="e.g. Dry Season, Rainy Season, Off-Season"
-                  className="border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                  required={seasonFormData.season === "custom"}
-                />
-                <p className="text-xs text-blue-700">
-                  Enter a name for your custom season
-                </p>
+        <DialogContent className="overflow-hidden border-0 bg-slate-50 p-0 shadow-xl max-w-2xl max-h-[90vh] flex flex-col opacity-100 dark:bg-slate-950">
+          <div className="border-b border-slate-200 bg-white px-6 py-5 dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900">
+                <Calendar className="h-5 w-5" />
               </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="expectedHarvestStartDate" className="text-base font-semibold text-gray-700">Harvest Start Date</Label>
-                <Input
-                  id="expectedHarvestStartDate"
-                  type="date"
-                  value={seasonFormData.expectedHarvestStartDate}
-                  onChange={(e) =>
-                    setSeasonFormData({ ...seasonFormData, expectedHarvestStartDate: e.target.value })
-                  }
-                  style={{ border: '2px solid lightblue' }}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="expectedHarvestEndDate" className="text-base font-semibold text-gray-700">Harvest End Date</Label>
-                <Input
-                  id="expectedHarvestEndDate"
-                  type="date"
-                  value={seasonFormData.expectedHarvestEndDate}
-                  onChange={(e) =>
-                    setSeasonFormData({ ...seasonFormData, expectedHarvestEndDate: e.target.value })
-                  }
-                  style={{ border: '2px solid lightblue' }}
-                />
+              <div>
+                <DialogTitle className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+                  Add Season Configuration
+                </DialogTitle>
+                <DialogDescription className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                  Define a season template for <span className="font-medium text-slate-700 dark:text-slate-300">{selectedCommodityData?.name}</span>
+                </DialogDescription>
               </div>
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="collectionFrequency" className="text-base font-semibold text-gray-700">Collection Frequency During Season</Label>
-              <Select
-                value={seasonFormData.collectionFrequency}
-                onValueChange={(value) =>
-                  setSeasonFormData({ ...seasonFormData, collectionFrequency: value })
-                }
-              >
-                <SelectTrigger className="border-2 border-blue-200 focus:border-blue-500">
-                  <SelectValue placeholder="Select frequency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="seasonal">Seasonal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="region" className="text-base font-semibold text-gray-700">Region (Optional)</Label>
-              <Input
-                id="region"
-                value={seasonFormData.region}
-                onChange={(e) => setSeasonFormData({ ...seasonFormData, region: e.target.value })}
-                placeholder="e.g. Northern Province, Eastern Province"
-                className="border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              />
-              <p className="text-xs text-blue-700">
-                Leave empty for default, or specify for region-specific calendars
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes" className="text-base font-semibold text-gray-700">Notes</Label>
-              <Textarea
-                id="notes"
-                value={seasonFormData.notes}
-                onChange={(e) => setSeasonFormData({ ...seasonFormData, notes: e.target.value })}
-                placeholder="Additional notes about this season"
-                rows={3}
-                style={{ border: '2px solid lightblue' }}
-              />
-            </div>
-
-            <DialogFooter className="gap-2 pt-4 border-t-2 border-blue-300">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsSeasonDialogOpen(false)
-                  setSeasonFormData({
-                    season: "",
-                    customSeasonName: "",
-                    expectedHarvestStartDate: "",
-                    expectedHarvestEndDate: "",
-                    collectionFrequency: "",
-                    region: "",
-                    notes: "",
-                  })
-                }}
-                className="border-blue-200 hover:bg-blue-50"
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit"
-                disabled={isSavingSeason}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white disabled:opacity-70"
-              >
-                {isSavingSeason ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save Season"
+          <form onSubmit={handleCreateSeasonTemplate} className="flex flex-1 flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+              <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900/50">
+                <h4 className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-200">Season</h4>
+                <div className="space-y-2">
+                  <Label htmlFor="season" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Season <span className="text-red-500">*</span>
+                  </Label>
+                  <SearchableSelect
+                    value={seasonFormData.season}
+                    onValueChange={(value) => setSeasonFormData({ ...seasonFormData, season: value, customSeasonName: value === "custom" ? seasonFormData.customSeasonName : "" })}
+                    options={[
+                      { label: "Season A (March - May)", value: "A" },
+                      { label: "Season B (September - December)", value: "B" },
+                      { label: "Season C (June - August)", value: "C" },
+                      { label: "Custom Season", value: "custom" },
+                    ]}
+                    placeholder="Select season"
+                    searchPlaceholder="Search season..."
+                    emptyText="No season found."
+                    className="border-slate-200 dark:border-slate-700"
+                  />
+                </div>
+                {seasonFormData.season === "custom" && (
+                  <div className="mt-4 space-y-2">
+                    <Label htmlFor="customSeasonName" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Custom Season Name <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="customSeasonName"
+                      value={seasonFormData.customSeasonName}
+                      onChange={(e) => setSeasonFormData({ ...seasonFormData, customSeasonName: e.target.value })}
+                      placeholder="e.g. Dry Season, Rainy Season"
+                      className="border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-slate-700 dark:bg-slate-800"
+                      required={seasonFormData.season === "custom"}
+                    />
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Enter a name for your custom season</p>
+                  </div>
                 )}
-              </Button>
-            </DialogFooter>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900/50">
+                <h4 className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-200">Harvest window</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="expectedHarvestStartDate" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Harvest start date
+                    </Label>
+                    <Input
+                      id="expectedHarvestStartDate"
+                      type="date"
+                      value={seasonFormData.expectedHarvestStartDate}
+                      onChange={(e) =>
+                        setSeasonFormData({ ...seasonFormData, expectedHarvestStartDate: e.target.value })
+                      }
+                      className="border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-slate-700 dark:bg-slate-800"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="expectedHarvestEndDate" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Harvest end date
+                    </Label>
+                    <Input
+                      id="expectedHarvestEndDate"
+                      type="date"
+                      value={seasonFormData.expectedHarvestEndDate}
+                      onChange={(e) =>
+                        setSeasonFormData({ ...seasonFormData, expectedHarvestEndDate: e.target.value })
+                      }
+                      className="border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-slate-700 dark:bg-slate-800"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900/50">
+                <h4 className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-200">Frequency & region</h4>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="collectionFrequency" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Collection frequency during season
+                    </Label>
+                    <SearchableSelect
+                      value={seasonFormData.collectionFrequency}
+                      onValueChange={(value) =>
+                        setSeasonFormData({ ...seasonFormData, collectionFrequency: value })
+                      }
+                      options={[
+                        { label: "Daily", value: "daily" },
+                        { label: "Weekly", value: "weekly" },
+                        { label: "Seasonal", value: "seasonal" },
+                      ]}
+                      placeholder="Select frequency"
+                      searchPlaceholder="Search frequency..."
+                      emptyText="No frequency found."
+                      className="border-slate-200 dark:border-slate-700"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="region" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Region (optional)
+                    </Label>
+                    <Input
+                      id="region"
+                      value={seasonFormData.region}
+                      onChange={(e) => setSeasonFormData({ ...seasonFormData, region: e.target.value })}
+                      placeholder="e.g. Northern Province, Eastern Province"
+                      className="border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-slate-400 dark:border-slate-700 dark:bg-slate-800"
+                    />
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Leave empty for default, or specify for region-specific calendars
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900/50">
+                <h4 className="mb-4 text-sm font-semibold text-slate-800 dark:text-slate-200">Notes</h4>
+                <Textarea
+                  id="notes"
+                  value={seasonFormData.notes}
+                  onChange={(e) => setSeasonFormData({ ...seasonFormData, notes: e.target.value })}
+                  placeholder="Additional notes about this season"
+                  rows={3}
+                  className="border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-slate-400 resize-none dark:border-slate-700 dark:bg-slate-800"
+                />
+              </div>
+            </div>
+
+            <div className="border-t border-slate-200 bg-white px-6 py-4 dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsSeasonDialogOpen(false)
+                    setSeasonFormData({
+                      season: "",
+                      customSeasonName: "",
+                      expectedHarvestStartDate: "",
+                      expectedHarvestEndDate: "",
+                      collectionFrequency: "",
+                      region: "",
+                      notes: "",
+                    })
+                  }}
+                  className="border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSavingSeason}
+                  className="bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 disabled:opacity-70"
+                >
+                  {isSavingSeason ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Season"
+                  )}
+                </Button>
+              </div>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

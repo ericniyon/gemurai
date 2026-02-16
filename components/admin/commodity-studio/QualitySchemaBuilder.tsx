@@ -14,13 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import { Badge } from "@/components/ui/badge"
 import Swal from "sweetalert2"
 import { Plus, Settings, Trash2, Info, Loader2, ChevronLeft, ChevronRight } from "lucide-react"
@@ -29,6 +23,7 @@ const PER_PAGE = 5
 
 export function QualitySchemaBuilder() {
   const [commodities, setCommodities] = useState<any[]>([])
+  const [isLoadingCommodities, setIsLoadingCommodities] = useState(true)
   const [selectedCommodity, setSelectedCommodity] = useState<string>("")
   const [qualityFields, setQualityFields] = useState<any[]>([])
   const [qualityRules, setQualityRules] = useState<any[]>([])
@@ -78,6 +73,7 @@ export function QualitySchemaBuilder() {
   }, [selectedCommodity, qualityRules.length])
 
   const fetchCommodities = async () => {
+    setIsLoadingCommodities(true)
     try {
       const token = localStorage.getItem("Gemurai_token")
       const response = await fetch("/api/v1/admin/commodity-studio/commodities", {
@@ -91,6 +87,8 @@ export function QualitySchemaBuilder() {
       }
     } catch (error) {
       console.error("Error fetching commodities:", error)
+    } finally {
+      setIsLoadingCommodities(false)
     }
   }
 
@@ -278,15 +276,15 @@ export function QualitySchemaBuilder() {
   const selectedCommodityData = commodities.find((c) => c.id === selectedCommodity)
 
   return (
-    <div className="space-y-6">
-      <Card className="border-2 border-blue-200 shadow-sm">
+    <div className="space-y-6 overflow-visible">
+      <Card className="border-2 border-blue-200 shadow-sm min-h-[520px] overflow-visible">
         <CardHeader className="border-b border-blue-200">
           <div className="flex items-center gap-3">
             <Settings className="h-6 w-6 text-blue-600" />
             <div>
               <CardTitle className="text-2xl font-bold text-blue-900">Quality Schema Builder</CardTitle>
               <CardDescription className="text-gray-600 mt-1">
-                Define dynamic quality fields (Fat %, Moisture %, Grade, etc.) and validation rules without code changes. Quality forms load automatically at MCC intake.
+                Define dynamic quality fields (Fat %, Moisture %, Grade, etc.) and validation rules without code changes. Quality forms load automatically at collection center intake.
               </CardDescription>
             </div>
           </div>
@@ -294,18 +292,25 @@ export function QualitySchemaBuilder() {
         <CardContent className="space-y-6 pt-6">
           <div className="space-y-2">
             <Label className="text-base font-semibold text-gray-700">Select Commodity</Label>
-            <Select value={selectedCommodity} onValueChange={setSelectedCommodity}>
-              <SelectTrigger className="h-11 border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                <SelectValue placeholder="Select a commodity" />
-              </SelectTrigger>
-              <SelectContent>
-                {commodities.map((commodity) => (
-                  <SelectItem key={commodity.id} value={commodity.id}>
-                    {commodity.name} ({commodity.code})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isLoadingCommodities ? (
+              <div className="flex h-11 w-full items-center gap-2 rounded-lg border-2 border-blue-200 bg-slate-50 px-4 text-sm text-slate-600 dark:bg-slate-800/50 dark:text-slate-400">
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                <span>Loading commodities...</span>
+              </div>
+            ) : (
+              <SearchableSelect
+                value={selectedCommodity}
+                onValueChange={setSelectedCommodity}
+                options={commodities.map((c) => ({
+                  label: `${c.name} (${c.code})`,
+                  value: c.id,
+                }))}
+                placeholder="Select a commodity"
+                searchPlaceholder="Search commodities..."
+                emptyText="No commodity found."
+                className="h-11 border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              />
+            )}
           </div>
 
           {selectedCommodity && (
@@ -316,7 +321,7 @@ export function QualitySchemaBuilder() {
                     Quality Fields for {selectedCommodityData?.name}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    These fields will appear dynamically in collection forms at MCC intake
+                    These fields will appear dynamically in collection forms at collection center intake
                   </p>
                 </div>
                 <Button 
@@ -589,50 +594,49 @@ export function QualitySchemaBuilder() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="fieldType" className="text-base font-semibold text-gray-700">Field Type</Label>
-                <Select
+                <SearchableSelect
                   value={fieldFormData.fieldType}
                   onValueChange={(value) => {
-                    setFieldFormData({ 
-                      ...fieldFormData, 
+                    setFieldFormData({
+                      ...fieldFormData,
                       fieldType: value as any,
-                      // Reset options when changing from dropdown
                       options: value !== "DROPDOWN" ? [] : fieldFormData.options,
-                      optionsText: value !== "DROPDOWN" ? "" : fieldFormData.optionsText
+                      optionsText: value !== "DROPDOWN" ? "" : fieldFormData.optionsText,
                     })
                   }}
-                >
-                  <SelectTrigger className="border-2 border-blue-200 focus:border-blue-500">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NUMERIC">Numeric (e.g. Fat %, Moisture %)</SelectItem>
-                    <SelectItem value="DROPDOWN">Dropdown (e.g. Grade A, B, C)</SelectItem>
-                    <SelectItem value="BOOLEAN">Boolean (Yes/No)</SelectItem>
-                    <SelectItem value="INDICATOR">Indicator (Visual indicator)</SelectItem>
-                    <SelectItem value="TEXT">Text (Free text input)</SelectItem>
-                  </SelectContent>
-                </Select>
+                  options={[
+                    { label: "Numeric (e.g. Fat %, Moisture %)", value: "NUMERIC" },
+                    { label: "Dropdown (e.g. Grade A, B, C)", value: "DROPDOWN" },
+                    { label: "Boolean (Yes/No)", value: "BOOLEAN" },
+                    { label: "Indicator (Visual indicator)", value: "INDICATOR" },
+                    { label: "Text (Free text input)", value: "TEXT" },
+                  ]}
+                  placeholder="Select field type"
+                  searchPlaceholder="Search field type..."
+                  emptyText="No field type found."
+                  className="border-2 border-blue-200 focus:border-blue-500"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="dataType" className="text-base font-semibold text-gray-700">Data Type</Label>
-                <Select
+                <SearchableSelect
                   value={fieldFormData.dataType}
                   onValueChange={(value) =>
                     setFieldFormData({ ...fieldFormData, dataType: value as any })
                   }
-                >
-                  <SelectTrigger className="border-2 border-blue-200 focus:border-blue-500">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PERCENTAGE">Percentage (e.g. 3.5%)</SelectItem>
-                    <SelectItem value="DECIMAL">Decimal (e.g. 3.5)</SelectItem>
-                    <SelectItem value="INTEGER">Integer (e.g. 5)</SelectItem>
-                    <SelectItem value="STRING">String (Text)</SelectItem>
-                    <SelectItem value="BOOLEAN">Boolean (True/False)</SelectItem>
-                  </SelectContent>
-                </Select>
+                  options={[
+                    { label: "Percentage (e.g. 3.5%)", value: "PERCENTAGE" },
+                    { label: "Decimal (e.g. 3.5)", value: "DECIMAL" },
+                    { label: "Integer (e.g. 5)", value: "INTEGER" },
+                    { label: "String (Text)", value: "STRING" },
+                    { label: "Boolean (True/False)", value: "BOOLEAN" },
+                  ]}
+                  placeholder="Select data type"
+                  searchPlaceholder="Search data type..."
+                  emptyText="No data type found."
+                  className="border-2 border-blue-200 focus:border-blue-500"
+                />
               </div>
             </div>
 
@@ -748,67 +752,66 @@ export function QualitySchemaBuilder() {
 
             <div className="space-y-2">
               <Label htmlFor="qualityFieldId" className="text-base font-semibold text-gray-700">Quality Field (Optional)</Label>
-              <Select
+              <SearchableSelect
                 value={ruleFormData.qualityFieldId}
                 onValueChange={(value) =>
                   setRuleFormData({ ...ruleFormData, qualityFieldId: value })
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select field (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">General Rule</SelectItem>
-                  {qualityFields.map((field) => (
-                    <SelectItem key={field.id} value={field.id}>
-                      {field.fieldName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={[
+                  { label: "General Rule", value: "none" },
+                  ...qualityFields.map((field) => ({
+                    label: field.fieldName,
+                    value: field.id,
+                  })),
+                ]}
+                placeholder="Select field (optional)"
+                searchPlaceholder="Search quality field..."
+                emptyText="No quality field found."
+                className="border-2 border-blue-200 focus:border-blue-500"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="ruleType" className="text-base font-semibold text-gray-700">Rule Type</Label>
-                <Select
+                <SearchableSelect
                   value={ruleFormData.ruleType}
                   onValueChange={(value) =>
                     setRuleFormData({ ...ruleFormData, ruleType: value as any })
                   }
-                >
-                  <SelectTrigger className="border-2 border-blue-200 focus:border-blue-500">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PASS">Pass</SelectItem>
-                    <SelectItem value="FAIL">Fail</SelectItem>
-                    <SelectItem value="CONDITIONAL">Conditional</SelectItem>
-                    <SelectItem value="WARNING">Warning</SelectItem>
-                  </SelectContent>
-                </Select>
+                  options={[
+                    { label: "Pass", value: "PASS" },
+                    { label: "Fail", value: "FAIL" },
+                    { label: "Conditional", value: "CONDITIONAL" },
+                    { label: "Warning", value: "WARNING" },
+                  ]}
+                  placeholder="Select rule type"
+                  searchPlaceholder="Search rule type..."
+                  emptyText="No rule type found."
+                  className="border-2 border-blue-200 focus:border-blue-500"
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="thresholdOperator" className="text-base font-semibold text-gray-700">Operator</Label>
-                <Select
+                <SearchableSelect
                   value={ruleFormData.thresholdOperator}
                   onValueChange={(value) =>
                     setRuleFormData({ ...ruleFormData, thresholdOperator: value })
                   }
-                >
-                  <SelectTrigger className="border-2 border-blue-200 focus:border-blue-500">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value=">">Greater than (&gt;)</SelectItem>
-                    <SelectItem value="<">Less than (&lt;)</SelectItem>
-                    <SelectItem value=">=">Greater or equal (&gt;=)</SelectItem>
-                    <SelectItem value="<=">Less or equal (&lt;=)</SelectItem>
-                    <SelectItem value="==">Equal (==)</SelectItem>
-                    <SelectItem value="!=">Not equal (!=)</SelectItem>
-                  </SelectContent>
-                </Select>
+                  options={[
+                    { label: "Greater than (>)", value: ">" },
+                    { label: "Less than (<)", value: "<" },
+                    { label: "Greater or equal (>=)", value: ">=" },
+                    { label: "Less or equal (<=)", value: "<=" },
+                    { label: "Equal (==)", value: "==" },
+                    { label: "Not equal (!=)", value: "!=" },
+                  ]}
+                  placeholder="Select operator"
+                  searchPlaceholder="Search operator..."
+                  emptyText="No operator found."
+                  className="border-2 border-blue-200 focus:border-blue-500"
+                />
               </div>
             </div>
 

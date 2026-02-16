@@ -57,6 +57,21 @@ export default function DependentDropdownDB({
     villages: false,
   })
 
+  // Sync initialValues when they change (e.g. async-loaded address in edit mode)
+  useEffect(() => {
+    if (initialValues.province !== undefined) setSelectedProvince(initialValues.province || "")
+    if (initialValues.district !== undefined) setSelectedDistrict(initialValues.district || "")
+    if (initialValues.sector !== undefined) setSelectedSector(initialValues.sector || "")
+    if (initialValues.cell !== undefined) setSelectedCell(initialValues.cell || "")
+    if (initialValues.village !== undefined) setSelectedVillage(initialValues.village || "")
+  }, [
+    initialValues.province,
+    initialValues.district,
+    initialValues.sector,
+    initialValues.cell,
+    initialValues.village,
+  ])
+
   // Load provinces on component mount
   useEffect(() => {
     loadProvinces()
@@ -86,20 +101,20 @@ export default function DependentDropdownDB({
 
   useEffect(() => {
     if (selectedSector) {
-      loadCells(selectedSector)
+      loadCells(selectedSector, selectedDistrict || undefined)
     } else {
       setCells([])
       setVillages([])
     }
-  }, [selectedSector])
+  }, [selectedSector, selectedDistrict])
 
   useEffect(() => {
     if (selectedCell) {
-      loadVillages(selectedCell)
+      loadVillages(selectedCell, selectedSector || undefined)
     } else {
       setVillages([])
     }
-  }, [selectedCell])
+  }, [selectedCell, selectedSector])
 
   // Notify parent of address changes
   useEffect(() => {
@@ -113,16 +128,17 @@ export default function DependentDropdownDB({
     onAddressChange(currentAddress)
   }, [selectedProvince, selectedDistrict, selectedSector, selectedCell, selectedVillage])
 
+  const baseUrl = "/api/rwanda-divisions"
+
   const loadProvinces = async () => {
     setLoading((prev) => ({ ...prev, provinces: true }))
     try {
-      const response = await fetch("/api/v1/rwanda-divisions?type=provinces")
-      if (response.ok) {
-        const data = await response.json()
-        setProvinces(data)
-      }
+      const response = await fetch(`${baseUrl}?type=provinces`)
+      const data = response.ok ? await response.json() : null
+      setProvinces(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error("Error loading provinces:", error)
+      setProvinces([])
     } finally {
       setLoading((prev) => ({ ...prev, provinces: false }))
     }
@@ -131,13 +147,12 @@ export default function DependentDropdownDB({
   const loadDistricts = async (provinceId: string) => {
     setLoading((prev) => ({ ...prev, districts: true }))
     try {
-      const response = await fetch(`/api/v1/rwanda-divisions?type=districts&parentId=${provinceId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setDistricts(data)
-      }
+      const response = await fetch(`${baseUrl}?type=districts&parentId=${encodeURIComponent(provinceId)}`)
+      const data = response.ok ? await response.json() : null
+      setDistricts(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error("Error loading districts:", error)
+      setDistricts([])
     } finally {
       setLoading((prev) => ({ ...prev, districts: false }))
     }
@@ -146,43 +161,44 @@ export default function DependentDropdownDB({
   const loadSectors = async (districtId: string) => {
     setLoading((prev) => ({ ...prev, sectors: true }))
     try {
-      const response = await fetch(`/api/v1/rwanda-divisions?type=sectors&parentId=${districtId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setSectors(data)
-      }
+      const response = await fetch(`${baseUrl}?type=sectors&parentId=${encodeURIComponent(districtId)}`)
+      const data = response.ok ? await response.json() : null
+      setSectors(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error("Error loading sectors:", error)
+      setSectors([])
     } finally {
       setLoading((prev) => ({ ...prev, sectors: false }))
     }
   }
 
-  const loadCells = async (sectorId: string) => {
+  const loadCells = async (sectorId: string, districtId?: string) => {
     setLoading((prev) => ({ ...prev, cells: true }))
     try {
-      const response = await fetch(`/api/v1/rwanda-divisions?type=cells&parentId=${sectorId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setCells(data)
-      }
+      const params = new URLSearchParams({ type: "cells", parentId: sectorId })
+      if (districtId) params.set("districtId", districtId)
+      const response = await fetch(`${baseUrl}?${params.toString()}`)
+      const data = response.ok ? await response.json() : null
+      setCells(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error("Error loading cells:", error)
+      setCells([])
     } finally {
       setLoading((prev) => ({ ...prev, cells: false }))
     }
   }
 
-  const loadVillages = async (cellId: string) => {
+  const loadVillages = async (cellId: string, sectorId?: string) => {
     setLoading((prev) => ({ ...prev, villages: true }))
     try {
-      const response = await fetch(`/api/v1/rwanda-divisions?type=villages&parentId=${cellId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setVillages(data)
-      }
+      const params = new URLSearchParams({ type: "villages", parentId: cellId })
+      if (sectorId) params.set("sectorId", sectorId)
+      const response = await fetch(`${baseUrl}?${params.toString()}`)
+      const data = response.ok ? await response.json() : null
+      setVillages(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error("Error loading villages:", error)
+      setVillages([])
     } finally {
       setLoading((prev) => ({ ...prev, villages: false }))
     }
@@ -265,11 +281,7 @@ export default function DependentDropdownDB({
             <SelectContent>
               {provinces.map((province) => (
                 <SelectItem key={province.id} value={province.id}>
-                  {lang === 'rw' 
-                    ? province.id === 'eastern' 
-                      ? "Intara y'Iburasirazuba" 
-                      : "Amajyaruguru"
-                    : province.name}
+                  {province.name}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -11,6 +11,7 @@ datasource db {
 
 model User {
   id                            String                     @id @default(cuid())
+  displayId                     String?                    @unique // Format: COUNTRY-YEAR-SEQ e.g. RW-2026-00001 (immutable, unique, not PK)
   email                         String                     @unique
   phone                         String?                    @unique
   name                          String
@@ -28,6 +29,19 @@ model User {
   national_id                   String?
   gender                        String?
   district                      String?
+  dateOfBirth                   DateTime?
+  country                       String?
+  city                          String?
+  address                       String?
+  postalCode                    String?
+  languagePreference            String?
+  alternatePhone                String?
+  // Organization registration (optional): COOPERATIVE | COMPANY | NGO
+  organizationType               String?
+  businessName                  String?
+  tin                           String?
+  businessSize                  String?
+  contactPerson                 String?
   pharmacyId                    String?
   // Geo-location fields (for agents/field agents)
   gpsLatitude                   Float?
@@ -72,6 +86,7 @@ model User {
   serviceRequester              service_deliveries[]       @relation("ServiceRequester")
   reconciliationResolver        reconciliation_records[]   @relation("ReconciliationResolver")
   commodityCollectionAgent      commodity_collections[]    @relation("CommodityCollectionAgent")
+  cropCollectionsAsAgent        crop_collections[]         @relation("CropCollectionAgent")
   idVerifier                    id_verifications[]         @relation("IDVerifier")
   farmerAgentAssignments        farmer_agent_assignments[] @relation("FarmerAgentAssignments")
   farmerAgentAssignmentCreator  farmer_agent_assignments[] @relation("FarmerAgentAssignmentCreator")
@@ -2450,10 +2465,12 @@ model crop_collections {
   productId       String?
   stockMoveId     String?
   notes           String?
+  agentId        String?   // Umucunda who delivered on behalf of farmer
   createdAt       DateTime             @default(now())
   updatedAt       DateTime             @updatedAt
 
   farmer     farmers       @relation(fields: [farmerId], references: [id])
+  agent      User?         @relation("CropCollectionAgent", fields: [agentId], references: [id])
   mcc        mccs          @relation(fields: [mccId], references: [id])
   cropType   crop_types    @relation(fields: [cropTypeId], references: [id])
   cropPeriod crop_periods? @relation(fields: [cropPeriodId], references: [id])
@@ -2463,6 +2480,7 @@ model crop_collections {
   stockMove  StockMove?    @relation(fields: [stockMoveId], references: [id])
 
   @@index([farmerId])
+  @@index([agentId])
   @@index([mccId])
   @@index([collectionDate])
   @@index([status])
@@ -2673,4 +2691,80 @@ model farmer_agent_assignments {
   @@index([agentId])
   @@index([isActive])
   @@map("farmer_agent_assignments")
+}
+
+// Rwanda Administrative Divisions (official hierarchy: Province -> District -> Sector -> Cell -> Village)
+model rwanda_province {
+  id        String   @id @default(cuid())
+  name      String   @unique // e.g. East, Kigali, North, South, West
+  slug      String   @unique // lowercase e.g. east, kigali
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  districts rwanda_district[]
+
+  @@map("rwanda_provinces")
+}
+
+model rwanda_district {
+  id         String   @id @default(cuid())
+  name       String
+  slug       String   // lowercase, unique within province
+  provinceId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  province rwanda_province @relation(fields: [provinceId], references: [id], onDelete: Cascade)
+  sectors  rwanda_sector[]
+
+  @@unique([provinceId, slug])
+  @@index([provinceId])
+  @@map("rwanda_districts")
+}
+
+model rwanda_sector {
+  id         String   @id @default(cuid())
+  name       String
+  slug       String
+  districtId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  district rwanda_district @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  cells    rwanda_cell[]
+
+  @@unique([districtId, slug])
+  @@index([districtId])
+  @@map("rwanda_sectors")
+}
+
+model rwanda_cell {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String
+  sectorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sector   rwanda_sector  @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+  villages rwanda_village[]
+
+  @@unique([sectorId, slug])
+  @@index([sectorId])
+  @@map("rwanda_cells")
+}
+
+model rwanda_village {
+  id       String   @id @default(cuid())
+  name     String
+  slug     String
+  cellId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cell rwanda_cell @relation(fields: [cellId], references: [id], onDelete: Cascade)
+
+  @@unique([cellId, slug])
+  @@index([cellId])
+  @@map("rwanda_villages")
 }

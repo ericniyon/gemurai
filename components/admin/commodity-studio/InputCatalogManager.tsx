@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import Swal from "sweetalert2"
@@ -224,7 +225,7 @@ export function InputCatalogManager() {
 
   return (
     <div className="space-y-6">
-      <Card className="border-2 border-blue-200 shadow-sm">
+      <Card className="border-2 border-blue-200 shadow-sm min-h-[520px] overflow-visible">
         <CardHeader className="border-b border-blue-200">
           <div className="flex items-center gap-3">
             <Database className="h-6 w-6 text-blue-600" />
@@ -239,18 +240,25 @@ export function InputCatalogManager() {
         <CardContent className="space-y-6 pt-6">
           <div className="space-y-2">
             <Label className="text-base font-semibold text-gray-700">Select Commodity</Label>
-            <Select value={selectedCommodity} onValueChange={setSelectedCommodity}>
-              <SelectTrigger className="h-11 border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
-                <SelectValue placeholder="Select a commodity" />
-              </SelectTrigger>
-              <SelectContent>
-                {commodities.map((commodity) => (
-                  <SelectItem key={commodity.id} value={commodity.id}>
-                    {commodity.name} ({commodity.code})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isLoading ? (
+              <div className="flex h-11 w-full items-center gap-2 rounded-lg border-2 border-blue-200 bg-slate-50 px-4 text-sm text-slate-600 dark:bg-slate-800/50 dark:text-slate-400">
+                <Loader2 className="h-4 w-4 shrink-0 animate-spin" />
+                <span>Loading commodities...</span>
+              </div>
+            ) : (
+              <SearchableSelect
+                value={selectedCommodity}
+                onValueChange={setSelectedCommodity}
+                options={commodities.map((c) => ({
+                  label: `${c.name} (${c.code})`,
+                  value: c.id,
+                }))}
+                placeholder="Select a commodity"
+                searchPlaceholder="Search commodities..."
+                emptyText="No commodity found."
+                className="h-11 border-2 border-blue-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              />
+            )}
           </div>
 
           {selectedCommodity && (

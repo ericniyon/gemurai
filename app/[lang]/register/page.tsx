@@ -8,7 +8,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Rocket, Target, Heart, Eye, EyeOff, User, UserPlus, Mail, Phone, Lock, Building, Hash } from "lucide-react"
+import { Loader2, Rocket, Target, Heart, Eye, EyeOff, User, UserPlus, Mail, Phone, Lock, Building, Hash, Users, HeartHandshake } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/hooks/use-toast"
 import { AuthHeader } from "@/components/auth-header"
@@ -36,6 +36,9 @@ function RegisterContent() {
     companyName: "",
     contactName: "",
     tinNumber: "",
+    businessSize: "",
+    nationalId: "",
+    dateOfBirth: "",
   })
   const [formData, setFormData] = useState({
     fullName: "",
@@ -47,7 +50,15 @@ function RegisterContent() {
     companyName: "",
     contactName: "",
     tinNumber: "",
+    businessSize: "",
     isActive: false,
+    // Optional: personal, identification, contact
+    gender: "",
+    dateOfBirth: "",
+    nationalId: "",
+    alternatePhone: "",
+    district: "",
+    address: "",
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,10 +79,9 @@ function RegisterContent() {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value)
-    // Set default role based on tab
     if (value === "individual") {
       setFormData((prev) => ({ ...prev, role: "CONSUMER" }))
-    } else if (value === "company") {
+    } else {
       setFormData((prev) => ({ ...prev, role: "EMPLOYER" }))
     }
   }
@@ -82,7 +92,6 @@ function RegisterContent() {
     console.log("Active Tab:", activeTab)
     console.log("Is Loading:", isLoading)
 
-    // Clear all field errors first
     setFieldErrors({
       fullName: "",
       email: "",
@@ -92,6 +101,9 @@ function RegisterContent() {
       companyName: "",
       contactName: "",
       tinNumber: "",
+      businessSize: "",
+      nationalId: "",
+      dateOfBirth: "",
     })
 
     let hasErrors = false
@@ -141,8 +153,8 @@ function RegisterContent() {
       console.log("✅ Confirm Password length:", formData.confirmPassword.length)
     }
 
-    // Company-specific validation
-    if (activeTab === "company") {
+    // Organization validation (Cooperative, Company, NGO)
+    if (["cooperative", "company", "ngo"].includes(activeTab)) {
       console.log("=== COMPANY VALIDATION ===")
       
       if (!formData.companyName || formData.companyName.trim() === "") {
@@ -172,6 +184,11 @@ function RegisterContent() {
           console.log("❌ TIN Number length is not 9:", formData.tinNumber.length)
           hasErrors = true
         }
+      }
+
+      if (!formData.businessSize || !['SMALL', 'MEDIUM', 'LARGE'].includes(formData.businessSize)) {
+        setFieldErrors(prev => ({ ...prev, businessSize: "Please select a business size" }))
+        hasErrors = true
       }
     }
 
@@ -245,7 +262,7 @@ function RegisterContent() {
         return false
       }
 
-      if (activeTab === "company" && data.tinNumberExists) {
+      if (["cooperative", "company", "ngo"].includes(activeTab) && data.tinNumberExists) {
         console.log("❌ TIN already exists, showing field error...")
         setFieldErrors(prev => ({ ...prev, tinNumber: "This TIN number is already registered. Please use a different TIN number." }))
         return false
@@ -285,21 +302,30 @@ function RegisterContent() {
     setIsLoading(true)
 
     try {
-      const response = await fetch('/api/v1/auth/register', {
+      const response = await fetch('/api/v1/users/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          registrationType: activeTab,
           name: activeTab === "individual" ? formData.fullName : formData.contactName,
           email: formData.email,
           phone: formData.phone,
           password: formData.password,
           role: formData.role,
-          companyName: formData.companyName,
-          contactName: formData.contactName,
-          tinNumber: formData.tinNumber,
-          isActive: formData.isActive,
+          // Optional: personal, identification, contact
+          gender: formData.gender || undefined,
+          dateOfBirth: formData.dateOfBirth || undefined,
+          nationalId: formData.nationalId || undefined,
+          alternatePhone: formData.alternatePhone || undefined,
+          district: formData.district || undefined,
+          address: formData.address || undefined,
+          // Company
+          businessName: formData.companyName || undefined,
+          contactPerson: formData.contactName || undefined,
+          tin: formData.tinNumber || undefined,
+          businessSize: formData.businessSize || undefined,
         }),
       })
 
@@ -424,20 +450,34 @@ function RegisterContent() {
                   </div>
                 )}
                 <Tabs defaultValue="individual" onValueChange={handleTabChange} className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 h-12 p-1.5 bg-slate-100/80 rounded-2xl mb-6">
+                  <TabsList className="grid w-full grid-cols-4 h-auto p-1.5 bg-slate-100/80 rounded-2xl mb-6 gap-1">
                     <TabsTrigger 
                       value="individual" 
-                      className="rounded-xl text-sm font-medium text-slate-600 data-[state=active]:bg-white data-[state=active]:text-[#0099f2] data-[state=active]:shadow-md data-[state=active]:shadow-slate-200/50 data-[state=active]:border-0 transition-all duration-200 flex items-center justify-center gap-2"
+                      className="rounded-xl text-xs sm:text-sm font-medium text-slate-600 data-[state=active]:bg-white data-[state=active]:text-[#0099f2] data-[state=active]:shadow-md data-[state=active]:shadow-slate-200/50 data-[state=active]:border-0 transition-all duration-200 flex items-center justify-center gap-1.5 py-2.5"
                     >
-                      <User className="h-4 w-4" />
-                      {t.form.tabs.individual}
+                      <User className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{t.form.tabs.individual}</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="cooperative" 
+                      className="rounded-xl text-xs sm:text-sm font-medium text-slate-600 data-[state=active]:bg-white data-[state=active]:text-[#0099f2] data-[state=active]:shadow-md data-[state=active]:shadow-slate-200/50 data-[state=active]:border-0 transition-all duration-200 flex items-center justify-center gap-1.5 py-2.5"
+                    >
+                      <Users className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{t.form.tabs.cooperative}</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="company" 
-                      className="rounded-xl text-sm font-medium text-slate-600 data-[state=active]:bg-white data-[state=active]:text-[#0099f2] data-[state=active]:shadow-md data-[state=active]:shadow-slate-200/50 data-[state=active]:border-0 transition-all duration-200 flex items-center justify-center gap-2"
+                      className="rounded-xl text-xs sm:text-sm font-medium text-slate-600 data-[state=active]:bg-white data-[state=active]:text-[#0099f2] data-[state=active]:shadow-md data-[state=active]:shadow-slate-200/50 data-[state=active]:border-0 transition-all duration-200 flex items-center justify-center gap-1.5 py-2.5"
                     >
-                      <Building className="h-4 w-4" />
-                      {t.form.tabs.company}
+                      <Building className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{t.form.tabs.company}</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="ngo" 
+                      className="rounded-xl text-xs sm:text-sm font-medium text-slate-600 data-[state=active]:bg-white data-[state=active]:text-[#0099f2] data-[state=active]:shadow-md data-[state=active]:shadow-slate-200/50 data-[state=active]:border-0 transition-all duration-200 flex items-center justify-center gap-1.5 py-2.5"
+                    >
+                      <HeartHandshake className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{t.form.tabs.ngo}</span>
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="individual">
@@ -445,48 +485,100 @@ function RegisterContent() {
                       <div className="space-y-4">
                         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                           <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
-                          Personal Information
+                          {t.form.sections.personalInfo}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="space-y-2">
-                        <Label htmlFor="fullName" className="text-sm font-medium text-slate-700">{t.form.fullName.label}</Label>
-                        <div className="relative group">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
-                            <User className="h-5 w-5" strokeWidth={2} />
+                          <div className="space-y-2">
+                            <Label htmlFor="fullName" className="text-sm font-medium text-slate-700">{t.form.fullName.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <User className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="fullName" name="fullName" type="text" placeholder={t.form.fullName.placeholder} value={formData.fullName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.fullName && <p className="text-sm text-red-500 mt-1">{fieldErrors.fullName}</p>}
                           </div>
-                          <Input id="fullName" name="fullName" type="text" placeholder={t.form.fullName.placeholder} value={formData.fullName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
-                        </div>
-                        {fieldErrors.fullName && <p className="text-sm text-red-500 mt-1">{fieldErrors.fullName}</p>}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium text-slate-700">{t.form.email.label}</Label>
-                        <div className="relative group">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
-                            <Mail className="h-5 w-5" strokeWidth={2} />
+                          <div className="space-y-2">
+                            <Label htmlFor="gender" className="text-sm font-medium text-slate-700">{t.form.gender.label}</Label>
+                            <select id="gender" name="gender" value={formData.gender} onChange={(e) => handleInputChange(e as any)} className={inputBaseClass} style={inputStyle}>
+                              <option value="">{t.form.gender.placeholder}</option>
+                              <option value="MALE">Male</option>
+                              <option value="FEMALE">Female</option>
+                              <option value="OTHER">Other</option>
+                            </select>
                           </div>
-                          <Input id="email" name="email" type="email" placeholder={t.form.email.placeholder} value={formData.email} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
-                        </div>
-                        {fieldErrors.email && <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>}
-                      </div>
-
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="phone" className="text-sm font-medium text-slate-700">{t.form.phone.label}</Label>
-                        <div className="relative group">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
-                            <Phone className="h-5 w-5" strokeWidth={2} />
+                          <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="dateOfBirth" className="text-sm font-medium text-slate-700">{t.form.dateOfBirth.label}</Label>
+                            <Input id="dateOfBirth" name="dateOfBirth" type="date" placeholder={t.form.dateOfBirth.placeholder} value={formData.dateOfBirth} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            {fieldErrors.dateOfBirth && <p className="text-sm text-red-500 mt-1">{fieldErrors.dateOfBirth}</p>}
                           </div>
-                          <Input id="phone" name="phone" type="tel" placeholder={t.form.phone.placeholder} value={formData.phone} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
-                        </div>
-                        {fieldErrors.phone && <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>}
-                      </div>
                         </div>
                       </div>
 
                       <div className="space-y-4">
                         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                           <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
-                          Account Details
+                          {t.form.sections.identification}
+                        </h3>
+                        <div className="grid grid-cols-1 gap-5">
+                          <div className="space-y-2">
+                            <Label htmlFor="nationalId" className="text-sm font-medium text-slate-700">{t.form.nationalId.label}</Label>
+                            <Input id="nationalId" name="nationalId" type="text" placeholder={t.form.nationalId.placeholder} value={formData.nationalId} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            {fieldErrors.nationalId && <p className="text-sm text-red-500 mt-1">{fieldErrors.nationalId}</p>}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          {t.form.sections.contact}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="space-y-2">
+                            <Label htmlFor="email" className="text-sm font-medium text-slate-700">{t.form.email.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Mail className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="email" name="email" type="email" placeholder={t.form.email.placeholder} value={formData.email} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.email && <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="phone" className="text-sm font-medium text-slate-700">{t.form.phone.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Phone className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="phone" name="phone" type="tel" placeholder={t.form.phone.placeholder} value={formData.phone} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.phone && <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="alternatePhone" className="text-sm font-medium text-slate-700">{t.form.alternatePhone.label}</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Phone className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="alternatePhone" name="alternatePhone" type="tel" placeholder={t.form.alternatePhone.placeholder} value={formData.alternatePhone} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="district" className="text-sm font-medium text-slate-700">{t.form.district.label}</Label>
+                            <Input id="district" name="district" type="text" placeholder={t.form.district.placeholder} value={formData.district} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="address" className="text-sm font-medium text-slate-700">{t.form.address.label}</Label>
+                            <Input id="address" name="address" type="text" placeholder={t.form.address.placeholder} value={formData.address} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          {t.form.sections.accountDetails}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div className="space-y-2">
@@ -532,56 +624,204 @@ function RegisterContent() {
                       </Button>
                     </form>
                   </TabsContent>
+                  <TabsContent value="cooperative">
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          {t.form.sections.cooperativeInfo}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="space-y-2">
+                            <Label htmlFor="companyName-coop" className="text-sm font-medium text-slate-700">{t.form.companyName.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Building className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="companyName-coop" name="companyName" type="text" placeholder={t.form.companyName.placeholder} value={formData.companyName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.companyName && <p className="text-sm text-red-500 mt-1">{fieldErrors.companyName}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="contactName-coop" className="text-sm font-medium text-slate-700">{t.form.contactName.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <User className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="contactName-coop" name="contactName" type="text" placeholder={t.form.contactName.placeholder} value={formData.contactName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.contactName && <p className="text-sm text-red-500 mt-1">{fieldErrors.contactName}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="tinNumber-coop" className="text-sm font-medium text-slate-700">{t.form.tinNumber.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Hash className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="tinNumber-coop" name="tinNumber" type="text" placeholder={t.form.tinNumber.placeholder} value={formData.tinNumber} onChange={handleInputChange} minLength={9} maxLength={9} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.tinNumber && <p className="text-sm text-red-500 mt-1">{fieldErrors.tinNumber}</p>}
+                            <p className="text-xs text-slate-500">9 digits required</p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="businessSize-coop" className="text-sm font-medium text-slate-700">{t.form.businessSize.label} *</Label>
+                            <select id="businessSize-coop" name="businessSize" value={formData.businessSize} onChange={(e) => handleInputChange(e as any)} className={inputBaseClass} style={inputStyle}>
+                              <option value="">{t.form.businessSize.placeholder}</option>
+                              <option value="SMALL">{t.form.businessSize.options.small}</option>
+                              <option value="MEDIUM">{t.form.businessSize.options.medium}</option>
+                              <option value="LARGE">{t.form.businessSize.options.large}</option>
+                            </select>
+                            {fieldErrors.businessSize && <p className="text-sm text-red-500 mt-1">{fieldErrors.businessSize}</p>}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          {t.form.sections.contact}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="space-y-2">
+                            <Label htmlFor="email-coop" className="text-sm font-medium text-slate-700">{t.form.email.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Mail className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="email-coop" name="email" type="email" placeholder={t.form.email.placeholder} value={formData.email} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.email && <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="phone-coop" className="text-sm font-medium text-slate-700">{t.form.phone.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Phone className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="phone-coop" name="phone" type="tel" placeholder={t.form.phone.placeholder} value={formData.phone} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.phone && <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="alternatePhone-coop" className="text-sm font-medium text-slate-700">{t.form.alternatePhone.label}</Label>
+                            <Input id="alternatePhone-coop" name="alternatePhone" type="tel" placeholder={t.form.alternatePhone.placeholder} value={formData.alternatePhone} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="district-coop" className="text-sm font-medium text-slate-700">{t.form.district.label}</Label>
+                            <Input id="district-coop" name="district" type="text" placeholder={t.form.district.placeholder} value={formData.district} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="address-coop" className="text-sm font-medium text-slate-700">{t.form.address.label}</Label>
+                            <Input id="address-coop" name="address" type="text" placeholder={t.form.address.placeholder} value={formData.address} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          {t.form.sections.accountDetails}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="space-y-2">
+                            <Label htmlFor="password-coop" className="text-sm font-medium text-slate-700">{t.form.password.label}</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Lock className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="password-coop" name="password" type={showPassword ? "text" : "password"} placeholder={t.form.password.placeholder} value={formData.password} onChange={handleInputChange} style={inputStylePassword} className={inputBaseClass} />
+                              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0099f2] p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label={showPassword ? "Hide password" : "Show password"}>
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+                            {fieldErrors.password && <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>}
+                            <p className="text-xs text-slate-500">Must be at least 6 characters</p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="confirmPassword-coop" className="text-sm font-medium text-slate-700">{t.form.confirmPassword.label}</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Lock className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="confirmPassword-coop" name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder={t.form.confirmPassword.placeholder} value={formData.confirmPassword} onChange={handleInputChange} style={inputStylePassword} className={inputBaseClass} />
+                              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0099f2] p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label={showConfirmPassword ? "Hide password" : "Show password"}>
+                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+                            {fieldErrors.confirmPassword && <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>}
+                          </div>
+                        </div>
+                      </div>
+                      <Button type="submit" className="w-full h-12 rounded-2xl font-semibold text-white bg-gradient-to-r from-[#0099f2] to-[#0082d9] shadow-lg shadow-[#0099f2]/30 hover:shadow-xl hover:shadow-[#0099f2]/40 hover:from-[#0082d9] hover:to-[#006bb8] transition-all duration-200" disabled={isLoading}>
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t.form.buttons.registering || "Creating Account..."}
+                          </>
+                        ) : (
+                          t.form.buttons.register || "Create Account"
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
                   <TabsContent value="company">
                     <form onSubmit={handleSubmit} className="space-y-5">
                       <div className="space-y-4">
                         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                           <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
-                          Company Information
+                          {t.form.sections.companyInfo}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="space-y-2">
-                        <Label htmlFor="companyName" className="text-sm font-medium text-slate-700">{t.form.companyName.label}</Label>
-                        <div className="relative group">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
-                            <Building className="h-5 w-5" strokeWidth={2} />
+                          <div className="space-y-2">
+                            <Label htmlFor="companyName" className="text-sm font-medium text-slate-700">{t.form.companyName.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Building className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="companyName" name="companyName" type="text" placeholder={t.form.companyName.placeholder} value={formData.companyName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.companyName && <p className="text-sm text-red-500 mt-1">{fieldErrors.companyName}</p>}
                           </div>
-                          <Input id="companyName" name="companyName" type="text" placeholder={t.form.companyName.placeholder} value={formData.companyName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
-                        </div>
-                        {fieldErrors.companyName && <p className="text-sm text-red-500 mt-1">{fieldErrors.companyName}</p>}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="contactName" className="text-sm font-medium text-slate-700">{t.form.contactName.label}</Label>
-                        <div className="relative group">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
-                            <User className="h-5 w-5" strokeWidth={2} />
+                          <div className="space-y-2">
+                            <Label htmlFor="contactName" className="text-sm font-medium text-slate-700">{t.form.contactName.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <User className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="contactName" name="contactName" type="text" placeholder={t.form.contactName.placeholder} value={formData.contactName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.contactName && <p className="text-sm text-red-500 mt-1">{fieldErrors.contactName}</p>}
                           </div>
-                          <Input id="contactName" name="contactName" type="text" placeholder={t.form.contactName.placeholder} value={formData.contactName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
-                        </div>
-                        {fieldErrors.contactName && <p className="text-sm text-red-500 mt-1">{fieldErrors.contactName}</p>}
-                      </div>
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="tinNumber" className="text-sm font-medium text-slate-700">{t.form.tinNumber.label}</Label>
-                        <div className="relative group">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
-                            <Hash className="h-5 w-5" strokeWidth={2} />
+                          <div className="space-y-2">
+                            <Label htmlFor="tinNumber" className="text-sm font-medium text-slate-700">{t.form.tinNumber.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Hash className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="tinNumber" name="tinNumber" type="text" placeholder={t.form.tinNumber.placeholder} value={formData.tinNumber} onChange={handleInputChange} minLength={9} maxLength={9} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.tinNumber && <p className="text-sm text-red-500 mt-1">{fieldErrors.tinNumber}</p>}
+                            <p className="text-xs text-slate-500">9 digits required</p>
                           </div>
-                          <Input id="tinNumber" name="tinNumber" type="text" placeholder={t.form.tinNumber.placeholder} value={formData.tinNumber} onChange={handleInputChange} minLength={9} maxLength={9} style={inputStyle} className={inputBaseClass} />
-                        </div>
-                        {fieldErrors.tinNumber && <p className="text-sm text-red-500 mt-1">{fieldErrors.tinNumber}</p>}
-                        <p className="text-xs text-slate-500">9 digits required</p>
-                      </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="businessSize" className="text-sm font-medium text-slate-700">{t.form.businessSize.label} *</Label>
+                            <select id="businessSize" name="businessSize" value={formData.businessSize} onChange={(e) => handleInputChange(e as any)} className={inputBaseClass} style={inputStyle}>
+                              <option value="">{t.form.businessSize.placeholder}</option>
+                              <option value="SMALL">{t.form.businessSize.options.small}</option>
+                              <option value="MEDIUM">{t.form.businessSize.options.medium}</option>
+                              <option value="LARGE">{t.form.businessSize.options.large}</option>
+                            </select>
+                            {fieldErrors.businessSize && <p className="text-sm text-red-500 mt-1">{fieldErrors.businessSize}</p>}
+                          </div>
                         </div>
                       </div>
 
                       <div className="space-y-4">
                         <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                           <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
-                          Account Details
+                          {t.form.sections.contact}
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="space-y-2">
-                        <Label htmlFor="email-company" className="text-sm font-medium text-slate-700">{t.form.email.label}</Label>
+                          <div className="space-y-2">
+                            <Label htmlFor="email-company" className="text-sm font-medium text-slate-700">{t.form.email.label} *</Label>
                         <div className="relative group">
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
                             <Mail className="h-5 w-5" strokeWidth={2} />
@@ -599,9 +839,30 @@ function RegisterContent() {
                           <Input id="phone-company" name="phone" type="tel" placeholder={t.form.phone.placeholder} value={formData.phone} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
                         </div>
                         {fieldErrors.phone && <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="alternatePhone-company" className="text-sm font-medium text-slate-700">{t.form.alternatePhone.label}</Label>
+                            <Input id="alternatePhone-company" name="alternatePhone" type="tel" placeholder={t.form.alternatePhone.placeholder} value={formData.alternatePhone} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="district-company" className="text-sm font-medium text-slate-700">{t.form.district.label}</Label>
+                            <Input id="district-company" name="district" type="text" placeholder={t.form.district.placeholder} value={formData.district} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="address-company" className="text-sm font-medium text-slate-700">{t.form.address.label}</Label>
+                            <Input id="address-company" name="address" type="text" placeholder={t.form.address.placeholder} value={formData.address} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                          </div>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="password-company" className="text-sm font-medium text-slate-700">{t.form.password.label}</Label>
+
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          {t.form.sections.accountDetails}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="space-y-2">
+                            <Label htmlFor="password-company" className="text-sm font-medium text-slate-700">{t.form.password.label}</Label>
                         <div className="relative group">
                           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
                             <Lock className="h-5 w-5" strokeWidth={2} />
@@ -630,6 +891,144 @@ function RegisterContent() {
                         </div>
                       </div>
 
+                      <Button type="submit" className="w-full h-12 rounded-2xl font-semibold text-white bg-gradient-to-r from-[#0099f2] to-[#0082d9] shadow-lg shadow-[#0099f2]/30 hover:shadow-xl hover:shadow-[#0099f2]/40 hover:from-[#0082d9] hover:to-[#006bb8] transition-all duration-200" disabled={isLoading}>
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            {t.form.buttons.registering || "Creating Account..."}
+                          </>
+                        ) : (
+                          t.form.buttons.register || "Create Account"
+                        )}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                  <TabsContent value="ngo">
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          {t.form.sections.ngoInfo}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="space-y-2">
+                            <Label htmlFor="companyName-ngo" className="text-sm font-medium text-slate-700">{t.form.companyName.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Building className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="companyName-ngo" name="companyName" type="text" placeholder={t.form.companyName.placeholder} value={formData.companyName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.companyName && <p className="text-sm text-red-500 mt-1">{fieldErrors.companyName}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="contactName-ngo" className="text-sm font-medium text-slate-700">{t.form.contactName.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <User className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="contactName-ngo" name="contactName" type="text" placeholder={t.form.contactName.placeholder} value={formData.contactName} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.contactName && <p className="text-sm text-red-500 mt-1">{fieldErrors.contactName}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="tinNumber-ngo" className="text-sm font-medium text-slate-700">{t.form.tinNumber.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Hash className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="tinNumber-ngo" name="tinNumber" type="text" placeholder={t.form.tinNumber.placeholder} value={formData.tinNumber} onChange={handleInputChange} minLength={9} maxLength={9} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.tinNumber && <p className="text-sm text-red-500 mt-1">{fieldErrors.tinNumber}</p>}
+                            <p className="text-xs text-slate-500">9 digits required</p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="businessSize-ngo" className="text-sm font-medium text-slate-700">{t.form.businessSize.label} *</Label>
+                            <select id="businessSize-ngo" name="businessSize" value={formData.businessSize} onChange={(e) => handleInputChange(e as any)} className={inputBaseClass} style={inputStyle}>
+                              <option value="">{t.form.businessSize.placeholder}</option>
+                              <option value="SMALL">{t.form.businessSize.options.small}</option>
+                              <option value="MEDIUM">{t.form.businessSize.options.medium}</option>
+                              <option value="LARGE">{t.form.businessSize.options.large}</option>
+                            </select>
+                            {fieldErrors.businessSize && <p className="text-sm text-red-500 mt-1">{fieldErrors.businessSize}</p>}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          {t.form.sections.contact}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="space-y-2">
+                            <Label htmlFor="email-ngo" className="text-sm font-medium text-slate-700">{t.form.email.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Mail className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="email-ngo" name="email" type="email" placeholder={t.form.email.placeholder} value={formData.email} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.email && <p className="text-sm text-red-500 mt-1">{fieldErrors.email}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="phone-ngo" className="text-sm font-medium text-slate-700">{t.form.phone.label} *</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Phone className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="phone-ngo" name="phone" type="tel" placeholder={t.form.phone.placeholder} value={formData.phone} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                            </div>
+                            {fieldErrors.phone && <p className="text-sm text-red-500 mt-1">{fieldErrors.phone}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="alternatePhone-ngo" className="text-sm font-medium text-slate-700">{t.form.alternatePhone.label}</Label>
+                            <Input id="alternatePhone-ngo" name="alternatePhone" type="tel" placeholder={t.form.alternatePhone.placeholder} value={formData.alternatePhone} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="district-ngo" className="text-sm font-medium text-slate-700">{t.form.district.label}</Label>
+                            <Input id="district-ngo" name="district" type="text" placeholder={t.form.district.placeholder} value={formData.district} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                          </div>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="address-ngo" className="text-sm font-medium text-slate-700">{t.form.address.label}</Label>
+                            <Input id="address-ngo" name="address" type="text" placeholder={t.form.address.placeholder} value={formData.address} onChange={handleInputChange} style={inputStyle} className={inputBaseClass} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                          <span className="w-1 h-4 rounded-full bg-[#0099f2]"></span>
+                          {t.form.sections.accountDetails}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div className="space-y-2">
+                            <Label htmlFor="password-ngo" className="text-sm font-medium text-slate-700">{t.form.password.label}</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Lock className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="password-ngo" name="password" type={showPassword ? "text" : "password"} placeholder={t.form.password.placeholder} value={formData.password} onChange={handleInputChange} style={inputStylePassword} className={inputBaseClass} />
+                              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0099f2] p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label={showPassword ? "Hide password" : "Show password"}>
+                                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+                            {fieldErrors.password && <p className="text-sm text-red-500 mt-1">{fieldErrors.password}</p>}
+                            <p className="text-xs text-slate-500">Must be at least 6 characters</p>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="confirmPassword-ngo" className="text-sm font-medium text-slate-700">{t.form.confirmPassword.label}</Label>
+                            <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#0099f2] transition-colors pointer-events-none z-10">
+                                <Lock className="h-5 w-5" strokeWidth={2} />
+                              </div>
+                              <Input id="confirmPassword-ngo" name="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder={t.form.confirmPassword.placeholder} value={formData.confirmPassword} onChange={handleInputChange} style={inputStylePassword} className={inputBaseClass} />
+                              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#0099f2] p-2 rounded-lg hover:bg-slate-100 transition-colors" aria-label={showConfirmPassword ? "Hide password" : "Show password"}>
+                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                              </button>
+                            </div>
+                            {fieldErrors.confirmPassword && <p className="text-sm text-red-500 mt-1">{fieldErrors.confirmPassword}</p>}
+                          </div>
+                        </div>
+                      </div>
                       <Button type="submit" className="w-full h-12 rounded-2xl font-semibold text-white bg-gradient-to-r from-[#0099f2] to-[#0082d9] shadow-lg shadow-[#0099f2]/30 hover:shadow-xl hover:shadow-[#0099f2]/40 hover:from-[#0082d9] hover:to-[#006bb8] transition-all duration-200" disabled={isLoading}>
                         {isLoading ? (
                           <>

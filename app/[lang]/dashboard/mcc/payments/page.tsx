@@ -370,7 +370,7 @@ export default function PaymentsPage() {
               <div className="inline-flex items-center gap-3 rounded-full bg-white/80 px-4 py-1.5 shadow-sm ring-1 ring-gray-200">
                 <CreditCard className="h-4 w-4 text-blue-600" />
                 <span className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-                  MCC Manager • Payments
+                  Collection Center Manager • Payments
                 </span>
               </div>
               <div>

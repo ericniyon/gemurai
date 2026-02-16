@@ -1,7 +1,7 @@
 export const layoutTranslations = {
   en: {
     header: {
-      platform: "Milk Collection Platform",
+      platform: "Collection Center Platform",
       nav: {
         dashboard: "Our Impact",
         dashboardSubitems: {

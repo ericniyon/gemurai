@@ -3738,10 +3738,11 @@ export class RwandaAdministrativeService {
     return []
   }
 
-  // Get cells by sector ID
-  static getCellsBySector(sectorId: string): Cell[] {
+  // Get cells by sector ID; optionally scope by districtId so the correct sector is used when sectorId exists in multiple districts
+  static getCellsBySector(sectorId: string, districtId?: string): Cell[] {
     for (const province of this.data) {
       for (const district of province.districts) {
+        if (districtId && district.id !== districtId) continue
         const sector = district.sectors.find((s) => s.id === sectorId)
         if (sector) {
           return sector.cells
@@ -3751,11 +3752,12 @@ export class RwandaAdministrativeService {
     return []
   }
 
-  // Get villages by cell ID
-  static getVillagesByCell(cellId: string): Village[] {
+  // Get villages by cell ID; optionally scope by sectorId so the correct cell is used when cellId exists in multiple sectors
+  static getVillagesByCell(cellId: string, sectorId?: string): Village[] {
     for (const province of this.data) {
       for (const district of province.districts) {
         for (const sector of district.sectors) {
+          if (sectorId && sector.id !== sectorId) continue
           const cell = sector.cells.find((c) => c.id === cellId)
           if (cell) {
             return cell.villages

@@ -18,7 +18,12 @@ import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Plus, Calendar, TrendingUp, Loader2, User } from "lucide-react"
 
-export function SeasonPlanManager() {
+interface SeasonPlanManagerProps {
+  triggerOpenAddDialog?: boolean
+  onTriggerConsumed?: () => void
+}
+
+export function SeasonPlanManager({ triggerOpenAddDialog, onTriggerConsumed }: SeasonPlanManagerProps = {}) {
   const [farmers, setFarmers] = useState<any[]>([])
   const [commodities, setCommodities] = useState<any[]>([])
   const [seasonPlans, setSeasonPlans] = useState<any[]>([])
@@ -44,6 +49,13 @@ export function SeasonPlanManager() {
     fetchData(controller.signal)
     return () => controller.abort()
   }, [])
+
+  useEffect(() => {
+    if (triggerOpenAddDialog) {
+      setIsDialogOpen(true)
+      onTriggerConsumed?.()
+    }
+  }, [triggerOpenAddDialog, onTriggerConsumed])
 
   const fetchData = async (signal?: AbortSignal) => {
     try {

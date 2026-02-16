@@ -64,9 +64,17 @@ export async function POST(req: NextRequest) {
       // Continue anyway - let the service handle it
     }
 
-    // Set agent ID from authenticated user if not provided
-    if (!data.agentId && user.id) {
+    // agentId = who brought the collection to the center (Umucunda/agent) or null if farmer delivered.
+    // Only default to current user when agentId is not sent at all (backward compatibility).
+    if (data.agentId === undefined && user.id) {
       data.agentId = user.id
+    }
+    // When agentId is provided, farmer must be identified (already required above).
+    if (data.agentId && !data.farmerId) {
+      return NextResponse.json(
+        { error: "When collection is brought by an agent, farmer (farmer code) is required." },
+        { status: 400 }
+      )
     }
 
     // Set collection date if not provided
