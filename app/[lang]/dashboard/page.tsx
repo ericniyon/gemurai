@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { useAuth } from "@/hooks/use-auth"
 import { 
   type LucideIcon,
-  Activity, ShoppingCart, Truck, UserPlus, BatteryCharging, GaugeCircle, Package, ClipboardList, PiggyBank, AlertTriangle, Wheat, Coffee, Settings, CheckCircle2, XCircle, DollarSign, Clock, Droplets, Users, Building2, Database, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, CheckSquare, Calendar, Tractor, ShoppingBag, MapPin, Phone, Mail, User, Coins, Thermometer, Info, CreditCard
+  Activity, ShoppingCart, Truck, UserPlus, BatteryCharging, GaugeCircle, Package, ClipboardList, PiggyBank, AlertTriangle, Wheat, Coffee, Settings, CheckCircle2, XCircle, DollarSign, Clock, Droplets, Users, Building2, Database, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, CheckSquare, Calendar, Tractor, ShoppingBag, MapPin, Phone, Mail, User, Coins, Thermometer, Info, CreditCard, ChevronRight
 } from "lucide-react"
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 import { GeoIntelligenceWidgets } from "@/components/dashboard/geo-intelligence-widgets"
@@ -1317,7 +1317,7 @@ export default function DashboardPage() {
   )
 }
 
-// Admin Dashboard Component - Redesigned
+// Admin Dashboard Component - Redesigned for ADMIN / SUPER_ADMIN
 function AdminDashboard({ lang }: { lang: string }) {
   const { user } = useAuth()
   const [dashboardData, setDashboardData] = useState<any>(null)
@@ -1354,12 +1354,12 @@ function AdminDashboard({ lang }: { lang: string }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="mx-auto w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-200 border-t-blue-600" />
+          <div className="mx-auto w-14 h-14 rounded-full bg-slate-200 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-indigo-600" />
           </div>
-          <p className="text-gray-600 font-medium">Loading dashboard...</p>
+          <p className="text-slate-600 font-medium">Loading dashboard...</p>
         </div>
       </div>
     )
@@ -1376,263 +1376,196 @@ function AdminDashboard({ lang }: { lang: string }) {
   }
 
   const statCards = [
-    { title: "Total Users", value: data.overview.totalUsers, icon: Users, color: "primary" },
-    { title: "MCCs", value: data.overview.totalMCCs, icon: Building2, color: "indigo" },
-    { title: "Commodities", value: data.overview.totalCommodities, icon: Wheat, color: "emerald" },
-    { title: "Farmers", value: data.overview.totalFarmers, icon: UserPlus, color: "sky" },
-    { title: "Collections", value: data.collections.total, icon: Package, color: "violet", subtitle: `${data.collections.today} today`, change: data.collections.growth },
-    { title: "Total Revenue", value: formatCurrency(data.revenue.total || 0, mccCurrency), icon: DollarSign, color: "amber", subtitle: `${formatCurrency(data.revenue.thisMonth || 0, mccCurrency)} this month` },
+    { title: "Users", value: data.overview.totalUsers, icon: Users, accent: "bg-indigo-500" },
+    { title: "MCCs", value: data.overview.totalMCCs, icon: Building2, accent: "bg-slate-600" },
+    { title: "Commodities", value: data.overview.totalCommodities, icon: Wheat, accent: "bg-emerald-500" },
+    { title: "Farmers", value: data.overview.totalFarmers, icon: UserPlus, accent: "bg-sky-500" },
+    { title: "Collections", value: data.collections.total, icon: Package, accent: "bg-violet-500", subtitle: `${data.collections.today} today`, change: data.collections.growth },
+    { title: "Revenue", value: formatCurrency(data.revenue.total || 0, DEFAULT_CURRENCY), icon: DollarSign, accent: "bg-amber-500", subtitle: formatCurrency(data.revenue.thisMonth || 0, DEFAULT_CURRENCY) + " this month" },
   ]
 
-  const colorMap: Record<string, { bg: string; icon: string; border: string }> = {
-    primary: { bg: "bg-primary/5", icon: "text-primary", border: "border-primary/20" },
-    indigo: { bg: "bg-indigo-500/5", icon: "text-indigo-600", border: "border-indigo-200/60" },
-    emerald: { bg: "bg-emerald-500/5", icon: "text-emerald-600", border: "border-emerald-200/60" },
-    sky: { bg: "bg-sky-500/5", icon: "text-sky-600", border: "border-sky-200/60" },
-    violet: { bg: "bg-violet-500/5", icon: "text-violet-600", border: "border-violet-200/60" },
-    amber: { bg: "bg-amber-500/5", icon: "text-amber-600", border: "border-amber-200/60" },
-  }
-
-  const statCardBorders: Record<string, string> = {
-    primary: "border-blue-200 hover:border-blue-400",
-    indigo: "border-indigo-200 hover:border-indigo-400",
-    emerald: "border-green-200 hover:border-green-400",
-    sky: "border-sky-200 hover:border-sky-400",
-    violet: "border-purple-200 hover:border-purple-400",
-    amber: "border-orange-200 hover:border-orange-400",
-  }
-
-  const statCardValues: Record<string, string> = {
-    primary: "text-blue-900",
-    indigo: "text-indigo-900",
-    emerald: "text-green-900",
-    sky: "text-sky-900",
-    violet: "text-purple-900",
-    amber: "text-orange-900",
-  }
+  const quickLinks = [
+    { href: `/${lang}/dashboard/admin/users`, label: "Manage Users", icon: Users },
+    { href: `/${lang}/dashboard/admin/mccs`, label: "Manage MCCs", icon: Building2 },
+    { href: `/${lang}/dashboard/admin/commodity-studio`, label: "Commodity Studio", icon: Wheat },
+    { href: `/${lang}/dashboard/admin/reports`, label: "Reports", icon: BarChart3 },
+  ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="w-full py-6 px-4 sm:px-6 lg:px-8">
-        {/* Header - matches admin users */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50">
+      <div className="w-full max-w-[1600px] mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Hero */}
+        <header className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600 mt-1">System overview and key metrics at a glance</p>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Admin Dashboard</h1>
+              <p className="mt-1 text-slate-600">
+                {user?.name ? `Welcome back, ${user.name}` : "System overview"} · Key metrics at a glance
+              </p>
             </div>
+            <Badge variant="secondary" className="w-fit bg-slate-200 text-slate-700 hover:bg-slate-200 border-0 font-medium">
+              {user?.role === "SUPER_ADMIN" ? "Super Admin" : "Admin"}
+            </Badge>
           </div>
-        </div>
+        </header>
 
-        {/* Stats Cards - matches admin users style */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
-          {statCards.map((stat, index) => {
+        {/* KPI cards */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+          {statCards.map((stat, i) => {
             const Icon = stat.icon
-            const borderClass = statCardBorders[stat.color] || statCardBorders.primary
-            const valueClass = statCardValues[stat.color] || statCardValues.primary
             return (
-              <Card
-                key={index}
-                className={`border-2 ${borderClass} transition-all shadow-sm hover:shadow-md`}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">{stat.title}</CardTitle>
-                    <Icon className={`h-5 w-5 ${colorMap[stat.color]?.icon || "text-blue-600"}`} />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className={`text-2xl font-bold ${valueClass}`}>{stat.value}</div>
-                  {stat.subtitle && <p className="text-xs text-gray-500 mt-1">{stat.subtitle}</p>}
-                  {stat.change !== undefined && (
-                    <div className="flex items-center gap-1 mt-2">
-                      {parseFloat(stat.change) >= 0 ? (
-                        <ArrowUpRight className="h-3.5 w-3.5 text-green-600" />
-                      ) : (
-                        <ArrowDownRight className="h-3.5 w-3.5 text-red-500" />
+              <Card key={i} className="bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow transition-shadow">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium uppercase tracking-wider text-slate-500">{stat.title}</p>
+                      <p className="mt-1 text-xl font-bold text-slate-900 tabular-nums">{stat.value}</p>
+                      {stat.subtitle && <p className="mt-1 text-xs text-slate-500 truncate">{stat.subtitle}</p>}
+                      {stat.change !== undefined && (
+                        <div className="flex items-center gap-1 mt-2">
+                          {parseFloat(stat.change) >= 0 ? <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" /> : <ArrowDownRight className="h-3.5 w-3.5 text-red-500" />}
+                          <span className={`text-xs font-medium ${parseFloat(stat.change) >= 0 ? "text-emerald-600" : "text-red-600"}`}>{Math.abs(parseFloat(stat.change))}%</span>
+                        </div>
                       )}
-                      <span className={`text-xs font-medium ${parseFloat(stat.change) >= 0 ? "text-green-600" : "text-red-600"}`}>
-                        {Math.abs(parseFloat(stat.change))}%
-                      </span>
                     </div>
-                  )}
+                    <div className={`shrink-0 w-10 h-10 rounded-lg ${stat.accent} flex items-center justify-center text-white`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )
           })}
-        </div>
+        </section>
 
-        {/* Secondary metrics - matches admin users card style */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Secondary metrics + Collection status */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4 mb-8">
           {[
-            { label: "Categories", value: data.overview.totalCategories, icon: Database, border: "border-blue-200 hover:border-blue-400", valueClass: "text-blue-900", iconClass: "text-blue-600" },
-            { label: "Agents", value: data.overview.totalAgents, icon: UserPlus, border: "border-indigo-200 hover:border-indigo-400", valueClass: "text-indigo-900", iconClass: "text-indigo-600" },
-            { label: "Quality Fields", value: data.system.totalQualityFields, icon: CheckSquare, border: "border-green-200 hover:border-green-400", valueClass: "text-green-900", iconClass: "text-green-600" },
-            { label: "Season Plans", value: data.system.totalSeasonPlans, icon: Calendar, border: "border-purple-200 hover:border-purple-400", valueClass: "text-purple-900", iconClass: "text-purple-600" },
+            { label: "Categories", value: data.overview.totalCategories, icon: Database },
+            { label: "Agents", value: data.overview.totalAgents, icon: UserPlus },
+            { label: "Quality Fields", value: data.system.totalQualityFields, icon: CheckSquare },
+            { label: "Season Plans", value: data.system.totalSeasonPlans, icon: Calendar },
+            { label: "Pending", value: data.collections.pending, icon: Clock, sub: "Awaiting approval" },
+            { label: "Approved", value: data.collections.approved, icon: CheckCircle2, sub: "Ready for payment" },
+            { label: "This month", value: data.collections.thisMonth, icon: TrendingUp, sub: "Current period" },
           ].map((item, i) => {
             const Icon = item.icon
             return (
-              <Card key={i} className={`border-2 ${item.border} transition-all shadow-sm hover:shadow-md`}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">{item.label}</CardTitle>
-                    <Icon className={`h-5 w-5 ${item.iconClass}`} />
+              <Card key={i} className="bg-white border border-slate-200 rounded-xl shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs text-slate-500">{item.label}</p>
+                      <p className="text-lg font-semibold text-slate-900 tabular-nums">{item.value}</p>
+                      {item.sub && <p className="text-xs text-slate-500 mt-0.5">{item.sub}</p>}
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className={`text-2xl font-bold ${item.valueClass}`}>{item.value}</div>
                 </CardContent>
               </Card>
             )
           })}
-        </div>
+        </section>
 
-        {/* Collections status - matches admin users card style */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {[
-            { label: "Pending Collections", value: data.collections.pending, desc: "Awaiting approval", icon: Clock, border: "border-blue-200 hover:border-blue-400", valueClass: "text-blue-900", iconClass: "text-blue-600" },
-            { label: "Approved Collections", value: data.collections.approved, desc: "Ready for payment", icon: CheckCircle2, border: "border-green-200 hover:border-green-400", valueClass: "text-green-900", iconClass: "text-green-600" },
-            { label: "This Month", value: data.collections.thisMonth, desc: "Current period", icon: TrendingUp, border: "border-orange-200 hover:border-orange-400", valueClass: "text-orange-900", iconClass: "text-orange-600" },
-          ].map((item, i) => {
-            const Icon = item.icon
-            return (
-              <Card key={i} className={`border-2 ${item.border} transition-all shadow-sm hover:shadow-md`}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">{item.label}</CardTitle>
-                    <Icon className={`h-5 w-5 ${item.iconClass}`} />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className={`text-2xl font-bold ${item.valueClass}`}>{item.value}</div>
-                  <p className="text-xs text-gray-500 mt-1">{item.desc}</p>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-
-        {/* Recent activity - matches admin users table card style */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Recent Collections */}
-          <Card className="lg:col-span-2 border-2 border-blue-200">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-blue-900 flex items-center gap-2">
-                <Package className="h-5 w-5" />
+        {/* Recent activity + Quick actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <Card className="lg:col-span-2 bg-white border border-slate-200 rounded-xl shadow-sm">
+            <CardHeader className="border-b border-slate-100 pb-4">
+              <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                <Package className="h-4 w-4 text-slate-600" />
                 Recent Collections
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-4">
               {data.recent.collections.length > 0 ? (
-                <div className="space-y-3">
+                <ul className="divide-y divide-slate-100">
                   {data.recent.collections.slice(0, 5).map((collection: any) => (
-                    <div
-                      key={collection.id}
-                      className="flex items-center justify-between p-4 rounded-lg border-2 border-blue-100 bg-blue-50/50 hover:border-blue-200 transition-all"
-                    >
+                    <li key={collection.id} className="py-3 first:pt-0 flex items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-gray-900 truncate">{collection.commodity}</p>
-                        <p className="text-sm text-gray-600 truncate">{collection.farmer} • {collection.mcc}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {new Date(collection.date).toLocaleDateString()} • {collection.quantity} units
-                        </p>
+                        <p className="font-medium text-slate-900 truncate">{collection.commodity}</p>
+                        <p className="text-sm text-slate-500 truncate">{collection.farmer} · {collection.mcc}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{new Date(collection.date).toLocaleDateString()} · {collection.quantity} units</p>
                       </div>
-                      <div className="text-right shrink-0 ml-4">
-                        <p className="font-bold text-blue-900">{formatCurrency(collection.amount || 0, mccCurrency)}</p>
+                      <div className="shrink-0 text-right">
+                        <p className="font-semibold text-slate-900">{formatCurrency(collection.amount || 0, DEFAULT_CURRENCY)}</p>
                         <Badge
-                          className={`mt-1.5 text-xs ${
-                            collection.status === "APPROVED" ? "bg-green-100 text-green-800 hover:bg-green-100" :
-                            collection.status === "PENDING" ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100" :
-                            "bg-blue-100 text-blue-800 hover:bg-blue-100"
+                          className={`mt-1 text-xs ${
+                            collection.status === "APPROVED" ? "bg-emerald-100 text-emerald-800 border-0" :
+                            collection.status === "PENDING" ? "bg-amber-100 text-amber-800 border-0" :
+                            "bg-slate-100 text-slate-700 border-0"
                           }`}
                         >
                           {collection.status}
                         </Badge>
                       </div>
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ul>
               ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p>No recent collections</p>
+                <div className="py-12 text-center text-slate-500">
+                  <Package className="h-10 w-10 mx-auto mb-3 text-slate-300" />
+                  <p className="text-sm">No recent collections</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Recent Users */}
-          <Card className="border-2 border-blue-200">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-blue-900 flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Recent Users
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {data.recent.users.length > 0 ? (
-                <div className="space-y-3">
-                  {data.recent.users.map((u: any) => (
-                    <div
-                      key={u.id}
-                      className="flex items-center justify-between p-4 rounded-lg border-2 border-blue-100 bg-blue-50/50 hover:border-blue-200 transition-all"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-gray-900 truncate">{u.name || "Unknown"}</p>
-                        <p className="text-sm text-gray-600 truncate">{u.email || "No email"}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">{new Date(u.createdAt).toLocaleDateString()}</p>
-                      </div>
-                      <Badge variant="outline" className="shrink-0 ml-2 border-blue-300 text-blue-700">
-                        {u.role}
-                      </Badge>
-                    </div>
-                  ))}
+          <div className="space-y-6">
+            <Card className="bg-white border border-slate-200 rounded-xl shadow-sm">
+              <CardHeader className="border-b border-slate-100 pb-4">
+                <CardTitle className="text-base font-semibold text-slate-900">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-1 gap-2">
+                  {quickLinks.map((link) => {
+                    const Icon = link.icon
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/50 px-4 py-3 text-slate-700 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-800 transition-colors"
+                      >
+                        <Icon className="h-4 w-4 shrink-0 text-slate-500" />
+                        <span className="font-medium flex-1">{link.label}</span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
+                      </Link>
+                    )
+                  })}
                 </div>
-              ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <p>No recent users</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border border-slate-200 rounded-xl shadow-sm">
+              <CardHeader className="border-b border-slate-100 pb-4">
+                <CardTitle className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                  <Users className="h-4 w-4 text-slate-600" />
+                  Recent Users
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                {data.recent.users.length > 0 ? (
+                  <ul className="space-y-2">
+                    {data.recent.users.slice(0, 4).map((u: any) => (
+                      <li key={u.id} className="flex items-center justify-between gap-2 py-2 border-b border-slate-50 last:border-0">
+                        <div className="min-w-0">
+                          <p className="font-medium text-slate-900 truncate text-sm">{u.name || "Unknown"}</p>
+                          <p className="text-xs text-slate-500 truncate">{u.email || "—"}</p>
+                        </div>
+                        <Badge variant="secondary" className="shrink-0 text-xs bg-slate-100 text-slate-700 border-0">
+                          {u.role}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="py-8 text-center text-slate-500 text-sm">No recent users</div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        {/* Quick Actions - matches admin users Add User button style */}
-        <Card className="border-2 border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold text-blue-900">Quick Actions</CardTitle>
-            <CardDescription className="text-gray-600">Access frequently used features</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <Link href={`/${lang}/dashboard/admin/users`}>
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
-                  <Users className="h-4 w-4 mr-2" />
-                  Manage Users
-                </Button>
-              </Link>
-              <Link href={`/${lang}/dashboard/admin/mccs`}>
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
-                  <Building2 className="h-4 w-4 mr-2" />
-                  Manage MCCs
-                </Button>
-              </Link>
-              <Link href={`/${lang}/dashboard/admin/commodity-studio`}>
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
-                  <Wheat className="h-4 w-4 mr-2" />
-                  Commodity Studio
-                </Button>
-              </Link>
-              <Link href={`/${lang}/dashboard/admin/reports`}>
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  View Reports
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   )
