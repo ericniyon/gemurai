@@ -6,15 +6,28 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/use-auth"
 import { 
   type LucideIcon,
-  Activity, ShoppingCart, Truck, UserPlus, BatteryCharging, GaugeCircle, Package, ClipboardList, PiggyBank, AlertTriangle, Wheat, Coffee, Settings, CheckCircle2, XCircle, DollarSign, Clock, Droplets, Users, Building2, Database, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, CheckSquare, Calendar, Tractor, ShoppingBag
+  Activity, ShoppingCart, Truck, UserPlus, BatteryCharging, GaugeCircle, Package, ClipboardList, PiggyBank, AlertTriangle, Wheat, Coffee, Settings, CheckCircle2, XCircle, DollarSign, Clock, Droplets, Users, Building2, Database, TrendingUp, BarChart3, ArrowUpRight, ArrowDownRight, CheckSquare, Calendar, Tractor, ShoppingBag, MapPin, Phone, Mail, User, Coins, Thermometer, Info, CreditCard
 } from "lucide-react"
 import { BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 import { GeoIntelligenceWidgets } from "@/components/dashboard/geo-intelligence-widgets"
 import { GeoMapViewer, type GeoEntity } from "@/components/ui/geo-map-viewer"
 import { CommodityCollectionForm } from "@/components/mcc/CommodityCollectionForm"
+import { AddCollectionForm } from "@/app/[lang]/dashboard/mcc/components/AddCollectionForm"
+import { formatCurrency, getMCCCurrency, DEFAULT_CURRENCY } from "@/lib/utils/currency"
+import dynamic from "next/dynamic"
+
+const SalesPageEmbed = dynamic(
+  () => import("@/app/[lang]/dashboard/mcc/sales/page").then((mod) => ({ default: mod.default })),
+  { ssr: false }
+)
+const PaymentsPageEmbed = dynamic(
+  () => import("@/app/[lang]/dashboard/mcc/payments/page").then((mod) => ({ default: mod.default })),
+  { ssr: false }
+)
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -34,6 +47,27 @@ export default function DashboardPage() {
   const [commodityStats, setCommodityStats] = useState<any>(null)
   const [commodityLoading, setCommodityLoading] = useState(true)
   const [isCollectionFormOpen, setIsCollectionFormOpen] = useState(false)
+  const [addCollectionOpen, setAddCollectionOpen] = useState(false)
+  const [sellMilkOpen, setSellMilkOpen] = useState(false)
+  const [processPaymentsOpen, setProcessPaymentsOpen] = useState(false)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [mccCurrency, setMccCurrency] = useState<string>(DEFAULT_CURRENCY)
+  const [mccDetails, setMccDetails] = useState<{
+    id: string
+    name: string
+    code: string | null
+    location: string
+    region: string | null
+    address: string | null
+    isActive: boolean
+    manager?: { id: string; name: string; email: string; phone?: string } | null
+    settings?: {
+      currency?: string
+      pricing?: { basePricePerLiter?: number }
+      qualityRules?: { minFat?: number; minProtein?: number; maxTemp?: number }
+    }
+    _count?: { farmers: number; milk_collections: number; sales: number; staff: number }
+  } | null>(null)
 
   const formatDate = (value?: string | null) => {
     if (!value) return null
@@ -66,10 +100,34 @@ export default function DashboardPage() {
               const mccData = await mccDashboardRes.json()
               if (mccData.success && mccData.data) {
                 setMccDashboardData(mccData.data)
+                // Extract currency from MCC settings if available
+                if (mccData.data?.mccSettings?.currency) {
+                  setMccCurrency(mccData.data.mccSettings.currency)
+                }
               }
             }
           } catch (error) {
             console.error("Error fetching MCC dashboard:", error)
+          }
+          
+          // Fetch full MCC details including settings and currency
+          if (user?.mccId) {
+            try {
+              const mccSettingsRes = await fetch(`/api/v1/mcc/setup?id=${user.mccId}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+              })
+              if (mccSettingsRes.ok) {
+                const settingsData = await mccSettingsRes.json()
+                if (settingsData.success && settingsData.data) {
+                  setMccDetails(settingsData.data)
+                  if (settingsData.data?.settings?.currency) {
+                    setMccCurrency(settingsData.data.settings.currency)
+                  }
+                }
+              }
+            } catch (error) {
+              console.error("Error fetching MCC settings:", error)
+            }
           }
         }
 
@@ -215,7 +273,7 @@ export default function DashboardPage() {
     if (user) {
       fetchData()
     }
-  }, [user, isMCCManager])
+  }, [user, isMCCManager, refreshTrigger])
 
   if (!user) return null
 
@@ -572,40 +630,48 @@ export default function DashboardPage() {
 
     const quickActions: Array<{
       title: string
-      href?: string
+      description: string
       icon: LucideIcon
       accent: Accent
-      onClick?: () => void
+      gradient: string
+      iconBg: string
+      onClick: () => void
     }> = [
       {
         title: "Collect Commodity",
+        description: "Record commodity deliveries from farmers",
         icon: Package,
-        accent: "primary",
+        accent: "purple",
+        gradient: "from-purple-600 via-purple-500 to-indigo-600",
+        iconBg: "bg-purple-100",
         onClick: () => setIsCollectionFormOpen(true),
       },
       {
         title: "Collect Milk",
-        href: `/${lang}/dashboard/mcc/collections`,
+        description: "Record milk collection from farmers",
         icon: Droplets,
         accent: "primary",
+        gradient: "from-blue-600 via-blue-500 to-cyan-500",
+        iconBg: "bg-blue-100",
+        onClick: () => setAddCollectionOpen(true),
       },
       {
         title: "Sell Milk",
-        href: `/${lang}/dashboard/mcc/sales`,
+        description: "Process sales to buyers & customers",
         icon: ShoppingCart,
-        accent: "primary",
+        accent: "emerald",
+        gradient: "from-emerald-600 via-emerald-500 to-teal-500",
+        iconBg: "bg-emerald-100",
+        onClick: () => setSellMilkOpen(true),
       },
       {
         title: "Process Payments",
-        href: `/${lang}/dashboard/mcc/payments`,
+        description: "Pay farmers for their deliveries",
         icon: DollarSign,
-        accent: "primary",
-      },
-      {
-        title: "Add Supplier",
-        href: `/${lang}/dashboard/mcc/suppliers`,
-        icon: UserPlus,
-        accent: "primary",
+        accent: "amber",
+        gradient: "from-amber-500 via-orange-500 to-amber-600",
+        iconBg: "bg-amber-100",
+        onClick: () => setProcessPaymentsOpen(true),
       },
     ]
 
@@ -665,9 +731,8 @@ export default function DashboardPage() {
                 <div key={i} className="h-36 rounded-3xl bg-slate-100/80 border border-slate-200/60 animate-pulse" />
               ))}
             </div>
-            <div className="mt-10 flex items-center justify-center gap-2 text-slate-500">
+            <div className="mt-10 flex items-center justify-center text-slate-500">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-              <span className="text-sm font-medium">Loading your MCC dashboard...</span>
             </div>
           </div>
         </div>
@@ -707,31 +772,198 @@ export default function DashboardPage() {
                     Overview of your MCC operations, collections, and key metrics
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-3">
-                  {quickActions.slice(0, 4).map((action) => (
-                    action.href ? (
-                      <Link key={action.title} href={action.href}>
-                        <Button
-                          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30"
-                        >
-                          {createElement(action.icon, { className: "h-4 w-4" })}
-                          {action.title}
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Button
-                        key={action.title}
-                        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30"
-                        onClick={action.onClick}
+                {/* Quick Actions - Big Buttons */}
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 mt-6">
+                  {quickActions.map((action) => {
+                    const ActionContent = (
+                      <div
+                        className={`group flex items-center gap-3 rounded-2xl bg-gradient-to-r ${action.gradient} px-4 py-4 sm:px-5 sm:py-5 text-white shadow-lg transition-all duration-200 hover:shadow-xl hover:brightness-110 active:scale-[0.98] cursor-pointer`}
                       >
-                        {createElement(action.icon, { className: "h-4 w-4" })}
-                        {action.title}
-                      </Button>
+                        {/* Icon */}
+                        <div className="flex-shrink-0 rounded-xl bg-white/25 p-2.5 sm:p-3">
+                          {createElement(action.icon, { className: "h-5 w-5 sm:h-6 sm:w-6 text-white" })}
+                        </div>
+                        
+                        {/* Text */}
+                        <span className="text-sm sm:text-base font-bold leading-tight">{action.title}</span>
+                        
+                        {/* Arrow */}
+                        <ArrowUpRight className="h-4 w-4 sm:h-5 sm:w-5 text-white/70 ml-auto flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </div>
                     )
-                  ))}
+                    
+                    return (
+                      <button
+                        key={action.title}
+                        type="button"
+                        onClick={action.onClick}
+                        className="block w-full text-left"
+                      >
+                        {ActionContent}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </header>
+
+            {/* Collection Center Information Card */}
+            {mccDetails && (
+              <section className="mb-8">
+                <Card className="relative overflow-hidden rounded-3xl border border-sky-100 bg-gradient-to-br from-white via-sky-50/30 to-indigo-50/20 shadow-lg">
+                  <div className="absolute right-0 top-0 h-full w-32 bg-gradient-to-l from-sky-100/60 via-indigo-100/40 to-transparent" />
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 p-3 shadow-lg">
+                        <Building2 className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-xl font-bold text-gray-900">
+                          {mccDetails.name}
+                        </CardTitle>
+                        <CardDescription className="flex items-center gap-2 text-sm text-gray-600">
+                          {mccDetails.code && (
+                            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-xs font-semibold text-sky-700">
+                              {mccDetails.code}
+                            </span>
+                          )}
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${mccDetails.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                            <span className={`h-1.5 w-1.5 rounded-full ${mccDetails.isActive ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                            {mccDetails.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                      {/* Location & Address */}
+                      <div className="space-y-3">
+                        <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                          <MapPin className="h-4 w-4 text-sky-500" />
+                          Location
+                        </h4>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <p className="font-medium text-gray-900">{mccDetails.location}</p>
+                          {mccDetails.region && <p>{mccDetails.region}</p>}
+                          {mccDetails.address && <p className="text-xs text-gray-500">{mccDetails.address}</p>}
+                        </div>
+                      </div>
+
+                      {/* Manager Info */}
+                      <div className="space-y-3">
+                        <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                          <User className="h-4 w-4 text-indigo-500" />
+                          Manager
+                        </h4>
+                        {mccDetails.manager ? (
+                          <div className="space-y-1.5 text-sm">
+                            <p className="font-medium text-gray-900">{mccDetails.manager.name}</p>
+                            <p className="flex items-center gap-1.5 text-xs text-gray-500">
+                              <Mail className="h-3 w-3" />
+                              {mccDetails.manager.email}
+                            </p>
+                            {mccDetails.manager.phone && (
+                              <p className="flex items-center gap-1.5 text-xs text-gray-500">
+                                <Phone className="h-3 w-3" />
+                                {mccDetails.manager.phone}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-400 italic">No manager assigned</p>
+                        )}
+                      </div>
+
+                      {/* Settings & Currency */}
+                      <div className="space-y-3">
+                        <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                          <Settings className="h-4 w-4 text-purple-500" />
+                          Settings
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center justify-between rounded-lg bg-white/60 px-3 py-2 shadow-sm">
+                            <span className="flex items-center gap-2 text-gray-600">
+                              <Coins className="h-3.5 w-3.5 text-amber-500" />
+                              Currency
+                            </span>
+                            <span className="font-semibold text-gray-900">{mccCurrency}</span>
+                          </div>
+                          {mccDetails.settings?.pricing?.basePricePerLiter && (
+                            <div className="flex items-center justify-between rounded-lg bg-white/60 px-3 py-2 shadow-sm">
+                              <span className="flex items-center gap-2 text-gray-600">
+                                <DollarSign className="h-3.5 w-3.5 text-emerald-500" />
+                                Base Price
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {formatCurrency(mccDetails.settings.pricing.basePricePerLiter, mccCurrency)}/L
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Statistics */}
+                      <div className="space-y-3">
+                        <h4 className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                          <BarChart3 className="h-4 w-4 text-emerald-500" />
+                          Statistics
+                        </h4>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div className="rounded-lg bg-white/60 px-3 py-2 text-center shadow-sm">
+                            <p className="text-lg font-bold text-gray-900">{mccDetails._count?.farmers ?? farmersTotal}</p>
+                            <p className="text-xs text-gray-500">Farmers</p>
+                          </div>
+                          <div className="rounded-lg bg-white/60 px-3 py-2 text-center shadow-sm">
+                            <p className="text-lg font-bold text-gray-900">{mccDetails._count?.milk_collections ?? collectionsCount}</p>
+                            <p className="text-xs text-gray-500">Collections</p>
+                          </div>
+                          <div className="rounded-lg bg-white/60 px-3 py-2 text-center shadow-sm">
+                            <p className="text-lg font-bold text-gray-900">{mccDetails._count?.sales ?? salesCount}</p>
+                            <p className="text-xs text-gray-500">Sales</p>
+                          </div>
+                          <div className="rounded-lg bg-white/60 px-3 py-2 text-center shadow-sm">
+                            <p className="text-lg font-bold text-gray-900">{mccDetails._count?.staff ?? capacitySummary?.staffCount ?? 0}</p>
+                            <p className="text-xs text-gray-500">Staff</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quality Rules (if configured) */}
+                    {mccDetails.settings?.qualityRules && (
+                      <div className="mt-6 rounded-xl border border-gray-100 bg-white/60 p-4">
+                        <h4 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          Quality Standards
+                        </h4>
+                        <div className="flex flex-wrap gap-4 text-sm">
+                          {mccDetails.settings.qualityRules.minFat !== undefined && (
+                            <div className="flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5">
+                              <span className="text-amber-700">Min Fat:</span>
+                              <span className="font-semibold text-amber-900">{mccDetails.settings.qualityRules.minFat}%</span>
+                            </div>
+                          )}
+                          {mccDetails.settings.qualityRules.minProtein !== undefined && (
+                            <div className="flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5">
+                              <span className="text-blue-700">Min Protein:</span>
+                              <span className="font-semibold text-blue-900">{mccDetails.settings.qualityRules.minProtein}%</span>
+                            </div>
+                          )}
+                          {mccDetails.settings.qualityRules.maxTemp !== undefined && (
+                            <div className="flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1.5">
+                              <Thermometer className="h-3.5 w-3.5 text-sky-600" />
+                              <span className="text-sky-700">Max Temp:</span>
+                              <span className="font-semibold text-sky-900">{mccDetails.settings.qualityRules.maxTemp}°C</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </section>
+            )}
 
             {/* Summary Cards - matching collections page style */}
             <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -992,10 +1224,60 @@ export default function DashboardPage() {
                 open={isCollectionFormOpen}
                 onOpenChange={setIsCollectionFormOpen}
                 onSuccess={() => {
-                  // Refresh data
-                  window.location.reload()
+                  setIsCollectionFormOpen(false)
+                  setRefreshTrigger((t) => t + 1)
                 }}
               />
+              {/* Collect Milk Dialog */}
+              <AddCollectionForm
+                open={addCollectionOpen}
+                onOpenChange={setAddCollectionOpen}
+                onSuccess={() => {
+                  setAddCollectionOpen(false)
+                  setRefreshTrigger((t) => t + 1)
+                }}
+              />
+              {/* Sell Milk Dialog (embedded Sales page in dialog mode) */}
+              {sellMilkOpen && (
+                <SalesPageEmbed
+                  embedMode
+                  triggerOpenAddDialog
+                  onClose={() => {
+                    setSellMilkOpen(false)
+                    setRefreshTrigger((t) => t + 1)
+                  }}
+                />
+              )}
+              {/* Process Payments Dialog – Select Farmer & Payment Summary */}
+              <Dialog open={processPaymentsOpen} onOpenChange={setProcessPaymentsOpen}>
+                <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0 rounded-3xl border border-slate-200 bg-white shadow-xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+                  <DialogTitle className="sr-only">Select Farmer &amp; Process Payment</DialogTitle>
+                  <DialogDescription className="sr-only">Choose a farmer to view payment summary and process payment.</DialogDescription>
+                  <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                        <CreditCard className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold tracking-tight text-white">Select Farmer</h2>
+                        <p className="mt-1 text-sm text-slate-300">Choose a farmer to view payment summary and process payment</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto min-h-0 bg-gradient-to-b from-slate-50/80 to-white p-4 sm:p-6">
+                  {processPaymentsOpen && (
+                    <PaymentsPageEmbed
+                      embedMode
+                      triggerOpenProcessDialog
+                      onClose={() => {
+                        setProcessPaymentsOpen(false)
+                        setRefreshTrigger((t) => t + 1)
+                      }}
+                    />
+                  )}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </section>
           )}
 
@@ -1099,7 +1381,7 @@ function AdminDashboard({ lang }: { lang: string }) {
     { title: "Commodities", value: data.overview.totalCommodities, icon: Wheat, color: "emerald" },
     { title: "Farmers", value: data.overview.totalFarmers, icon: UserPlus, color: "sky" },
     { title: "Collections", value: data.collections.total, icon: Package, color: "violet", subtitle: `${data.collections.today} today`, change: data.collections.growth },
-    { title: "Total Revenue", value: `RWF ${(data.revenue.total || 0).toLocaleString()}`, icon: DollarSign, color: "amber", subtitle: `RWF ${(data.revenue.thisMonth || 0).toLocaleString()} this month` },
+    { title: "Total Revenue", value: formatCurrency(data.revenue.total || 0, mccCurrency), icon: DollarSign, color: "amber", subtitle: `${formatCurrency(data.revenue.thisMonth || 0, mccCurrency)} this month` },
   ]
 
   const colorMap: Record<string, { bg: string; icon: string; border: string }> = {
@@ -1256,7 +1538,7 @@ function AdminDashboard({ lang }: { lang: string }) {
                         </p>
                       </div>
                       <div className="text-right shrink-0 ml-4">
-                        <p className="font-bold text-blue-900">RWF {collection.amount?.toLocaleString() || 0}</p>
+                        <p className="font-bold text-blue-900">{formatCurrency(collection.amount || 0, mccCurrency)}</p>
                         <Badge
                           className={`mt-1.5 text-xs ${
                             collection.status === "APPROVED" ? "bg-green-100 text-green-800 hover:bg-green-100" :

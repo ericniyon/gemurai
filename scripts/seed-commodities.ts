@@ -125,6 +125,53 @@ async function main() {
 
   const total = seed.categories.reduce((acc, c) => acc + (c.commodities?.length ?? 0), 0)
   console.log(`\n✅ Commodities: ${created} created, ${updated} updated (${total} from JSON).`)
+
+  // Seed sample egg collections when Eggs commodity and at least one MCC and farmer exist
+  const eggsCommodity = await prisma.commodities.findUnique({ where: { code: "EGGS" } })
+  const firstMcc = await prisma.mccs.findFirst({ where: {} })
+  const firstFarmer = await prisma.farmers.findFirst({ where: {} })
+  if (eggsCommodity && firstMcc && firstFarmer) {
+    const existingEggCollections = await prisma.commodity_collections.count({
+      where: { commodityId: eggsCommodity.id },
+    })
+    if (existingEggCollections === 0) {
+      const now = new Date()
+      const samples = [
+        { quantity: 10, pricePerUnit: 1200, dateOffset: -2 },
+        { quantity: 15, pricePerUnit: 1150, dateOffset: -1 },
+        { quantity: 8, pricePerUnit: 1250, dateOffset: 0 },
+      ]
+      for (const s of samples) {
+        const collectionDate = new Date(now)
+        collectionDate.setDate(collectionDate.getDate() + s.dateOffset)
+        const totalAmount = s.quantity * s.pricePerUnit
+        await prisma.commodity_collections.create({
+          data: {
+            commodityId: eggsCommodity.id,
+            farmerId: firstFarmer.id,
+            mccId: firstMcc.id,
+            collectionDate,
+            quantity: s.quantity,
+            unit: "tray",
+            qualityData: {},
+            pricePerUnit: s.pricePerUnit,
+            totalAmount,
+            deductions: {},
+            advances: 0,
+            totalDeductions: 0,
+            netPayment: totalAmount,
+            status: "APPROVED",
+          },
+        })
+      }
+      console.log("\n🥚 Created 3 sample egg collections.")
+    } else {
+      console.log("\n🥚 Sample egg collections already exist, skipping.")
+    }
+  } else {
+    console.log("\n🥚 Skipping sample egg collections (need Eggs commodity, 1 MCC, 1 farmer).")
+  }
+
   console.log("\n🎉 Commodity seeding completed.")
 }
 

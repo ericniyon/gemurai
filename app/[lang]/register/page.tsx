@@ -46,7 +46,7 @@ function RegisterContent() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "CONSUMER",
+    role: "FARMER",
     companyName: "",
     contactName: "",
     tinNumber: "",
@@ -80,9 +80,9 @@ function RegisterContent() {
   const handleTabChange = (value: string) => {
     setActiveTab(value)
     if (value === "individual") {
-      setFormData((prev) => ({ ...prev, role: "CONSUMER" }))
+      setFormData((prev) => ({ ...prev, role: "FARMER" }))
     } else {
-      setFormData((prev) => ({ ...prev, role: "EMPLOYER" }))
+      setFormData((prev) => ({ ...prev, role: "COOP_ADMIN" }))
     }
   }
 

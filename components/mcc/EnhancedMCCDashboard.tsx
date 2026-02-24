@@ -28,9 +28,13 @@ import {
   Package,
   Warehouse,
   ArrowUpDown,
-  Activity
+  Activity,
+  HelpCircle
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { formatCurrency, getMCCCurrency, DEFAULT_CURRENCY } from "@/lib/utils/currency"
+import { useTour } from "@/components/onboarding/useTour"
+import { MCC_DASHBOARD_TOUR_STEPS, MCC_DASHBOARD_TOUR_ID } from "@/components/onboarding/tour-steps"
 
 // Types for MCC-Inventory Integration
 interface MCCInventorySummary {
@@ -106,6 +110,14 @@ export default function EnhancedMCCDashboard() {
   const { user } = useAuth()
   const [tab, setTab] = useState("overview")
   const [searchQuery, setSearchQuery] = useState("")
+  const [mccCurrency, setMccCurrency] = useState<string>(DEFAULT_CURRENCY)
+  const [mccSettings, setMccSettings] = useState<Record<string, unknown> | null>(null)
+
+  const { start: startTour, isComplete: isTourComplete } = useTour({
+    tourId: MCC_DASHBOARD_TOUR_ID,
+    steps: MCC_DASHBOARD_TOUR_STEPS,
+    autoStart: false,
+  })
 
   // Get MCC ID from the first farmer's mccId, or use a default
   const [mccId, setMccId] = useState<string>("")
@@ -116,6 +128,35 @@ export default function EnhancedMCCDashboard() {
       setMccId(farmers[0].mccId);
     }
   }, [farmers]);
+
+  // Fetch MCC settings to get currency
+  const fetchMccSettings = async (id: string) => {
+    try {
+      const token = localStorage.getItem('Gemurai_token');
+      const response = await fetch(`/api/v1/mcc/setup?id=${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data?.settings) {
+          setMccSettings(data.data.settings)
+          setMccCurrency(getMCCCurrency(data.data.settings))
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch MCC settings:", error)
+    }
+  }
+
+  // Fetch MCC settings when mccId changes
+  useEffect(() => {
+    if (mccId) {
+      fetchMccSettings(mccId)
+    }
+  }, [mccId]);
 
   const fetchInventorySummary = async () => {
     try {
@@ -275,16 +316,25 @@ export default function EnhancedMCCDashboard() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-6" data-tour="mcc-dashboard-welcome">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between" data-tour="mcc-info-card">
         <div>
           <h1 className="text-3xl font-bold">MCC Management Dashboard</h1>
           <p className="text-muted-foreground">
             Integrated inventory management for milk collection centers
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2" data-tour="quick-actions">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={startTour}
+            data-tour="help-button"
+          >
+            <HelpCircle className="h-4 w-4 mr-2" />
+            Tour
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -332,7 +382,7 @@ export default function EnhancedMCCDashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">RWF {inventorySummary.inventorySummary.totalValue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{formatCurrency(inventorySummary.inventorySummary.totalValue, mccCurrency)}</div>
               <p className="text-xs text-muted-foreground">
                 Current inventory value
               </p>
@@ -356,11 +406,11 @@ export default function EnhancedMCCDashboard() {
 
       {/* Main Content Tabs */}
       <Tabs value={tab} onValueChange={setTab} className="space-y-4">
-        <TabsList>
+        <TabsList data-tour="dashboard-tabs">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="collections">Collections</TabsTrigger>
-          <TabsTrigger value="farmers">Farmers</TabsTrigger>
+          <TabsTrigger value="collections" data-tour="collections-summary">Collections</TabsTrigger>
+          <TabsTrigger value="farmers" data-tour="farmers-list">Farmers</TabsTrigger>
           <TabsTrigger value="processing">Processing</TabsTrigger>
         </TabsList>
 
@@ -392,7 +442,7 @@ export default function EnhancedMCCDashboard() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">RWF {collection.totalAmount.toLocaleString()}</p>
+                        <p className="font-medium">{formatCurrency(collection.totalAmount, mccCurrency)}</p>
                         <Badge variant={collection.stockMove ? "default" : "secondary"}>
                           {collection.stockMove ? "In Inventory" : "Pending"}
                         </Badge>
@@ -404,7 +454,7 @@ export default function EnhancedMCCDashboard() {
             </Card>
 
             {/* Warehouse Status */}
-            <Card>
+            <Card data-tour="ikofi-wallet">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Warehouse className="h-5 w-5 mr-2" />
@@ -515,7 +565,7 @@ export default function EnhancedMCCDashboard() {
                     <div className="text-right">
                       <p className="font-medium">{collection.totalLiters}L</p>
                       <p className="text-sm text-muted-foreground">
-                        RWF {collection.totalAmount.toLocaleString()}
+                        {formatCurrency(collection.totalAmount, mccCurrency)}
                       </p>
                       <Badge 
                         variant={collection.stockMove ? "default" : "secondary"}
@@ -576,7 +626,7 @@ export default function EnhancedMCCDashboard() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">RWF {(farmer.totalAmountEarned || 0).toLocaleString()}</p>
+                      <p className="font-medium">{formatCurrency(farmer.totalAmountEarned || 0, mccCurrency)}</p>
                       <p className="text-sm text-muted-foreground">
                         {farmer.collections?.length || 0} collections
                       </p>

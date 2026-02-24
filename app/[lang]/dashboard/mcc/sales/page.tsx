@@ -58,9 +58,13 @@ interface Sale {
 interface SalesPageProps {
   triggerOpenAddDialog?: boolean
   onTriggerConsumed?: () => void
+  /** When true, render only the Add Sale dialog (e.g. for dashboard quick action) */
+  embedMode?: boolean
+  /** Called when the dialog is closed (embed mode) */
+  onClose?: () => void
 }
 
-export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed }: SalesPageProps = {}) {
+export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed, embedMode, onClose }: SalesPageProps = {}) {
   const { user } = useAuth()
   const params = useParams()
   const lang = (params?.lang as string) || "en"
@@ -80,8 +84,8 @@ export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed }: S
   const [totalSales, setTotalSales] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
   
-  // Form states
-  const [addSaleOpen, setAddSaleOpen] = useState(false)
+  // Form states (when embedMode + triggerOpenAddDialog, start with dialog open)
+  const [addSaleOpen, setAddSaleOpen] = useState(!!(embedMode && triggerOpenAddDialog))
   const [editSaleOpen, setEditSaleOpen] = useState(false)
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -156,10 +160,10 @@ export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed }: S
   }
 
   useEffect(() => {
-    if (user) {
+    if (user && !embedMode) {
       fetchSales(currentPage)
     }
-  }, [user, currentPage, searchQuery])
+  }, [user, currentPage, searchQuery, embedMode])
 
   useEffect(() => {
     if (!triggerOpenAddDialog) return
@@ -296,7 +300,8 @@ export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed }: S
         setAddSaleOpen(false)
         setEditSaleOpen(false)
         setSelectedSale(null)
-        fetchSales(currentPage)
+        onClose?.()
+        if (!embedMode) fetchSales(currentPage)
       } else {
         const errorData = await response.json()
         toast.error(errorData.error || `Failed to ${editSaleOpen ? 'update' : 'record'} sale`)
@@ -318,6 +323,161 @@ export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed }: S
     }
     const config = variants[status] || { variant: "secondary" as const, label: status }
     return <Badge variant={config.variant}>{config.label}</Badge>
+  }
+
+  if (embedMode) {
+    return (
+      <Dialog
+        open={addSaleOpen}
+        onOpenChange={(open) => {
+          setAddSaleOpen(open)
+          setEditSaleOpen(false)
+          setSelectedSale(null)
+          if (!open) onClose?.()
+        }}
+      >
+        <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border border-slate-200 shadow-xl rounded-3xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+          <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+            <DialogHeader className="relative">
+              <DialogTitle className="flex items-center gap-4 text-2xl font-bold text-white tracking-tight">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                  <ShoppingCart className="h-5 w-5" />
+                </div>
+                Record Sale
+              </DialogTitle>
+              <DialogDescription className="mt-2 text-slate-300 text-base">Record a new milk sale to a customer</DialogDescription>
+            </DialogHeader>
+          </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleSubmitSale()
+            }}
+            className="flex flex-col flex-1 min-h-0"
+          >
+          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5 min-h-[200px] bg-gradient-to-b from-slate-50/80 to-white"
+          >
+            <div className="space-y-4">
+              <div className="rounded-xl border border-blue-100 bg-blue-50/30 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-600 mb-3">Sale Details</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="embed-litersSold" className="text-sm font-medium text-gray-700">Liters Sold *</Label>
+                    <Input
+                      id="embed-litersSold"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.litersSold}
+                      onChange={(e) => setFormData({ ...formData, litersSold: e.target.value })}
+                      placeholder="0.00"
+                      className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="embed-unitPrice" className="text-sm font-medium text-gray-700">Unit Price (RWF) *</Label>
+                    <Input
+                      id="embed-unitPrice"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.unitPrice}
+                      onChange={(e) => setFormData({ ...formData, unitPrice: e.target.value })}
+                      placeholder="0.00"
+                      className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                </div>
+                {formData.litersSold && formData.unitPrice && parseFloat(formData.litersSold) > 0 && parseFloat(formData.unitPrice) > 0 && (
+                  <div className="mt-3 flex items-center justify-between rounded-lg bg-white px-4 py-2.5 border border-emerald-200">
+                    <span className="text-sm font-medium text-gray-600">Total Amount</span>
+                    <span className="text-lg font-bold text-emerald-700">
+                      RWF {(parseFloat(formData.litersSold || "0") * parseFloat(formData.unitPrice || "0")).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-3">Customer Information</p>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="embed-companyName" className="text-sm font-medium text-gray-700">Customer Name *</Label>
+                    <Input
+                      id="embed-companyName"
+                      value={formData.companyName}
+                      onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                      placeholder="Enter customer or company name"
+                      className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="embed-companyContact" className="text-sm font-medium text-gray-700">Contact *</Label>
+                    <Input
+                      id="embed-companyContact"
+                      value={formData.companyContact}
+                      onChange={(e) => setFormData({ ...formData, companyContact: e.target.value })}
+                      placeholder="Phone or email"
+                      className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="embed-companyAddress" className="text-sm font-medium text-gray-700">Address</Label>
+                    <Input
+                      id="embed-companyAddress"
+                      value={formData.companyAddress}
+                      onChange={(e) => setFormData({ ...formData, companyAddress: e.target.value })}
+                      placeholder="Delivery or billing address"
+                      className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="embed-paymentStatus" className="text-sm font-medium text-gray-700">Payment Status</Label>
+                  <Select value={formData.paymentStatus} onValueChange={(v: 'pending' | 'paid' | 'partial') => setFormData({ ...formData, paymentStatus: v })}>
+                    <SelectTrigger id="embed-paymentStatus" className="rounded-lg border-gray-200 bg-white"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                      <SelectItem value="partial">Partial</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="embed-saleDate" className="text-sm font-medium text-gray-700">Sale Date</Label>
+                  <Input
+                    id="embed-saleDate"
+                    type="date"
+                    value={formData.saleDate}
+                    onChange={(e) => setFormData({ ...formData, saleDate: e.target.value })}
+                    className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="embed-notes" className="text-sm font-medium text-gray-700">Notes</Label>
+                <Textarea
+                  id="embed-notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Optional notes"
+                  rows={2}
+                  className="rounded-lg border-gray-200 bg-white focus:border-blue-500 focus:ring-blue-500/20"
+                />
+              </div>
+            </div>
+          </div>
+            <div className="flex items-center justify-between gap-4 px-6 py-5 border-t border-slate-200 bg-white rounded-b-3xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)]">
+              <Button type="button" variant="outline" onClick={() => { setAddSaleOpen(false); onClose?.(); }} className="rounded-xl border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 px-4 py-2.5 font-medium">Cancel</Button>
+              <Button type="submit" disabled={isSubmitting} className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-6 py-2.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-emerald-500/30 disabled:opacity-70">
+                {isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Recording...</> : "Record Sale"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
   if (loading && sales.length === 0) {
@@ -644,7 +804,7 @@ export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed }: S
             </Card>
           </section>
 
-          {/* Add/Edit Sale Dialog - Redesigned */}
+          {/* Add/Edit Sale Dialog - Redesigned (Record Commodity Collection pattern) */}
           <Dialog open={addSaleOpen || editSaleOpen} onOpenChange={(open) => {
           setAddSaleOpen(open)
           setEditSaleOpen(open)
@@ -652,29 +812,28 @@ export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed }: S
             setSelectedSale(null)
           }
         }}>
-          <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white shadow-2xl">
-            <DialogHeader className="space-y-1 pb-4 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25">
-                  <ShoppingCart className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <DialogTitle className="text-xl font-semibold text-gray-900">
-                    {editSaleOpen ? "Edit Sale" : "Record Sale"}
-                  </DialogTitle>
-                  <DialogDescription className="text-sm text-gray-600">
-                    {editSaleOpen ? "Update sale record details" : "Record a new milk sale to a customer"}
-                  </DialogDescription>
-                </div>
-              </div>
-            </DialogHeader>
+          <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border border-slate-200 shadow-xl rounded-3xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+            <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+              <DialogHeader className="relative">
+                <DialogTitle className="flex items-center gap-4 text-2xl font-bold text-white tracking-tight">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                    <ShoppingCart className="h-5 w-5" />
+                  </div>
+                  {editSaleOpen ? "Edit Sale" : "Record Sale"}
+                </DialogTitle>
+                <DialogDescription className="mt-2 text-slate-300 text-base">
+                  {editSaleOpen ? "Update sale record details" : "Record a new milk sale to a customer"}
+                </DialogDescription>
+              </DialogHeader>
+            </div>
             <form
               onSubmit={(e) => {
                 e.preventDefault()
                 handleSubmitSale()
               }}
-              className="space-y-5 pt-1"
+              className="flex flex-col flex-1 min-h-0"
             >
+              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5 min-h-[200px] bg-gradient-to-b from-slate-50/80 to-white">
               {/* Sale details */}
               <div className="space-y-4">
                 <div className="rounded-xl border border-blue-100 bg-blue-50/30 p-4">
@@ -796,8 +955,9 @@ export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed }: S
                   />
                 </div>
               </div>
+              </div>
 
-              <DialogFooter className="pt-4 border-t border-gray-100 gap-2 sm:gap-0">
+              <div className="flex items-center justify-between gap-4 px-6 py-5 border-t border-slate-200 bg-white rounded-b-3xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)]">
                 <Button
                   type="button"
                   variant="outline"
@@ -806,14 +966,14 @@ export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed }: S
                     setEditSaleOpen(false)
                     setSelectedSale(null)
                   }}
-                  className="rounded-xl border-gray-200 hover:bg-gray-50"
+                  className="rounded-xl border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 px-4 py-2.5 font-medium"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-6 py-2.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-emerald-500/30 disabled:opacity-70"
                 >
                   {isSubmitting ? (
                     <>
@@ -824,7 +984,7 @@ export default function SalesPage({ triggerOpenAddDialog, onTriggerConsumed }: S
                     editSaleOpen ? "Update Sale" : "Record Sale"
                   )}
                 </Button>
-              </DialogFooter>
+              </div>
             </form>
           </DialogContent>
         </Dialog>

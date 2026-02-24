@@ -24,6 +24,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog"
 import {
@@ -242,7 +243,7 @@ export default function UsersPage() {
       return roleName === normalized || roleName.replace(/\s+/g, "_") === normalized
     })
     // Also check against known MCC roles
-    const mccRoles = ['MCC_MANAGER', 'FIELD_AGENT', 'COOP_ADMIN', 'FARMER', 'ACCOUNTANT']
+    const mccRoles = ['MCC_MANAGER', 'AGENT', 'COOP_ADMIN', 'FARMER', 'ACCOUNTANT', 'REGULATOR']
     const matchesMccRole = mccRoles.includes(normalized)
     
     if (!matchesId && !matchesName && !matchesMccRole) return "Please select a valid role"
@@ -478,11 +479,10 @@ export default function UsersPage() {
 
   const totalUsers = users.length
   const activeUsers = users.filter((u) => u.isActive).length
-  const dccCount = users.filter((u) => (u.role || "").toUpperCase() === "DCC").length
   const agentCount = users.filter((u) => (u.role || "").toUpperCase() === "AGENT").length
   const mccManagerCount = users.filter((u) => (u.role || "").toUpperCase() === "MCC_MANAGER").length
-  const fieldAgentCount = users.filter((u) => (u.role || "").toUpperCase() === "FIELD_AGENT").length
   const farmerCount = users.filter((u) => (u.role || "").toUpperCase() === "FARMER").length
+  const accountantCount = users.filter((u) => (u.role || "").toUpperCase() === "ACCOUNTANT").length
 
   const statCards = [
     {
@@ -1110,6 +1110,7 @@ export default function UsersPage() {
         >
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription className="sr-only">Edit user name, email, phone, role and active status.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -1227,9 +1228,9 @@ export default function UsersPage() {
         >
           <DialogHeader className="px-6 pt-6 pb-3 space-y-1">
             <DialogTitle className="text-xl font-semibold text-gray-900">Create New User</DialogTitle>
-            <p className="text-sm text-gray-500">
+            <DialogDescription className="text-sm text-gray-500">
               Invite a user and assign role. Choose type: Individual, Cooperative, Company, or NGO.
-            </p>
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-5 px-6 pb-6">
             <div className="space-y-2">

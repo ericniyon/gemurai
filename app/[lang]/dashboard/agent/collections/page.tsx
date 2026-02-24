@@ -47,7 +47,7 @@ export default function AgentCollectionsPage() {
   const canAccess =
     user &&
     (user.role === "AGENT" ||
-      user.role === "FIELD_AGENT" ||
+      user.role === "AGENT" ||
       user.role === "MCC_MANAGER" ||
       user.role === "ADMIN" ||
       user.role === "SUPER_ADMIN")

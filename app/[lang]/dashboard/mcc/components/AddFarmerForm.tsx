@@ -26,6 +26,9 @@ import {
 import { useAuthStore } from "@/lib/stores/auth-store"
 import { GeoLocationInput } from "@/components/ui/geo-location-input"
 import { cn } from "@/lib/utils"
+import { HelpTooltip } from "@/components/onboarding/HelpTooltip"
+import { HelpModal, useHelpModal } from "@/components/onboarding/HelpModal"
+import { HELP_CONTENT, getModalContent } from "@/lib/help-content"
 
 interface AddFarmerFormProps {
   open: boolean
@@ -116,6 +119,15 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof FarmerFormData, string>>>({})
   const [mccId, setMccId] = useState<string | null>(null)
+
+  const helpModal = useHelpModal({
+    nationalId: getModalContent("nationalId")!,
+    nfcId: getModalContent("nfcId")!,
+    geoLocation: getModalContent("geoLocation")!,
+    herdSize: getModalContent("herdSize")!,
+    paymentMethod: getModalContent("paymentMethod")!,
+    cooperativeMember: getModalContent("cooperativeMember")!,
+  })
 
   useEffect(() => {
     if (!open) return
@@ -382,8 +394,14 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-700 font-medium">National ID *</Label>
+                  <div className="space-y-2" data-tour="farmer-national-id">
+                    <Label className="text-slate-700 font-medium flex items-center">
+                      National ID *
+                      <HelpTooltip
+                        content={HELP_CONTENT.nationalId?.tooltip || "16-digit Rwanda National ID"}
+                        onLearnMore={() => helpModal.openModal("nationalId")}
+                      />
+                    </Label>
                     <Input
                       value={formData.nationalId}
                       onChange={(e) => {
@@ -402,7 +420,13 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
                     <p className="text-xs text-slate-500">16 digits starting with 1</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700 font-medium">NFC Card ID</Label>
+                    <Label className="text-slate-700 font-medium flex items-center">
+                      NFC Card ID
+                      <HelpTooltip
+                        content={HELP_CONTENT.nfcId?.tooltip || "NFC card for contactless identification"}
+                        onLearnMore={() => helpModal.openModal("nfcId")}
+                      />
+                    </Label>
                     <Input
                       value={formData.nfcId}
                       onChange={(e) => setFormData((p) => ({ ...p, nfcId: e.target.value }))}
@@ -478,8 +502,14 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                 <p className="text-sm text-slate-600 mb-4">Farm details, emergency contact, and payment preferences</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                  <div className="space-y-2">
-                    <Label className="text-slate-700 font-medium">Herd Size</Label>
+                  <div className="space-y-2" data-tour="farmer-herd-size">
+                    <Label className="text-slate-700 font-medium flex items-center">
+                      Herd Size
+                      <HelpTooltip
+                        content={HELP_CONTENT.herdSize?.tooltip || "Total number of dairy cattle"}
+                        onLearnMore={() => helpModal.openModal("herdSize")}
+                      />
+                    </Label>
                     <Input
                       type="number"
                       min={0}
@@ -489,8 +519,14 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
                       className={inputBase}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-slate-700 font-medium">Cooperative Member</Label>
+                  <div className="space-y-2" data-tour="farmer-cooperative">
+                    <Label className="text-slate-700 font-medium flex items-center">
+                      Cooperative Member
+                      <HelpTooltip
+                        content={HELP_CONTENT.cooperativeMember?.tooltip || "Whether the farmer is a member of a dairy cooperative"}
+                        onLearnMore={() => helpModal.openModal("cooperativeMember")}
+                      />
+                    </Label>
                     <Select
                       value={formData.isCooperativeMember ? "yes" : "no"}
                       onValueChange={(v) =>
@@ -554,13 +590,19 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-2 sm:col-span-2 lg:col-span-3 border-t border-slate-200 pt-5">
+                  <div className="space-y-2 sm:col-span-2 lg:col-span-3 border-t border-slate-200 pt-5" data-tour="farmer-payment">
                     <p className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
                       <CreditCard className="h-4 w-4 text-primary" /> Payment Method
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                      <div className="space-y-2">
-                        <Label className="text-slate-700 font-medium">Preferred Payment Method</Label>
+                      <div className="space-y-2" data-tour="farmer-payment-method">
+                        <Label className="text-slate-700 font-medium flex items-center">
+                          Preferred Payment Method
+                          <HelpTooltip
+                            content={HELP_CONTENT.paymentMethod?.tooltip || "Choose how you receive payments"}
+                            onLearnMore={() => helpModal.openModal("paymentMethod")}
+                          />
+                        </Label>
                         <Select
                           value={formData.paymentMethod}
                           onValueChange={(v: FarmerFormData["paymentMethod"]) => setFormData((p) => ({ ...p, paymentMethod: v }))}
@@ -707,6 +749,11 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
           </div>
         </form>
       </DialogContent>
+      <HelpModal
+        open={helpModal.isOpen}
+        onOpenChange={(open) => !open && helpModal.closeModal()}
+        helpContent={helpModal.currentContent}
+      />
     </Dialog>
   )
 }

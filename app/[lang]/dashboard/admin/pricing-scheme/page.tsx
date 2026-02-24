@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import {
@@ -39,9 +40,11 @@ import {
   Settings,
   Calculator,
   BarChart3,
+  AlertCircle,
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { format } from "date-fns"
+import { SUPPORTED_CURRENCIES, getCurrencySymbol } from "@/lib/utils/currency"
 
 interface Commodity {
   id: string
@@ -110,10 +113,23 @@ export default function AdminPricingSchemePage() {
     basePrice: "",
     currency: "RWF",
     effectiveDate: new Date().toISOString().split("T")[0],
+    hasExpiration: false,
     expiryDate: "",
     pricingMethod: "",
     gradePrices: [] as { grade: string; price: string; multiplier: string }[],
   })
+
+  // Quality rules form state
+  const [qualityRules, setQualityRules] = useState<{
+    id?: string
+    ruleName: string
+    ruleType: string
+    qualityFieldId: string
+    thresholdValue: string
+    thresholdOperator: string
+    impactOnPricing: boolean
+    pricingMultiplier: string
+  }[]>([])
 
   useEffect(() => {
     if (currentUser && (currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN")) {
@@ -174,15 +190,64 @@ export default function AdminPricingSchemePage() {
 
   const handleEditPricing = (commodity: Commodity) => {
     setEditingCommodity(commodity)
+    
+    // Load existing pricing scheme from metadata if available
+    const existingScheme = commodity.metadata?.pricingScheme as any
+    
     setFormData({
-      basePrice: "",
-      currency: "RWF",
-      effectiveDate: new Date().toISOString().split("T")[0],
-      expiryDate: "",
+      basePrice: existingScheme?.basePrice?.toString() || "",
+      currency: existingScheme?.currency || "RWF",
+      effectiveDate: existingScheme?.effectiveDate || new Date().toISOString().split("T")[0],
+      hasExpiration: existingScheme?.hasExpiration || false,
+      expiryDate: existingScheme?.expiryDate || "",
       pricingMethod: commodity.pricingMethod,
-      gradePrices: [],
+      gradePrices: existingScheme?.gradePrices?.map((gp: any) => ({
+        grade: gp.grade,
+        price: gp.price?.toString() || "",
+        multiplier: gp.multiplier?.toString() || "1.0",
+      })) || [],
     })
+    
+    // Load existing quality rules
+    setQualityRules(
+      commodity.qualityRules?.map((rule) => ({
+        id: rule.id,
+        ruleName: rule.ruleName,
+        ruleType: rule.ruleType,
+        qualityFieldId: rule.qualityFieldId || "",
+        thresholdValue: rule.thresholdValue?.toString() || "",
+        thresholdOperator: rule.thresholdOperator || ">=",
+        impactOnPricing: rule.impactOnPricing,
+        pricingMultiplier: rule.pricingMultiplier?.toString() || "1.0",
+      })) || []
+    )
+    
     setIsDialogOpen(true)
+  }
+
+  const handleAddQualityRule = () => {
+    setQualityRules([
+      ...qualityRules,
+      {
+        ruleName: "",
+        ruleType: "PASS",
+        qualityFieldId: "",
+        thresholdValue: "",
+        thresholdOperator: ">=",
+        impactOnPricing: false,
+        pricingMultiplier: "1.0",
+      },
+    ])
+  }
+
+  const handleRemoveQualityRule = (index: number) => {
+    setQualityRules(qualityRules.filter((_, i) => i !== index))
+  }
+
+  const handleUpdateQualityRule = (index: number, field: string, value: any) => {
+    const updated = [...qualityRules]
+    updated[index] = { ...updated[index], [field]: value }
+    setQualityRules(updated)
   }
 
   const handleAddGradePrice = () => {
@@ -215,7 +280,8 @@ export default function AdminPricingSchemePage() {
         basePrice: parseFloat(formData.basePrice),
         currency: formData.currency,
         effectiveDate: formData.effectiveDate,
-        expiryDate: formData.expiryDate || null,
+        hasExpiration: formData.hasExpiration,
+        expiryDate: formData.hasExpiration && formData.expiryDate ? formData.expiryDate : null,
         gradePrices: formData.gradePrices.map((gp) => ({
           grade: gp.grade,
           price: parseFloat(gp.price),
@@ -244,6 +310,11 @@ export default function AdminPricingSchemePage() {
       const result = await response.json()
 
       if (result.success || response.ok) {
+        // Save quality rules if any
+        if (qualityRules.length > 0) {
+          await saveQualityRules(editingCommodity?.id || "", qualityRules, token || "")
+        }
+        
         toast.success("Pricing scheme updated successfully")
         setIsDialogOpen(false)
         fetchCommodities()
@@ -255,6 +326,73 @@ export default function AdminPricingSchemePage() {
       toast.error("Failed to save pricing scheme")
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const saveQualityRules = async (commodityId: string, rules: typeof qualityRules, token: string) => {
+    try {
+      // Get existing rules to determine which to update/create/delete
+      const existingRules = editingCommodity?.qualityRules || []
+      const existingIds = existingRules.map((r) => r.id)
+      const currentIds = rules.filter((r) => r.id).map((r) => r.id)
+
+      // Delete rules that are no longer present
+      const toDelete = existingIds.filter((id) => !currentIds.includes(id))
+      for (const ruleId of toDelete) {
+        await fetch(
+          `/api/v1/admin/commodity-studio/commodities/${commodityId}/quality-rules/${ruleId}`,
+          {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        )
+      }
+
+      // Create or update rules
+      for (const rule of rules) {
+        const ruleData = {
+          ruleName: rule.ruleName,
+          ruleType: rule.ruleType,
+          qualityFieldId: rule.qualityFieldId || null,
+          thresholdValue: rule.thresholdValue ? parseFloat(rule.thresholdValue) : null,
+          thresholdOperator: rule.thresholdOperator,
+          impactOnPricing: rule.impactOnPricing,
+          pricingMultiplier: rule.impactOnPricing && rule.pricingMultiplier
+            ? parseFloat(rule.pricingMultiplier)
+            : null,
+        }
+
+        if (rule.id) {
+          // Update existing rule
+          await fetch(
+            `/api/v1/admin/commodity-studio/commodities/${commodityId}/quality-rules/${rule.id}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(ruleData),
+            }
+          )
+        } else {
+          // Create new rule
+          await fetch(
+            `/api/v1/admin/commodity-studio/commodities/${commodityId}/quality-rules`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ ...ruleData, commodityId }),
+            }
+          )
+        }
+      }
+    } catch (error) {
+      console.error("Error saving quality rules:", error)
+      toast.error("Some quality rules may not have been saved")
     }
   }
 
@@ -516,8 +654,8 @@ export default function AdminPricingSchemePage() {
 
         {/* Edit Pricing Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="bg-white opacity-100 max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+            <DialogHeader className="border-b border-slate-200 px-6 py-5 rounded-t-3xl">
               <DialogTitle className="text-2xl font-bold text-blue-900">
                 Configure Pricing Scheme: {editingCommodity?.name}
               </DialogTitle>
@@ -527,9 +665,34 @@ export default function AdminPricingSchemePage() {
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <Tabs defaultValue="base" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="base">Base Pricing</TabsTrigger>
-                  <TabsTrigger value="grades">Grade Pricing</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-gradient-to-r from-slate-100 to-slate-50 rounded-xl border border-slate-200 shadow-sm">
+                  <TabsTrigger 
+                    value="base"
+                    className="relative px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-emerald-700 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-emerald-200 data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900 data-[state=inactive]:hover:bg-white/50"
+                  >
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      <span>Base Pricing</span>
+                    </div>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="grades"
+                    className="relative px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-blue-200 data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900 data-[state=inactive]:hover:bg-white/50"
+                  >
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4" />
+                      <span>Grade Pricing</span>
+                    </div>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="quality"
+                    className="relative px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-purple-700 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-purple-200 data-[state=inactive]:text-slate-600 data-[state=inactive]:hover:text-slate-900 data-[state=inactive]:hover:bg-white/50"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      <span>Quality Rules</span>
+                    </div>
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="base" className="space-y-4 mt-4">
@@ -561,14 +724,64 @@ export default function AdminPricingSchemePage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="RWF">RWF (Rwandan Franc)</SelectItem>
-                          <SelectItem value="USD">USD (US Dollar)</SelectItem>
-                          <SelectItem value="EUR">EUR (Euro)</SelectItem>
+                          {SUPPORTED_CURRENCIES.map((currency) => (
+                            <SelectItem key={currency.code} value={currency.code}>
+                              {currency.code} - {currency.name} ({currency.symbol})
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Has Expiration Checkbox */}
+                    <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <Checkbox
+                        id="hasExpiration"
+                        checked={formData.hasExpiration}
+                        onCheckedChange={(checked) =>
+                          setFormData({
+                            ...formData,
+                            hasExpiration: checked === true,
+                            expiryDate: checked ? formData.expiryDate : "",
+                          })
+                        }
+                      />
+                      <div className="flex-1">
+                        <Label
+                          htmlFor="hasExpiration"
+                          className="text-sm font-medium text-gray-700 cursor-pointer"
+                        >
+                          This pricing scheme has an expiration date
+                        </Label>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Check this if the price is only valid for a specific period
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Expiry Date - Only shown when hasExpiration is true */}
+                    {formData.hasExpiration && (
+                      <div className="space-y-2 pl-4 border-l-4 border-blue-400 bg-blue-50/50 p-4 rounded-r-lg">
+                        <Label htmlFor="expiryDate" className="text-base font-semibold text-gray-700">
+                          Expiry Date *
+                        </Label>
+                        <Input
+                          id="expiryDate"
+                          type="date"
+                          value={formData.expiryDate}
+                          onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                          required={formData.hasExpiration}
+                          min={formData.effectiveDate}
+                          style={{ border: '2px solid lightblue' }}
+                          className="max-w-xs"
+                        />
+                        <p className="text-xs text-gray-500">
+                          The pricing scheme will expire after this date
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="effectiveDate" className="text-base font-semibold text-gray-700">
                         Effective Date *
@@ -580,18 +793,7 @@ export default function AdminPricingSchemePage() {
                         onChange={(e) => setFormData({ ...formData, effectiveDate: e.target.value })}
                         required
                         style={{ border: '2px solid lightblue' }}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="expiryDate" className="text-base font-semibold text-gray-700">
-                        Expiry Date (Optional)
-                      </Label>
-                      <Input
-                        id="expiryDate"
-                        type="date"
-                        value={formData.expiryDate}
-                        onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                        style={{ border: '2px solid lightblue' }}
+                        className="max-w-xs"
                       />
                     </div>
                   </div>
@@ -700,6 +902,175 @@ export default function AdminPricingSchemePage() {
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <p>Grade-based pricing is only available for commodities with GRADE_BASED pricing method</p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="quality" className="space-y-4 mt-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700">Quality Rules & Pricing Multipliers</h4>
+                      <p className="text-xs text-gray-500">Define quality thresholds and how they affect pricing</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddQualityRule}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Rule
+                    </Button>
+                  </div>
+
+                  {editingCommodity?.qualityFields && editingCommodity.qualityFields.length > 0 ? (
+                    <div className="space-y-4">
+                      {qualityRules.map((rule, index) => (
+                        <div
+                          key={index}
+                          className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium text-gray-700">Rule {index + 1}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveQualityRule(index)}
+                              className="text-red-600 h-8 w-8 p-0"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">Rule Name *</Label>
+                              <Input
+                                value={rule.ruleName}
+                                onChange={(e) => handleUpdateQualityRule(index, "ruleName", e.target.value)}
+                                placeholder="e.g., High Fat Content Bonus"
+                                style={{ border: '2px solid lightblue' }}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">Rule Type *</Label>
+                              <Select
+                                value={rule.ruleType}
+                                onValueChange={(value) => handleUpdateQualityRule(index, "ruleType", value)}
+                              >
+                                <SelectTrigger style={{ border: '2px solid lightblue' }}>
+                                  <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="PASS">Pass (Accept)</SelectItem>
+                                  <SelectItem value="FAIL">Fail (Reject)</SelectItem>
+                                  <SelectItem value="CONDITIONAL">Conditional</SelectItem>
+                                  <SelectItem value="WARNING">Warning</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">Quality Field</Label>
+                              <Select
+                                value={rule.qualityFieldId}
+                                onValueChange={(value) => handleUpdateQualityRule(index, "qualityFieldId", value)}
+                              >
+                                <SelectTrigger style={{ border: '2px solid lightblue' }}>
+                                  <SelectValue placeholder="Select field" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {editingCommodity?.qualityFields?.map((field) => (
+                                    <SelectItem key={field.id} value={field.id}>
+                                      {field.fieldName}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">Operator</Label>
+                              <Select
+                                value={rule.thresholdOperator}
+                                onValueChange={(value) => handleUpdateQualityRule(index, "thresholdOperator", value)}
+                              >
+                                <SelectTrigger style={{ border: '2px solid lightblue' }}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value=">=">≥ (Greater than or equal)</SelectItem>
+                                  <SelectItem value=">">{">"} (Greater than)</SelectItem>
+                                  <SelectItem value="<=">≤ (Less than or equal)</SelectItem>
+                                  <SelectItem value="<">{"<"} (Less than)</SelectItem>
+                                  <SelectItem value="==">= (Equal to)</SelectItem>
+                                  <SelectItem value="!=">≠ (Not equal to)</SelectItem>
+                                  <SelectItem value="between">Between</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-sm font-medium text-gray-700">Threshold Value</Label>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                value={rule.thresholdValue}
+                                onChange={(e) => handleUpdateQualityRule(index, "thresholdValue", e.target.value)}
+                                placeholder="e.g., 3.5"
+                                style={{ border: '2px solid lightblue' }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-6 pt-2 border-t border-gray-200">
+                            <div className="flex items-center space-x-3">
+                              <Checkbox
+                                id={`impactPricing-${index}`}
+                                checked={rule.impactOnPricing}
+                                onCheckedChange={(checked) => handleUpdateQualityRule(index, "impactOnPricing", checked === true)}
+                              />
+                              <Label htmlFor={`impactPricing-${index}`} className="text-sm font-medium text-gray-700 cursor-pointer">
+                                Affects pricing
+                              </Label>
+                            </div>
+                            {rule.impactOnPricing && (
+                              <div className="flex items-center gap-2">
+                                <Label className="text-sm font-medium text-gray-700">Multiplier:</Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={rule.pricingMultiplier}
+                                  onChange={(e) => handleUpdateQualityRule(index, "pricingMultiplier", e.target.value)}
+                                  placeholder="1.0"
+                                  className="w-24"
+                                  style={{ border: '2px solid lightblue' }}
+                                />
+                                <span className="text-xs text-gray-500">
+                                  (1.05 = +5%, 0.95 = -5%)
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+
+                      {qualityRules.length === 0 && (
+                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                          <Settings className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                          <p>No quality rules configured</p>
+                          <p className="text-xs mt-1">Click "Add Rule" to define quality thresholds and pricing multipliers</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <AlertCircle className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+                      <p className="font-medium text-yellow-700">No quality fields defined for this commodity</p>
+                      <p className="text-xs mt-1 text-yellow-600">
+                        Go to Commodity Studio to add quality fields first, then configure quality rules here.
+                      </p>
                     </div>
                   )}
                 </TabsContent>

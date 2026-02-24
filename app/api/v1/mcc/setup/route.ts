@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
       let manager = null
       if (mcc.managerUserId) {
         try {
-          manager = await prisma.users.findUnique({
+          manager = await prisma.user.findUnique({
             where: { id: mcc.managerUserId },
             select: {
               id: true,
@@ -162,7 +162,7 @@ export async function GET(req: NextRequest) {
         let manager = null
         if (mcc.managerUserId) {
           try {
-            manager = await prisma.users.findUnique({
+            manager = await prisma.user.findUnique({
               where: { id: mcc.managerUserId },
               select: {
                 id: true,
@@ -346,8 +346,8 @@ export async function PUT(req: NextRequest) {
     }
 
     const user = await verifyAuthToken(authToken)
-    if (!user || (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const data = await req.json()
@@ -357,7 +357,33 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "MCC ID is required" }, { status: 400 })
     }
 
-    // Update MCC
+    // MCC_MANAGER can only update their own MCC and only settings (currency, paymentMethods, theme)
+    if (user.role === "MCC_MANAGER") {
+      if (user.mccId !== id) {
+        return NextResponse.json({ error: "You can only update your own collection center settings" }, { status: 403 })
+      }
+      const existing = await prisma.mccs.findUnique({ where: { id }, select: { settings: true } })
+      const currentSettings = (existing?.settings as Record<string, unknown>) || {}
+      const newSettings = {
+        ...currentSettings,
+        ...(updateData.settings && typeof updateData.settings === "object" ? updateData.settings : {}),
+      }
+      const mcc = await prisma.mccs.update({
+        where: { id },
+        data: { settings: newSettings, updatedAt: new Date() },
+      })
+      return NextResponse.json({
+        success: true,
+        message: "Settings updated successfully",
+        data: mcc,
+      })
+    }
+
+    if (user.role !== "SUPER_ADMIN" && user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    }
+
+    // Update MCC (full update for admin)
     const mcc = await prisma.mccs.update({
       where: { id },
       data: {

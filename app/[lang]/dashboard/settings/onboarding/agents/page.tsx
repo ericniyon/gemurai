@@ -132,7 +132,7 @@ export default function OnboardAgentPage() {
           email: formData.email,
           phone: formData.phone,
           password: formData.password,
-          role: "FIELD_AGENT",
+          role: "AGENT",
           additionalData: {
             national_id: formData.nationalId,
             mccId: formData.mccId || undefined,
@@ -315,7 +315,7 @@ export default function OnboardAgentPage() {
                     Register new agent
                   </CardTitle>
                   <p className="text-sm text-slate-500">
-                    Create a FIELD_AGENT account with unique agent code.
+                    Create an AGENT account with unique agent code.
                   </p>
                 </CardHeader>
                 <CardContent className="pb-6 pt-0">

@@ -79,16 +79,16 @@ export async function GET(req: Request) {
         }, { status: 404 })
       }
 
-      // Get user's role from the new role system
-      userRole = dbUser.userRole?.role?.name;
+      // Get user's role from the new role system; fallback to session/token role when no assignment
+      userRole = dbUser.userRole?.role?.name ?? (user as { role?: string }).role;
       console.log("[STOCK_ORDERS_GET] User role:", userRole);
 
-      // Allow EMPLOYER, DCC, and BRANCH_MANAGER roles
-      if (userRole !== "EMPLOYER" && userRole !== "DCC" && userRole !== "BRANCH_MANAGER") {
+      // Allow EMPLOYER, DCC, BRANCH_MANAGER, and MCC_MANAGER roles
+      if (userRole !== "EMPLOYER" && userRole !== "DCC" && userRole !== "BRANCH_MANAGER" && userRole !== "MCC_MANAGER") {
         console.log("[STOCK_ORDERS_GET] Access denied for role:", userRole);
         return NextResponse.json({ 
           success: false, 
-          message: "Access denied. Only employers, DCCs, and branch managers can view these orders." 
+          message: "Access denied. Only employers, DCCs, branch managers, and MCC managers can view these orders." 
         }, { status: 403 })
       }
     } catch (dbError) {
@@ -219,6 +219,9 @@ export async function GET(req: Request) {
             createdAt: 'desc'
           }
         })
+      } else if (userRole === "MCC_MANAGER") {
+        // MCC managers get empty list (stock orders are DCC/employer-scoped; layout uses this for notification count)
+        stockOrders = []
       } else {
         // DCCs see their own orders
         stockOrders = await prisma.stockOrder.findMany({

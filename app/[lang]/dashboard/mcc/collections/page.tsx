@@ -32,6 +32,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { AddCollectionForm } from "../components/AddCollectionForm"
+import { formatCurrency, getMCCCurrency, getCurrencySymbol, DEFAULT_CURRENCY } from "@/lib/utils/currency"
 
 interface Collection {
   id: string
@@ -68,6 +69,7 @@ export default function CollectionsPage() {
   const [totalCollections, setTotalCollections] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [addCollectionOpen, setAddCollectionOpen] = useState(false)
+  const [mccCurrency, setMccCurrency] = useState<string>(DEFAULT_CURRENCY)
 
   const fetchCollections = async (page: number = 1) => {
     try {
@@ -128,9 +130,29 @@ export default function CollectionsPage() {
     }
   }
 
+  // Fetch MCC currency from settings
+  const fetchMccCurrency = async () => {
+    if (!user?.mccId) return
+    try {
+      const token = localStorage.getItem("Gemurai_token")
+      const response = await fetch(`/api/v1/mcc/setup?id=${user.mccId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.data?.settings?.currency) {
+          setMccCurrency(data.data.settings.currency)
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch MCC currency:", error)
+    }
+  }
+
   useEffect(() => {
     if (user) {
       fetchCollections(currentPage)
+      fetchMccCurrency()
     }
   }, [user, currentPage, searchQuery])
 
@@ -381,10 +403,10 @@ export default function CollectionsPage() {
                               QUANTITY (L)
                             </TableHead>
                             <TableHead className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-blue-700 text-right">
-                              PRICE/LITER (RWF)
+                              PRICE/LITER ({getCurrencySymbol(mccCurrency)})
                             </TableHead>
                             <TableHead className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-blue-700 text-right">
-                              TOTAL VALUE (RWF)
+                              TOTAL VALUE ({getCurrencySymbol(mccCurrency)})
                             </TableHead>
                             <TableHead className="whitespace-nowrap text-xs font-semibold uppercase tracking-wide text-blue-700 text-center">
                               STATUS
@@ -429,12 +451,12 @@ export default function CollectionsPage() {
                               </TableCell>
                               <TableCell className="whitespace-nowrap py-4 text-sm text-gray-700 text-right">
                                 <span className="font-medium text-gray-700">
-                                  {collection.unitPrice.toLocaleString()}
+                                  {formatCurrency(collection.unitPrice, mccCurrency)}
                                 </span>
                               </TableCell>
                               <TableCell className="whitespace-nowrap py-4 text-sm text-gray-700 text-right">
                                 <span className="font-bold text-gray-900">
-                                  {collection.totalAmount.toLocaleString()}
+                                  {formatCurrency(collection.totalAmount, mccCurrency)}
                                 </span>
                               </TableCell>
                               <TableCell className="whitespace-nowrap py-4 text-sm text-gray-700 text-center">

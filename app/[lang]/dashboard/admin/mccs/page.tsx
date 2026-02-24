@@ -42,7 +42,9 @@ import {
   Activity,
   ChevronLeft,
   ChevronRight,
+  UserPlus,
 } from "lucide-react"
+import { FarmerAssignmentDialog } from "@/components/mcc/FarmerAssignmentDialog"
 import { Progress } from "@/components/ui/progress"
 import { GeoLocationInput } from "@/components/ui/geo-location-input"
 import { useAuth } from "@/hooks/use-auth"
@@ -92,6 +94,9 @@ export default function AdminMCCsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingMCC, setEditingMCC] = useState<MCC | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false)
+  const [assignTargetMcc, setAssignTargetMcc] = useState<MCC | null>(null)
 
   const [formStep, setFormStep] = useState(1)
   const [formData, setFormData] = useState({
@@ -209,8 +214,13 @@ export default function AdminMCCsPage() {
     setIsDialogOpen(true)
   }
 
+  const handleAssignFarmers = (mcc: MCC) => {
+    setAssignTargetMcc(mcc)
+    setIsAssignDialogOpen(true)
+  }
+
   const handleDeleteMCC = async (mccId: string) => {
-    if (!confirm("Are you sure you want to delete this MCC? This action cannot be undone.")) {
+    if (!confirm("Are you sure you want to delete this Collection Center? This action cannot be undone.")) {
       return
     }
 
@@ -229,11 +239,11 @@ export default function AdminMCCsPage() {
         toast.success("Collection center deleted successfully")
         fetchMCCs()
       } else {
-        toast.error(result.error || "Failed to delete MCC")
+        toast.error(result.error || "Failed to delete Collection Center")
       }
     } catch (error) {
       console.error("Error deleting MCC:", error)
-      toast.error("Failed to delete MCC")
+      toast.error("Failed to delete Collection Center")
     }
   }
 
@@ -281,11 +291,11 @@ export default function AdminMCCsPage() {
         setIsDialogOpen(false)
         fetchMCCs()
       } else {
-        toast.error(result.error || "Failed to save MCC")
+        toast.error(result.error || "Failed to save Collection Center")
       }
     } catch (error) {
       console.error("Error saving MCC:", error)
-      toast.error("Failed to save MCC")
+      toast.error("Failed to save Collection Center")
     } finally {
       setIsSubmitting(false)
     }
@@ -484,10 +494,19 @@ export default function AdminMCCsPage() {
                     accessorFn: (row) => row._count?.farmers || 0,
                     header: "Farmers",
                     cell: ({ row }) => (
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-400" />
-                        {row.original._count?.farmers || 0}
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleAssignFarmers(row.original)
+                        }}
+                        className="flex items-center gap-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 -ml-2"
+                      >
+                        <Users className="h-4 w-4" />
+                        <span>{row.original._count?.farmers || 0}</span>
+                        <UserPlus className="h-3 w-3 opacity-0 group-hover:opacity-100" />
+                      </Button>
                     ),
                   },
                   {
@@ -505,11 +524,20 @@ export default function AdminMCCsPage() {
                     id: "actions",
                     header: () => <span className="text-right w-full block">Actions</span>,
                     cell: ({ row }) => (
-                      <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" onClick={() => handleEditMCC(row.original)} className="h-8 w-8 p-0">
+                      <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleAssignFarmers(row.original)}
+                          className="h-8 w-8 p-0"
+                          title="Assign Farmers"
+                        >
+                          <UserPlus className="h-4 w-4 text-green-600" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleEditMCC(row.original)} className="h-8 w-8 p-0" title="Edit Collection Center">
                           <Edit className="h-4 w-4 text-blue-600" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteMCC(row.original.id)} className="h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteMCC(row.original.id)} className="h-8 w-8 p-0" title="Delete Collection Center">
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
                       </div>
@@ -538,8 +566,8 @@ export default function AdminMCCsPage() {
             if (!open) setFormStep(1)
           }}
         >
-          <DialogContent className="bg-white opacity-100 max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+            <DialogHeader className="border-b border-slate-200 px-6 py-5 rounded-t-3xl">
               <DialogTitle className="text-2xl font-bold text-blue-900">
                 {editingMCC ? "Edit Collection Center" : "Create New Collection Center"}
               </DialogTitle>
@@ -571,17 +599,17 @@ export default function AdminMCCsPage() {
                   <div className="grid gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="name" className="text-base font-semibold text-gray-700">
-                        MCC Name *
+                        Collection Center Name *
                       </Label>
                       <Input
                         id="name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
-                        placeholder="e.g., Nyagatare MCC"
+                        placeholder="e.g., Nyagatare Collection Center"
                         className="border-2 border-blue-200"
                       />
-                      <p className="text-xs text-gray-500">MCC Code will be auto-generated (e.g., MCC001)</p>
+                      <p className="text-xs text-gray-500">Code will be auto-generated (e.g., CC001)</p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -667,7 +695,7 @@ export default function AdminMCCsPage() {
                     <div className="space-y-2">
                       <Label htmlFor="managerUserId" className="text-base font-semibold text-gray-700 flex items-center gap-2">
                         <Users className="h-4 w-4" />
-                        MCC Manager
+                        Collection Center Manager
                       </Label>
                       <Select
                         value={formData.managerUserId}
@@ -708,7 +736,7 @@ export default function AdminMCCsPage() {
                         className="h-4 w-4 rounded border-gray-300 text-blue-600"
                       />
                       <Label htmlFor="isActive" className="text-sm font-medium text-gray-700 cursor-pointer">
-                        MCC is active
+                        Collection Center is active
                       </Label>
                     </div>
                   </div>
@@ -717,7 +745,7 @@ export default function AdminMCCsPage() {
                 {/* Step 4: Review */}
                 {formStep === 4 && (
                   <div className="space-y-4 rounded-lg border-2 border-blue-100 bg-blue-50/30 p-4">
-                    <h4 className="font-semibold text-gray-900">Review your MCC details</h4>
+                    <h4 className="font-semibold text-gray-900">Review your Collection Center details</h4>
                     <dl className="grid grid-cols-1 gap-3 text-sm">
                       <div>
                         <dt className="font-medium text-gray-500">Name</dt>
@@ -726,7 +754,7 @@ export default function AdminMCCsPage() {
                       <div>
                         <dt className="font-medium text-gray-500">Code</dt>
                         <dd className="font-semibold text-gray-900">
-                          {editingMCC?.code || "Auto-generated on save (e.g., MCC001)"}
+                          {editingMCC?.code || "Auto-generated on save (e.g., CC001)"}
                         </dd>
                       </div>
                       <div>
@@ -796,7 +824,7 @@ export default function AdminMCCsPage() {
                       type="button"
                       onClick={() => {
                         if (formStep === 1 && (!formData.name.trim() || !formData.location.trim())) {
-                          toast.error("MCC Name and Location are required")
+                          toast.error("Collection Center Name and Location are required")
                           return
                         }
                         setFormStep((s) => s + 1)
@@ -830,6 +858,15 @@ export default function AdminMCCsPage() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Farmer Assignment Dialog */}
+        <FarmerAssignmentDialog
+          open={isAssignDialogOpen}
+          onOpenChange={setIsAssignDialogOpen}
+          targetMcc={assignTargetMcc}
+          allMccs={mccs}
+          onAssignmentComplete={fetchMCCs}
+        />
       </div>
     </div>
   )

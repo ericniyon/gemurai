@@ -112,7 +112,16 @@ interface PaymentRecord {
   farmer: Farmer
 }
 
-export default function PaymentsPage() {
+interface PaymentsPageProps {
+  /** When true, render only farmer select + summary + process payment dialog (for dashboard quick action) */
+  embedMode?: boolean
+  /** Called when the embed container should close (e.g. after successful payment) */
+  onClose?: () => void
+  /** When true, open process payment flow (used with embedMode) */
+  triggerOpenProcessDialog?: boolean
+}
+
+export default function PaymentsPage({ embedMode, onClose, triggerOpenProcessDialog }: PaymentsPageProps = {}) {
   const { user } = useAuth()
   const params = useParams()
   const lang = (params?.lang as string) || "en"
@@ -304,9 +313,10 @@ export default function PaymentsPage() {
           reference: "",
           notes: "",
         })
+        onClose?.()
         // Refresh data
         await fetchPaymentSummary(selectedFarmer)
-        await fetchPayments()
+        if (!embedMode) await fetchPayments()
       } else {
         const error = await response.json()
         toast.error(error.error || "Failed to process payment")
@@ -322,10 +332,10 @@ export default function PaymentsPage() {
   useEffect(() => {
     if (user) {
       fetchFarmers()
-      fetchPayments()
+      if (!embedMode) fetchPayments()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user])
+  }, [user, embedMode])
 
   useEffect(() => {
     if (selectedFarmer) {
@@ -342,7 +352,7 @@ export default function PaymentsPage() {
     (farmer.farmerCode && farmer.farmerCode.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
-  if (loading && payments.length === 0 && farmers.length === 0) {
+  if (!embedMode && loading && payments.length === 0 && farmers.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
         <div className="text-center">
@@ -355,6 +365,170 @@ export default function PaymentsPage() {
 
   const pageTitle = "Payments"
   const pageSubtitle = "Process farmer payments and deduct all outstanding deductions"
+
+  if (embedMode) {
+    return (
+      <div className="space-y-5">
+        <div className="grid gap-5 md:grid-cols-2">
+          {/* Select Farmer */}
+          <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="rounded-t-2xl border-b border-slate-100 bg-white px-5 py-4">
+              <CardTitle className="text-base font-semibold text-slate-900">Select Farmer</CardTitle>
+              <CardDescription className="text-sm text-slate-500 mt-0.5">
+                Choose a farmer to view payment summary and process payment
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 p-5 bg-white">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">Search Farmers</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Search by name, phone, or code..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700">Select Farmer</Label>
+                <Select value={selectedFarmer} onValueChange={setSelectedFarmer}>
+                  <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white">
+                    <SelectValue placeholder="Select a farmer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredFarmers.map((farmer) => (
+                      <SelectItem key={farmer.id} value={farmer.id}>
+                        {farmer.name} ({farmer.farmerCode || farmer.phone})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedFarmer && (
+                <Button
+                  onClick={() => setPaymentDialogOpen(true)}
+                  className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold h-11 shadow-sm"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Process Payment
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+          {/* Payment Summary */}
+          <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="rounded-t-2xl border-b border-slate-100 bg-white px-5 py-4">
+              <CardTitle className="text-base font-semibold text-slate-900">Payment Summary</CardTitle>
+              <CardDescription className="text-sm text-slate-500 mt-0.5">
+                {selectedFarmer ? "Outstanding deductions and account balance" : "Select a farmer to view summary"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-5 bg-white min-h-[180px] flex flex-col">
+              {summaryLoading ? (
+                <div className="flex flex-col items-center justify-center flex-1 py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-slate-400 mb-2" />
+                  <p className="text-sm text-slate-500">Loading summary...</p>
+                </div>
+              ) : paymentSummary ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Account Balance</span>
+                    <span className="font-semibold text-slate-900 tabular-nums">{formatCurrency(paymentSummary.account.balance)}</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+                    <span className="text-sm font-medium text-slate-700">Net Payment</span>
+                    <Badge variant={paymentSummary.payment.netAmount >= 0 ? "default" : "destructive"} className="text-base font-semibold tabular-nums">
+                      {formatCurrency(paymentSummary.payment.netAmount)}
+                    </Badge>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center flex-1 py-8 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70">
+                  <Users className="h-10 w-10 text-slate-300 mb-2" />
+                  <p className="text-sm font-medium text-slate-500">Select a farmer to view summary</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+        <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+          <DialogContent className="sm:max-w-[440px] p-0 gap-0 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+            <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+              <DialogHeader className="relative">
+                <DialogTitle className="flex items-center gap-4 text-lg font-bold text-white tracking-tight">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                    <CreditCard className="h-5 w-5" />
+                  </div>
+                  Process Payment
+                </DialogTitle>
+                <DialogDescription className="mt-2 text-slate-300 text-base">
+                  {paymentSummary?.farmer.name || "Selected farmer"} · Deductions applied automatically
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+            <div className="px-6 py-6 space-y-5 bg-gradient-to-b from-slate-50/80 to-white">
+              {paymentSummary && (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">Net amount to pay</p>
+                  <p className={cn(
+                    "text-2xl font-bold tabular-nums",
+                    paymentSummary.payment.netAmount >= 0 ? "text-emerald-700" : "text-red-600"
+                  )}>
+                    {formatCurrency(paymentSummary.payment.netAmount)}
+                  </p>
+                </div>
+              )}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="embed-amount" className="text-sm font-medium text-slate-700">Payment amount</Label>
+                  <Input
+                    id="embed-amount"
+                    type="number"
+                    step="0.01"
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                    placeholder="0.00"
+                    className="h-10 rounded-lg border-slate-200 bg-white text-base tabular-nums focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="embed-method" className="text-sm font-medium text-slate-700">Payment method</Label>
+                  <Select value={paymentForm.method} onValueChange={(value) => setPaymentForm({ ...paymentForm, method: value })}>
+                    <SelectTrigger id="embed-method" className="h-10 rounded-lg border-slate-200 bg-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">Cash</SelectItem>
+                      <SelectItem value="mobile_money">Mobile Money</SelectItem>
+                      <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="embed-reference" className="text-sm font-medium text-slate-600">Reference (optional)</Label>
+                  <Input
+                    id="embed-reference"
+                    value={paymentForm.reference}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
+                    placeholder="e.g. transaction ID"
+                    className="h-10 rounded-lg border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-4 px-6 py-5 border-t border-slate-200 bg-white rounded-b-3xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)]">
+              <Button type="button" variant="outline" onClick={() => setPaymentDialogOpen(false)} disabled={processing} className="rounded-xl border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 px-4 py-2.5 font-medium">Cancel</Button>
+              <Button onClick={handleProcessPayment} disabled={processing} className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-6 py-2.5 font-semibold text-white shadow-lg shadow-emerald-500/25 disabled:opacity-70">
+                {processing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing…</> : <><CheckCircle2 className="mr-2 h-4 w-4" /> Process Payment</>}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
@@ -442,47 +616,51 @@ export default function PaymentsPage() {
 
           {/* Farmer Selection and Payment Summary */}
           <div className="grid gap-4 md:grid-cols-2">
-            {/* Farmer Selection */}
-            <Card className="overflow-hidden rounded-2xl border border-gray-200 bg-white/80 shadow-lg backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-white to-blue-50/50 border-b border-gray-100">
-                <CardTitle className="text-lg font-semibold text-gray-900">Select Farmer</CardTitle>
-                <CardDescription className="text-sm text-gray-600">Choose a farmer to view payment summary</CardDescription>
+            {/* Farmer Selection - solid card, no transparency */}
+            <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">
+              <CardHeader className="rounded-t-2xl border-b border-slate-200 bg-slate-50 px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-600">
+                    <Users className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-semibold text-slate-900">Select Farmer</CardTitle>
+                    <CardDescription className="text-xs text-slate-500 mt-0.5">Choose a farmer to view payment summary and process payment</CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4 pt-6">
-            <div className="space-y-2">
-              <Label>Search Farmers</Label>
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, phone, or code..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Select Farmer</Label>
-              <Select
-                value={selectedFarmer}
-                onValueChange={setSelectedFarmer}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a farmer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredFarmers.map((farmer) => (
-                    <SelectItem key={farmer.id} value={farmer.id}>
-                      {farmer.name} ({farmer.farmerCode || farmer.phone})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <CardContent className="space-y-4 p-5 bg-white">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">Search Farmers</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search by name, phone, or code..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 h-10 rounded-xl border-slate-200 bg-white"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700">Select Farmer</Label>
+                  <Select value={selectedFarmer} onValueChange={setSelectedFarmer}>
+                    <SelectTrigger className="h-10 rounded-xl border-slate-200 bg-white">
+                      <SelectValue placeholder="Select a farmer" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredFarmers.map((farmer) => (
+                        <SelectItem key={farmer.id} value={farmer.id}>
+                          {farmer.name} ({farmer.farmerCode || farmer.phone})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 {selectedFarmer && (
                   <Button
                     onClick={() => setPaymentDialogOpen(true)}
-                    className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30"
+                    className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold h-10 shadow-sm"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Process Payment
@@ -491,53 +669,51 @@ export default function PaymentsPage() {
               </CardContent>
             </Card>
 
-            {/* Payment Summary */}
-            <Card className="overflow-hidden rounded-2xl border border-gray-200 bg-white/80 shadow-lg backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-white to-green-50/50 border-b border-gray-100">
-                <CardTitle className="text-lg font-semibold text-gray-900">Payment Summary</CardTitle>
-                <CardDescription className="text-sm text-gray-600">
-                  {selectedFarmer
-                    ? "Outstanding deductions and account balance"
-                    : "Select a farmer to view summary"}
-                </CardDescription>
+            {/* Payment Summary - solid card, no transparency */}
+            <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md">
+              <CardHeader className="rounded-t-2xl border-b border-slate-200 bg-slate-50 px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                    <Calculator className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-semibold text-slate-900">Payment Summary</CardTitle>
+                    <CardDescription className="text-xs text-slate-500 mt-0.5">
+                      {selectedFarmer ? "Outstanding deductions and account balance" : "Select a farmer to view summary"}
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className="pt-5 p-5 bg-white">
             {summaryLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <div className="flex flex-col items-center justify-center py-10">
+                <Loader2 className="h-8 w-8 animate-spin text-slate-400 mb-2" />
+                <p className="text-sm text-slate-500">Loading summary...</p>
               </div>
             ) : paymentSummary ? (
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Account Balance</span>
-                    <span className="text-lg font-semibold">
-                      {formatCurrency(paymentSummary.account.balance)}
-                    </span>
+                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Account Balance</span>
+                    <span className="font-semibold text-slate-900 tabular-nums">{formatCurrency(paymentSummary.account.balance)}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Medicine Deductions</span>
-                    <Badge variant="destructive">
-                      {formatCurrency(paymentSummary.deductions.medicine.total)}
-                    </Badge>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Medicine Deductions</span>
+                    <Badge variant="destructive" className="tabular-nums">{formatCurrency(paymentSummary.deductions.medicine.total)}</Badge>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Asset Rental Deductions</span>
-                    <Badge variant="destructive">
-                      {formatCurrency(paymentSummary.deductions.assets.total)}
-                    </Badge>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-slate-600">Asset Rental Deductions</span>
+                    <Badge variant="destructive" className="tabular-nums">{formatCurrency(paymentSummary.deductions.assets.total)}</Badge>
                   </div>
-                  <div className="flex items-center justify-between border-t pt-2">
-                    <span className="text-sm font-semibold">Total Deductions</span>
-                    <Badge variant="destructive" className="text-base">
-                      {formatCurrency(paymentSummary.deductions.total)}
-                    </Badge>
+                  <div className="flex items-center justify-between border-t border-slate-200 pt-3 text-sm">
+                    <span className="font-medium text-slate-700">Total Deductions</span>
+                    <Badge variant="destructive" className="tabular-nums">{formatCurrency(paymentSummary.deductions.total)}</Badge>
                   </div>
-                  <div className="flex items-center justify-between border-t pt-2">
-                    <span className="text-sm font-semibold">Net Payment</span>
+                  <div className="flex items-center justify-between border-t border-slate-200 pt-3">
+                    <span className="text-sm font-semibold text-slate-700">Net Payment</span>
                     <Badge
                       variant={paymentSummary.payment.netAmount >= 0 ? "default" : "destructive"}
-                      className="text-base"
+                      className="text-base font-semibold tabular-nums"
                     >
                       {formatCurrency(paymentSummary.payment.netAmount)}
                     </Badge>
@@ -589,8 +765,10 @@ export default function PaymentsPage() {
                 )}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No farmer selected
+              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-10 text-center">
+                <Users className="h-10 w-10 text-slate-300 mb-2" />
+                <p className="text-sm font-medium text-slate-500">No farmer selected</p>
+                <p className="text-xs text-slate-400 mt-0.5">Select a farmer to view payment summary</p>
               </div>
             )}
               </CardContent>
@@ -661,120 +839,102 @@ export default function PaymentsPage() {
 
         {/* Payment Dialog */}
         <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-            <DialogContent className="sm:max-w-[500px] rounded-2xl border border-gray-200 bg-white shadow-2xl">
-              <DialogHeader className="space-y-1 pb-4 border-b border-gray-100">
-                <DialogTitle className="text-xl font-semibold text-gray-900">Process Payment</DialogTitle>
-                <DialogDescription className="text-sm text-gray-600">
-                  Process payment for {paymentSummary?.farmer.name || "selected farmer"}. All
-                  deductions will be automatically applied.
+          <DialogContent className="sm:max-w-[480px] p-0 gap-0 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+            <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+              <DialogHeader className="relative">
+                <DialogTitle className="flex items-center gap-4 text-lg font-bold text-white tracking-tight">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                    <CreditCard className="h-5 w-5" />
+                  </div>
+                  Process Payment
+                </DialogTitle>
+                <DialogDescription className="mt-2 text-slate-300 text-base">
+                  {paymentSummary?.farmer.name || "Selected farmer"} · All deductions applied automatically
                 </DialogDescription>
               </DialogHeader>
-          <div className="space-y-4 py-4">
+            </div>
+            <div className="px-6 py-6 space-y-5 bg-gradient-to-b from-slate-50/80 to-white">
               {paymentSummary && (
-                <div className="space-y-2 p-4 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 rounded-xl border border-blue-100">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Account Balance:</span>
-                    <span className="font-semibold text-gray-900">
-                      {formatCurrency(paymentSummary.account.balance)}
-                    </span>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                    <div className="flex justify-between col-span-2 sm:col-span-1">
+                      <span className="text-slate-500">Account balance</span>
+                      <span className="font-medium text-slate-900 tabular-nums">{formatCurrency(paymentSummary.account.balance)}</span>
+                    </div>
+                    <div className="flex justify-between col-span-2 sm:col-span-1">
+                      <span className="text-slate-500">Total deductions</span>
+                      <span className="font-medium text-red-600 tabular-nums">{formatCurrency(paymentSummary.deductions.total)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Total Deductions:</span>
-                    <span className="font-semibold text-red-600">
-                      {formatCurrency(paymentSummary.deductions.total)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm border-t border-blue-200 pt-2">
-                    <span className="font-medium text-gray-700">Net Amount:</span>
-                    <span className="font-bold text-lg text-gray-900">
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                    <span className="text-xs font-medium uppercase tracking-wider text-slate-500">Net amount to pay</span>
+                    <span className={cn(
+                      "text-xl font-bold tabular-nums",
+                      paymentSummary.payment.netAmount >= 0 ? "text-emerald-700" : "text-red-600"
+                    )}>
                       {formatCurrency(paymentSummary.payment.netAmount)}
                     </span>
                   </div>
                 </div>
               )}
-            <div className="space-y-2">
-              <Label htmlFor="amount">Payment Amount *</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                placeholder="Enter payment amount"
-                value={paymentForm.amount}
-                onChange={(e) =>
-                  setPaymentForm({ ...paymentForm, amount: e.target.value })
-                }
-              />
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="amount" className="text-sm font-medium text-slate-700">Payment amount</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                    className="h-10 rounded-lg border-slate-200 bg-white text-base tabular-nums focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-400"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="method" className="text-sm font-medium text-slate-700">Payment method</Label>
+                    <Select value={paymentForm.method} onValueChange={(value) => setPaymentForm({ ...paymentForm, method: value })}>
+                      <SelectTrigger id="method" className="h-10 rounded-lg border-slate-200 bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="mobile_money">Mobile Money</SelectItem>
+                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reference" className="text-sm font-medium text-slate-600">Reference (optional)</Label>
+                    <Input
+                      id="reference"
+                      placeholder="Transaction ID"
+                      value={paymentForm.reference}
+                      onChange={(e) => setPaymentForm({ ...paymentForm, reference: e.target.value })}
+                      className="h-10 rounded-lg border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="notes" className="text-sm font-medium text-slate-600">Notes (optional)</Label>
+                  <Input
+                    id="notes"
+                    placeholder="Additional notes"
+                    value={paymentForm.notes}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                    className="h-10 rounded-lg border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-emerald-500"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="method">Payment Method *</Label>
-              <Select
-                value={paymentForm.method}
-                onValueChange={(value) =>
-                  setPaymentForm({ ...paymentForm, method: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="mobile_money">Mobile Money</SelectItem>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center justify-between gap-4 px-6 py-5 border-t border-slate-200 bg-white rounded-b-3xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)]">
+              <Button type="button" variant="outline" onClick={() => setPaymentDialogOpen(false)} disabled={processing} className="rounded-xl border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 px-4 py-2.5 font-medium">Cancel</Button>
+              <Button onClick={handleProcessPayment} disabled={processing} className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-6 py-2.5 font-semibold text-white shadow-lg shadow-emerald-500/25 disabled:opacity-70">
+                {processing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing…</> : <><CheckCircle2 className="mr-2 h-4 w-4" /> Process Payment</>}
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="reference">Reference (Optional)</Label>
-              <Input
-                id="reference"
-                placeholder="Payment reference number"
-                value={paymentForm.reference}
-                onChange={(e) =>
-                  setPaymentForm({ ...paymentForm, reference: e.target.value })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
-              <Input
-                id="notes"
-                placeholder="Additional notes"
-                value={paymentForm.notes}
-                onChange={(e) =>
-                  setPaymentForm({ ...paymentForm, notes: e.target.value })
-                }
-              />
-            </div>
-          </div>
-              <DialogFooter className="pt-4 border-t border-gray-100">
-                <Button
-                  variant="outline"
-                  onClick={() => setPaymentDialogOpen(false)}
-                  disabled={processing}
-                  className="rounded-xl border-gray-200 hover:bg-gray-50"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleProcessPayment} 
-                  disabled={processing}
-                  className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl hover:shadow-blue-500/30 disabled:opacity-50"
-                >
-                  {processing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Process Payment
-                    </>
-                  )}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          </DialogContent>
+        </Dialog>
         </div>
       </div>
     </div>

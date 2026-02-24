@@ -73,7 +73,7 @@ const TAB_CONFIG: { value: (typeof VALID_TABS)[number]; label: string; icon: Rea
   { value: "sales", label: "Sales", icon: ShoppingCart },
   { value: "customers", label: "Customers", icon: Users },
   { value: "suppliers", label: "Suppliers", icon: Package },
-  { value: "ikofi", label: "Ikofi", icon: Wallet },
+  { value: "ikofi", label: "Wallet", icon: Wallet },
   { value: "warehouses", label: "Warehouses", icon: Warehouse },
 ]
 
@@ -170,7 +170,7 @@ export default function MCCDairyPage() {
                   MCC (Dairy)
                 </h1>
                 <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">
-                  Sales, customers, suppliers, Ikofi, and warehouses in one place.
+                  Sales, customers, suppliers, wallet, and warehouses in one place.
                 </p>
               </div>
             </div>

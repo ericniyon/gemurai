@@ -44,9 +44,13 @@ import {
   EyeOff,
   ChevronLeft,
   ChevronRight,
+  Camera,
+  Upload,
 } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
 import { format } from "date-fns"
+import Swal from "sweetalert2"
 
 const PHONE_COUNTRIES: { code: string; flag: string }[] = [
   { code: "+250", flag: "🇷🇼" }, // Rwanda
@@ -142,6 +146,8 @@ export default function AdminUsersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [step, setStep] = useState(1)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
   const generatePassword = () => {
     const length = 14
@@ -157,6 +163,65 @@ export default function AdminUsersPage() {
     setFormData((prev) => ({ ...prev, password: pass }))
     setShowPassword(true)
     toast.success("Password generated. Copy it to share with the user.")
+  }
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
+    if (!validTypes.includes(file.type)) {
+      toast.error("Invalid file type. Only JPG, PNG, GIF, and WebP are allowed.")
+      return
+    }
+
+    const maxSize = 2 * 1024 * 1024
+    if (file.size > maxSize) {
+      toast.error("File size must be less than 2MB")
+      return
+    }
+
+    setAvatarFile(file)
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setAvatarPreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const clearAvatar = () => {
+    setAvatarFile(null)
+    setAvatarPreview(null)
+  }
+
+  const uploadAvatarForUser = async (userId: string): Promise<string | null> => {
+    if (!avatarFile) return null
+
+    try {
+      const token = localStorage.getItem("Gemurai_token")
+      const formData = new FormData()
+      formData.append("avatar", avatarFile)
+      formData.append("userId", userId)
+
+      const response = await fetch("/api/v1/admin/users/avatar", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        return result.data?.avatar || null
+      } else {
+        console.error("Failed to upload avatar:", result.message)
+        return null
+      }
+    } catch (error) {
+      console.error("Error uploading avatar:", error)
+      return null
+    }
   }
 
   const [formData, setFormData] = useState({
@@ -251,6 +316,8 @@ export default function AdminUsersPage() {
     setEditingUser(null)
     setShowPassword(false)
     setStep(1)
+    setAvatarFile(null)
+    setAvatarPreview(null)
     setFormData({
       name: "",
       firstName: "",
@@ -361,7 +428,40 @@ export default function AdminUsersPage() {
   }
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) {
+    const userToDelete = users.find((u) => u.id === userId)
+    
+    const result = await Swal.fire({
+      title: "Delete User?",
+      html: `
+        <div class="text-left">
+          <p class="text-gray-600 mb-3">Are you sure you want to delete this user?</p>
+          ${userToDelete ? `
+            <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+              <p class="font-semibold text-gray-900">${userToDelete.name}</p>
+              <p class="text-sm text-gray-500">${userToDelete.email}</p>
+              ${userToDelete.role ? `<span class="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded">${userToDelete.role}</span>` : ''}
+            </div>
+          ` : ''}
+          <p class="text-red-600 text-sm mt-3 font-medium">⚠️ This action cannot be undone.</p>
+        </div>
+      `,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Yes, Delete User",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+      focusCancel: true,
+      customClass: {
+        popup: "rounded-xl",
+        title: "text-xl font-bold text-gray-900",
+        confirmButton: "rounded-lg px-4 py-2 font-medium",
+        cancelButton: "rounded-lg px-4 py-2 font-medium",
+      },
+    })
+
+    if (!result.isConfirmed) {
       return
     }
 
@@ -374,17 +474,49 @@ export default function AdminUsersPage() {
         },
       })
 
-      const result = await response.json()
+      const apiResult = await response.json()
 
-      if (result.success) {
-        toast.success("User deleted successfully")
+      if (apiResult.success) {
+        Swal.fire({
+          title: "Deleted!",
+          text: "The user has been deleted successfully.",
+          icon: "success",
+          confirmButtonColor: "#10b981",
+          confirmButtonText: "OK",
+          timer: 2000,
+          timerProgressBar: true,
+          customClass: {
+            popup: "rounded-xl",
+            confirmButton: "rounded-lg px-4 py-2 font-medium",
+          },
+        })
         fetchUsers()
       } else {
-        toast.error(result.message || "Failed to delete user")
+        Swal.fire({
+          title: "Error!",
+          text: apiResult.message || "Failed to delete user",
+          icon: "error",
+          confirmButtonColor: "#dc2626",
+          confirmButtonText: "OK",
+          customClass: {
+            popup: "rounded-xl",
+            confirmButton: "rounded-lg px-4 py-2 font-medium",
+          },
+        })
       }
     } catch (error) {
       console.error("Error deleting user:", error)
-      toast.error("Failed to delete user")
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to delete user. Please try again.",
+        icon: "error",
+        confirmButtonColor: "#dc2626",
+        confirmButtonText: "OK",
+        customClass: {
+          popup: "rounded-xl",
+          confirmButton: "rounded-lg px-4 py-2 font-medium",
+        },
+      })
     }
   }
 
@@ -468,8 +600,25 @@ export default function AdminUsersPage() {
       const result = await response.json()
 
       if (result.success || response.ok) {
-        toast.success(editingUser ? "User updated successfully" : "User created successfully")
+        const userId = result.user?.id || editingUser?.id
+        
+        if (avatarFile && userId) {
+          toast.loading("Uploading profile image...")
+          const avatarUrl = await uploadAvatarForUser(userId)
+          if (avatarUrl) {
+            toast.dismiss()
+            toast.success(editingUser ? "User updated with profile image" : "User created with profile image")
+          } else {
+            toast.dismiss()
+            toast.success(editingUser ? "User updated (profile image upload failed)" : "User created (profile image upload failed)")
+          }
+        } else {
+          toast.success(editingUser ? "User updated successfully" : "User created successfully")
+        }
+        
         setIsDialogOpen(false)
+        setAvatarFile(null)
+        setAvatarPreview(null)
         fetchUsers()
       } else {
         toast.error(result.message || "Failed to save user")
@@ -533,11 +682,11 @@ export default function AdminUsersPage() {
     "ADMIN",
     "SUPER_ADMIN",
     "MCC_MANAGER",
-    "FIELD_AGENT",
     "AGENT",
-    "EXTENSION_AGENT",
-    "DCC",
-    "CONSUMER",
+    "COOP_ADMIN",
+    "FARMER",
+    "ACCOUNTANT",
+    "REGULATOR",
   ]
 
   const registrationTypes = [
@@ -791,7 +940,7 @@ export default function AdminUsersPage() {
 
         {/* Create/Edit User Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="overflow-hidden border-0 bg-slate-50 p-0 shadow-xl max-w-2xl opacity-100 dark:bg-slate-950">
+          <DialogContent className="overflow-hidden p-0 max-w-2xl rounded-3xl border border-slate-200 bg-white shadow-xl dark:bg-slate-900 dark:border-slate-700 [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
             <div className="border-b border-slate-200 bg-white px-6 py-5 dark:border-slate-800 dark:bg-slate-900">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900">
@@ -857,6 +1006,54 @@ export default function AdminUsersPage() {
                         />
                       </div>
                     )}
+
+                    {/* Profile Image Upload - Optional */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Profile Image <span className="text-slate-400 text-xs font-normal">(Optional)</span>
+                      </Label>
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <Avatar className="h-20 w-20 border-2 border-slate-200 dark:border-slate-700">
+                            {avatarPreview ? (
+                              <AvatarImage src={avatarPreview} alt="Preview" />
+                            ) : (
+                              <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-400">
+                                <Camera className="h-8 w-8" />
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                          {avatarPreview && (
+                            <button
+                              type="button"
+                              onClick={clearAvatar}
+                              className="absolute -top-1 -right-1 p-1 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <label
+                            htmlFor="avatar-upload"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors text-sm font-medium text-slate-700 dark:text-slate-300"
+                          >
+                            <Upload className="h-4 w-4" />
+                            {avatarPreview ? "Change Image" : "Upload Image"}
+                          </label>
+                          <input
+                            id="avatar-upload"
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                            onChange={handleAvatarChange}
+                            className="hidden"
+                          />
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            JPG, PNG, GIF, or WebP. Max 2MB.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
                     {isOrganization ? (
                       <div className="grid grid-cols-2 gap-4">
@@ -947,24 +1144,30 @@ export default function AdminUsersPage() {
                         <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                           Phone Number
                         </Label>
-                        <div className="flex h-10 w-full overflow-hidden rounded-md border border-slate-200 bg-white ring-offset-background focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-0 dark:border-slate-700 dark:bg-slate-800 dark:ring-slate-500">
-                          <div className="w-[110px] shrink-0 [&_.relative]:h-full [&_button]:h-full [&_button]:rounded-none [&_button]:border-0 [&_button]:border-r [&_button]:border-slate-200 [&_button]:dark:border-slate-600">
-                            <SearchableSelect
+                        <div className="flex gap-2">
+                          <div className="w-[120px]">
+                            <Select
                               value={formData.phoneCountryCode}
                               onValueChange={(v) => setFormData({ ...formData, phoneCountryCode: v })}
-                              options={PHONE_COUNTRIES.map((c) => ({ value: c.code, label: `${c.flag} ${c.code}` }))}
-                              placeholder="Country"
-                              searchPlaceholder="Search..."
-                              className="h-full min-h-0 w-full rounded-none border-0 border-r border-slate-200 bg-transparent dark:border-slate-600 dark:bg-transparent"
-                            />
+                            >
+                              <SelectTrigger className="h-10 border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+                                <SelectValue placeholder="Code" />
+                              </SelectTrigger>
+                              <SelectContent className="z-[9999] bg-white dark:bg-slate-800">
+                                {PHONE_COUNTRIES.map((c) => (
+                                  <SelectItem key={c.code} value={c.code}>
+                                    {c.flag} {c.code}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
-                          <div className="h-full w-px bg-slate-200 dark:bg-slate-600" />
                           <Input
                             id="phone"
                             value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                             placeholder="788 123 456"
-                            className="h-full flex-1 border-0 bg-transparent px-3 shadow-none focus-visible:ring-0 dark:bg-transparent"
+                            className="flex-1 h-10 border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
                           />
                         </div>
                       </div>
@@ -1078,24 +1281,30 @@ export default function AdminUsersPage() {
                         <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                           Alternate phone
                         </Label>
-                        <div className="flex h-10 w-full overflow-hidden rounded-md border border-slate-200 bg-white ring-offset-background focus-within:ring-2 focus-within:ring-slate-400 focus-within:ring-offset-0 dark:border-slate-700 dark:bg-slate-800 dark:ring-slate-500">
-                          <div className="w-[110px] shrink-0 [&_.relative]:h-full [&_button]:h-full [&_button]:rounded-none [&_button]:border-0 [&_button]:border-r [&_button]:border-slate-200 [&_button]:dark:border-slate-600">
-                            <SearchableSelect
+                        <div className="flex gap-2">
+                          <div className="w-[120px]">
+                            <Select
                               value={formData.alternatePhoneCountryCode}
                               onValueChange={(v) => setFormData({ ...formData, alternatePhoneCountryCode: v })}
-                              options={PHONE_COUNTRIES.map((c) => ({ value: c.code, label: `${c.flag} ${c.code}` }))}
-                              placeholder="Country"
-                              searchPlaceholder="Search..."
-                              className="h-full min-h-0 w-full rounded-none border-0 border-r border-slate-200 bg-transparent dark:border-slate-600 dark:bg-transparent"
-                            />
+                            >
+                              <SelectTrigger className="h-10 border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+                                <SelectValue placeholder="Code" />
+                              </SelectTrigger>
+                              <SelectContent className="z-[9999] bg-white dark:bg-slate-800">
+                                {PHONE_COUNTRIES.map((c) => (
+                                  <SelectItem key={c.code} value={c.code}>
+                                    {c.flag} {c.code}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
-                          <div className="h-full w-px bg-slate-200 dark:bg-slate-600" />
                           <Input
                             id="alternatePhone"
                             value={formData.alternatePhone}
                             onChange={(e) => setFormData({ ...formData, alternatePhone: e.target.value })}
                             placeholder="788 123 456"
-                            className="h-full flex-1 border-0 bg-transparent px-3 shadow-none focus-visible:ring-0 dark:bg-transparent"
+                            className="flex-1 h-10 border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800"
                           />
                         </div>
                       </div>

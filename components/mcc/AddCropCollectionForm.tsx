@@ -326,7 +326,11 @@ export function AddCropCollectionForm({
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof CropCollectionFormData, string>> = {}
-    if (!formData.farmerId) newErrors.farmerId = deliveredBy === "agent" ? "When an agent delivers, farmer (farmer code) is required" : "Farmer is required"
+    // Farmer is required only when farmer delivers directly
+    // When agent delivers, farmer is optional (agent may collect from multiple sources)
+    if (deliveredBy === "farmer" && !formData.farmerId) {
+      newErrors.farmerId = "Farmer is required"
+    }
     if (deliveredBy === "agent" && !agentId) {
       toast.error("Please select the agent (Umucunda) who brought this collection")
       return false
@@ -437,25 +441,23 @@ export function AddCropCollectionForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] rounded-3xl border border-emerald-100 bg-white shadow-2xl p-0 overflow-hidden">
-        <DialogHeader className="bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border-b border-emerald-100 px-6 pt-6 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/25">
-              <Wheat className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <DialogTitle className="text-xl font-semibold text-gray-900">
-                Record Crop Collection
-              </DialogTitle>
-              <DialogDescription className="text-sm text-gray-600 mt-0.5">
-                Record a new crop collection from a farmer
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border border-slate-200 shadow-xl rounded-3xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+        <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+          <DialogHeader className="relative">
+            <DialogTitle className="flex items-center gap-4 text-2xl font-bold text-white tracking-tight">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                <Wheat className="h-6 w-6" />
+              </div>
+              Record Crop Collection
+            </DialogTitle>
+            <DialogDescription className="mt-2 text-slate-300 text-base">
+              Record a new crop collection from a farmer
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col max-h-[70vh]">
-          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 min-h-[200px] bg-gradient-to-b from-slate-50/80 to-white">
             {/* Collection details */}
             <section className="space-y-4 rounded-xl border border-emerald-100 bg-slate-50/40 px-4 py-4">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-800">
@@ -498,7 +500,7 @@ export function AddCropCollectionForm({
                 </div>
                 {deliveredBy === "agent" && (
                   <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-                    Agent collections must be registered with the farmer code. First select or look up the agent who brought the collection (by code or name), then select the farmer (by name or code) for whom it is.
+                    Agent (Umucunda) collection: Select the agent who brought this collection. Optionally, you can also specify a farmer if the collection is for a specific farmer.
                   </p>
                 )}
               </div>
@@ -569,10 +571,13 @@ export function AddCropCollectionForm({
               )}
               <div className="space-y-3">
                 <Label className="text-sm font-medium text-gray-700">
-                  Farmer (for whom is this collection) <span className="text-rose-500">*</span>
+                  Farmer (for whom is this collection) {deliveredBy === "farmer" && <span className="text-rose-500">*</span>}
+                  {deliveredBy === "agent" && <span className="text-gray-400 text-xs font-normal ml-1">(optional)</span>}
                 </Label>
                 <p className="text-xs text-slate-500">
-                  Type the farmer code and use the look-up icon, or search by name.
+                  {deliveredBy === "agent" 
+                    ? "Optional: Agents can collect from multiple farmers. Select a farmer to record this collection for a specific farmer, or leave empty if recording a bulk/unattributed collection."
+                    : "Type the farmer code and use the look-up icon, or search by name."}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
                   <div className="space-y-1.5 min-w-0">

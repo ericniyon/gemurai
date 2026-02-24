@@ -23,9 +23,23 @@ import {
   DollarSign,
   FlaskConical,
   User,
+  Coins,
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { toast } from "sonner"
+
+// Supported currencies for Collection Centers
+// Focused on East African Community (EAC) member states + USD
+const SUPPORTED_CURRENCIES = [
+  { code: "RWF", name: "Rwandan Franc", symbol: "FRw", country: "Rwanda" },
+  { code: "KES", name: "Kenyan Shilling", symbol: "KSh", country: "Kenya" },
+  { code: "UGX", name: "Ugandan Shilling", symbol: "USh", country: "Uganda" },
+  { code: "TZS", name: "Tanzanian Shilling", symbol: "TSh", country: "Tanzania" },
+  { code: "BIF", name: "Burundian Franc", symbol: "FBu", country: "Burundi" },
+  { code: "SSP", name: "South Sudanese Pound", symbol: "SSP", country: "South Sudan" },
+  { code: "CDF", name: "Congolese Franc", symbol: "FC", country: "DR Congo" },
+  { code: "USD", name: "US Dollar", symbol: "$", country: "International" },
+]
 
 interface MCC {
   id: string
@@ -36,6 +50,7 @@ interface MCC {
     email: string
   }
   settings?: {
+    currency?: string
     pricing?: {
       basePricePerLiter?: number
       qualityBonuses?: {
@@ -59,6 +74,11 @@ interface User {
   role: string
 }
 
+// Helper to get currency symbol
+const getCurrencySymbol = (code: string): string => {
+  return SUPPORTED_CURRENCIES.find(c => c.code === code)?.symbol || code
+}
+
 export default function MCCSettingsPage() {
   const { user } = useAuth()
   const router = useRouter()
@@ -71,6 +91,7 @@ export default function MCCSettingsPage() {
   const [users, setUsers] = useState<User[]>([])
   const [formData, setFormData] = useState({
     managerUserId: "",
+    currency: "RWF",
     basePricePerLiter: "",
     fatBonus: "",
     proteinBonus: "",
@@ -113,6 +134,7 @@ export default function MCCSettingsPage() {
         setMcc(mccData)
         setFormData({
           managerUserId: mccData.managerUserId || "",
+          currency: mccData.settings?.currency || "RWF",
           basePricePerLiter:
             mccData.settings?.pricing?.basePricePerLiter?.toString() || "",
           fatBonus: mccData.settings?.pricing?.qualityBonuses?.fat?.toString() || "",
@@ -167,6 +189,7 @@ export default function MCCSettingsPage() {
       }
 
       const settings = {
+        currency: formData.currency || "RWF",
         pricing: {
           basePricePerLiter: formData.basePricePerLiter
             ? parseFloat(formData.basePricePerLiter)
@@ -286,6 +309,48 @@ export default function MCCSettingsPage() {
           </CardContent>
         </Card>
 
+        {/* Currency Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Coins className="h-5 w-5" />
+              Currency Settings
+            </CardTitle>
+            <CardDescription>Configure the operating currency for this Collection Center (East African Community currencies)</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="currency">Operating Currency</Label>
+              <Select
+                value={formData.currency}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, currency: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORTED_CURRENCIES.map((currency) => (
+                    <SelectItem key={currency.code} value={currency.code}>
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium">{currency.code}</span>
+                        <span className="text-muted-foreground">({currency.symbol})</span>
+                        <span className="text-muted-foreground">- {currency.name}</span>
+                        <span className="text-xs text-blue-600">• {currency.country}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-muted-foreground">
+                This currency will be used for all collections, payments, and financial transactions in this Collection Center.
+                Supports all EAC member state currencies: Rwanda, Kenya, Uganda, Tanzania, Burundi, South Sudan, and DR Congo.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Pricing Settings */}
         <Card>
           <CardHeader>
@@ -293,48 +358,66 @@ export default function MCCSettingsPage() {
               <DollarSign className="h-5 w-5" />
               Pricing Settings
             </CardTitle>
-            <CardDescription>Configure milk pricing rules</CardDescription>
+            <CardDescription>Configure milk pricing rules (in {formData.currency})</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="basePricePerLiter">Base Price per Liter</Label>
-                <Input
-                  id="basePricePerLiter"
-                  type="number"
-                  step="0.01"
-                  value={formData.basePricePerLiter}
-                  onChange={(e) =>
-                    setFormData({ ...formData, basePricePerLiter: e.target.value })
-                  }
-                  placeholder="0.00"
-                />
+                <Label htmlFor="basePricePerLiter">Base Price per Liter ({getCurrencySymbol(formData.currency)})</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    {getCurrencySymbol(formData.currency)}
+                  </span>
+                  <Input
+                    id="basePricePerLiter"
+                    type="number"
+                    step="0.01"
+                    value={formData.basePricePerLiter}
+                    onChange={(e) =>
+                      setFormData({ ...formData, basePricePerLiter: e.target.value })
+                    }
+                    placeholder="0.00"
+                    className="pl-12"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="fatBonus">Fat Bonus per %</Label>
-                <Input
-                  id="fatBonus"
-                  type="number"
-                  step="0.01"
-                  value={formData.fatBonus}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fatBonus: e.target.value })
-                  }
-                  placeholder="0.00"
-                />
+                <Label htmlFor="fatBonus">Fat Bonus per % ({getCurrencySymbol(formData.currency)})</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    {getCurrencySymbol(formData.currency)}
+                  </span>
+                  <Input
+                    id="fatBonus"
+                    type="number"
+                    step="0.01"
+                    value={formData.fatBonus}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fatBonus: e.target.value })
+                    }
+                    placeholder="0.00"
+                    className="pl-12"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="proteinBonus">Protein Bonus per %</Label>
-                <Input
-                  id="proteinBonus"
-                  type="number"
-                  step="0.01"
-                  value={formData.proteinBonus}
-                  onChange={(e) =>
-                    setFormData({ ...formData, proteinBonus: e.target.value })
-                  }
-                  placeholder="0.00"
-                />
+                <Label htmlFor="proteinBonus">Protein Bonus per % ({getCurrencySymbol(formData.currency)})</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    {getCurrencySymbol(formData.currency)}
+                  </span>
+                  <Input
+                    id="proteinBonus"
+                    type="number"
+                    step="0.01"
+                    value={formData.proteinBonus}
+                    onChange={(e) =>
+                      setFormData({ ...formData, proteinBonus: e.target.value })
+                    }
+                    placeholder="0.00"
+                    className="pl-12"
+                  />
+                </div>
               </div>
             </div>
           </CardContent>

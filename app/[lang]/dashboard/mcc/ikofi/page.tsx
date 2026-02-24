@@ -83,11 +83,11 @@ export default function IkofiPage() {
         }
       } else {
         const errorData = await response.json()
-        toast.error(errorData.error || "Failed to fetch Ikofi data")
+        toast.error(errorData.error || "Failed to fetch wallet data")
       }
     } catch (error) {
-      console.error("Error fetching Ikofi data:", error)
-      toast.error("Failed to fetch Ikofi data")
+      console.error("Error fetching wallet data:", error)
+      toast.error("Failed to fetch wallet data")
     } finally {
       setLoading(false)
       setIsRefreshing(false)
@@ -110,7 +110,7 @@ export default function IkofiPage() {
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
         <div className="text-center">
           <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto mb-3" />
-          <h2 className="text-sm sm:text-base font-semibold text-gray-700">Loading Ikofi Data...</h2>
+          <h2 className="text-sm sm:text-base font-semibold text-gray-700">Loading Wallet Data...</h2>
         </div>
       </div>
     )
@@ -258,7 +258,7 @@ export default function IkofiPage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Recent Transactions</h2>
               <p className="text-sm text-gray-600">
-                Latest financial transactions and payments from Ikofi services.
+                Latest financial transactions and payments from wallet services.
               </p>
             </div>
 

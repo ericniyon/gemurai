@@ -167,18 +167,23 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl bg-white border-2 border-gray-200 shadow-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Add New Customer
-          </DialogTitle>
-          <DialogDescription>
-            Enter customer information. Note: Customers are fully registered when you create a sale record for them.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+        <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+          <DialogHeader className="relative">
+            <DialogTitle className="flex items-center gap-4 text-2xl font-bold text-white tracking-tight">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                <Building2 className="h-6 w-6" />
+              </div>
+              Add New Customer
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-300 mt-2">
+              Enter customer information. Note: Customers are fully registered when you create a sale record for them.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-4 px-6 py-6 min-h-[200px] bg-gradient-to-b from-slate-50/80 to-white">
           {missingMccAssignment && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-sm">
               Your account is not linked to an MCC. Please contact your administrator to be assigned before adding customers.
@@ -344,12 +349,14 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
             </div>
           </div>
 
-          <DialogFooter className="gap-2">
+          </div>
+          <div className="flex items-center justify-between gap-4 px-6 py-5 border-t border-slate-200 bg-white rounded-b-3xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)]">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={isLoading}
+              className="rounded-lg border-slate-200 text-slate-700 hover:bg-slate-100"
             >
               <X className="h-4 w-4 mr-2" />
               Cancel
@@ -371,7 +378,7 @@ export function AddCustomerForm({ open, onOpenChange, onSuccess }: AddCustomerFo
                 </>
               )}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

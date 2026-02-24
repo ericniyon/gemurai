@@ -31,6 +31,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { formatCurrency, getCurrencySymbol, getMCCCurrency, DEFAULT_CURRENCY } from "@/lib/utils/currency"
+import { useAuth } from "@/hooks/use-auth"
+import { HelpTooltip, HelpModal, useHelpModal } from "@/components/onboarding"
+import { HELP_CONTENT } from "@/lib/help-content"
 
 interface AddCollectionFormProps {
   open: boolean
@@ -137,6 +141,7 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
     notes: ''
   })
   
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [errors, setErrors] = useState<Partial<CollectionFormData>>({})
@@ -145,9 +150,19 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
   const [deliveredBy, setDeliveredBy] = useState<'farmer' | 'agent'>('farmer')
   const [agentId, setAgentId] = useState<string>('')
   const [farmerCodeInput, setFarmerCodeInput] = useState('')
+  const [mccCurrency, setMccCurrency] = useState<string>(DEFAULT_CURRENCY)
   const [lookingUpFarmer, setLookingUpFarmer] = useState(false)
   const [agentCodeInput, setAgentCodeInput] = useState('')
   const [lookingUpAgent, setLookingUpAgent] = useState(false)
+
+  // Help modal for contextual help
+  const { isOpen: isHelpOpen, openHelp, closeHelp, activeContent: helpContent } = useHelpModal({
+    pricePerLiter: HELP_CONTENT.pricePerLiter?.modal,
+    quantity: HELP_CONTENT.quantity?.modal,
+    lactometerReading: HELP_CONTENT.lactometerReading?.modal,
+    collectionPeriod: HELP_CONTENT.collectionPeriod?.modal,
+    quinzenne: HELP_CONTENT.quinzenne?.modal,
+  })
 
   const selectedFarmer = formData.farmerId ? farmers.find((f) => f.id === formData.farmerId) : null
   const selectedAgent = agentId ? agents.find((a) => a.id === agentId) : null
@@ -204,6 +219,28 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
   const [nextDayNumber, setNextDayNumber] = useState<number>(1)
 
   // Fetch real farmers data
+  // Fetch MCC currency
+  useEffect(() => {
+    const fetchMccCurrency = async () => {
+      if (!user?.mccId) return
+      try {
+        const token = localStorage.getItem('Gemurai_token')
+        const response = await fetch(`/api/v1/mcc/setup?id=${user.mccId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.data?.settings?.currency) {
+            setMccCurrency(data.data.settings.currency)
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch MCC currency:", error)
+      }
+    }
+    fetchMccCurrency()
+  }, [user?.mccId])
+
   useEffect(() => {
     const fetchFarmers = async () => {
       try {
@@ -387,7 +424,9 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
   const validateForm = (): boolean => {
     const newErrors: Partial<CollectionFormData> = {}
     
-    if (!formData.farmerId) {
+    // Farmer is required only when farmer delivers directly
+    // When agent delivers, farmer is optional (agent may collect from multiple anonymous sources)
+    if (deliveredBy === 'farmer' && !formData.farmerId) {
       newErrors.farmerId = 'Please select a farmer'
     }
     
@@ -396,9 +435,7 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
         toast.error('Please select the agent (Umucunda) who brought this collection')
         return false
       }
-      if (!formData.farmerId) {
-        newErrors.farmerId = 'When an agent delivers, farmer (farmer code) is required'
-      }
+      // Farmer is optional when agent delivers - no validation needed
     }
     
     if (!formData.collectionDate) {
@@ -776,20 +813,23 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto bg-white border-2 border-blue-200/80 shadow-2xl px-4 sm:px-6">
-        <DialogHeader className="pb-4 border-b border-blue-100">
-          <DialogTitle className="flex items-center gap-3 text-2xl font-bold text-gray-900">
-            <div className="p-2 bg-blue-600 rounded-lg">
-              <Droplets className="h-6 w-6 text-white" />
-            </div>
-            Record Milk Collection
-          </DialogTitle>
-          <DialogDescription className="text-sm text-gray-600 mt-2">
-            Enter daily milk quantities for the selected farmer. The system will automatically calculate totals and amounts.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border border-slate-200 shadow-xl rounded-3xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+        <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+          <DialogHeader className="relative">
+            <DialogTitle className="flex items-center gap-4 text-2xl font-bold text-white tracking-tight">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                <Droplets className="h-6 w-6" />
+              </div>
+              Record Milk Collection
+            </DialogTitle>
+            <DialogDescription className="mt-2 text-slate-300 text-base">
+              Enter daily milk quantities for the selected farmer. Totals and amounts are calculated automatically.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 min-h-[200px] bg-gradient-to-b from-slate-50/80 to-white">
           {/* Unified Form Layout */}
           <div className="space-y-6">
           {/* Who is delivering: Farmer (direct) or Agent (Umucunda) */}
@@ -895,9 +935,14 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
               <Label className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                 <User className="h-4 w-4 text-blue-600" />
                 <span>Farmer (for whom is this collection)</span>
-                <span className="text-red-500">*</span>
+                {deliveredBy === 'farmer' && <span className="text-red-500">*</span>}
+                {deliveredBy === 'agent' && <span className="text-gray-400 text-xs font-normal">(optional)</span>}
               </Label>
-              <p className="text-xs text-slate-500">Type the farmer code and use the look-up icon, or search by name.</p>
+              <p className="text-xs text-slate-500">
+                {deliveredBy === 'agent' 
+                  ? "Optional: Agents can collect from multiple farmers. Select a farmer to record this collection for a specific farmer, or leave empty if recording a bulk/unattributed collection."
+                  : "Type the farmer code and use the look-up icon, or search by name."}
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
                 <div className="space-y-1.5 min-w-0">
                   <Label htmlFor="farmerCodeLookup" className="text-xs font-medium text-gray-600">Farmer code</Label>
@@ -987,8 +1032,13 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
             {/* Price and Quantity */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                <Label htmlFor="unitPrice" className="text-sm font-medium text-gray-700">
-                  Price per Liter (RWF)
+                <Label htmlFor="unitPrice" className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                  Price per Liter ({getCurrencySymbol(mccCurrency)})
+                  <HelpTooltip
+                    content={HELP_CONTENT.pricePerLiter?.tooltip || "Typical range: 200-350 RWF per liter"}
+                    onLearnMore={() => openHelp("pricePerLiter")}
+                    size="sm"
+                  />
                 </Label>
                   <Input
                     id="unitPrice"
@@ -1081,7 +1131,7 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
                     <DollarSign className="h-4 w-4 text-green-600" />
                     <span className="text-sm font-medium text-gray-700">Total Amount</span>
                   </div>
-                  <span className="text-lg font-bold text-green-700">{formData.totalAmount.toLocaleString()} RWF</span>
+                  <span className="text-lg font-bold text-green-700">{formatCurrency(formData.totalAmount, mccCurrency)}</span>
                   </div>
                   </div>
                   
@@ -1115,22 +1165,23 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
                 />
               </div>
           </div>
+          </div>
 
-          <DialogFooter className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 pt-4 border-t border-blue-100">
-            <Button 
-              type="button" 
-              variant="outline" 
+          <div className="flex items-center justify-between gap-4 px-6 py-5 border-t border-slate-200 bg-white rounded-b-3xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)]">
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
-              className="h-10 px-6 w-full sm:w-auto"
               disabled={isLoading}
+              className="rounded-xl border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 px-4 py-2.5 font-medium"
             >
               <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isLoading || formData.totalLiters <= 0}
-              className="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md w-full sm:w-auto"
+              className="rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white px-6 py-2.5 font-semibold shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/30 disabled:opacity-70"
             >
               {isLoading ? (
                 <>
@@ -1144,9 +1195,12 @@ export function AddCollectionForm({ open, onOpenChange, onSuccess }: AddCollecti
                 </>
               )}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
+
+      {/* Contextual Help Modal */}
+      <HelpModal open={isHelpOpen} onOpenChange={closeHelp} helpContent={helpContent} />
     </Dialog>
   )
 }

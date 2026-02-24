@@ -133,20 +133,20 @@ async function main() {
       })
       console.log(`✅ Created interviewer: ${interviewer.name}`)
       
-      // Assign EMPLOYER role to the interviewer
-      const employerRole = await prisma.role.findFirst({
-        where: { name: "EMPLOYER" }
+      // Assign ADMIN role to the interviewer
+      const adminRole = await prisma.role.findFirst({
+        where: { name: "ADMIN" }
       })
       
-      if (employerRole) {
+      if (adminRole) {
         await prisma.userRoleAssignment.create({
           data: {
             userId: newUser.id,
-            roleId: employerRole.id,
+            roleId: adminRole.id,
             isActive: true
           }
         })
-        console.log(`✅ Assigned EMPLOYER role to ${interviewer.name}`)
+        console.log(`✅ Assigned ADMIN role to ${interviewer.name}`)
       }
     } else {
       console.log(`⏭️ Interviewer already exists: ${interviewer.name}`)
@@ -157,19 +157,19 @@ async function main() {
       })
       
       if (!roleAssignment) {
-        const employerRole = await prisma.role.findFirst({
-          where: { name: "EMPLOYER" }
+        const adminRole = await prisma.role.findFirst({
+          where: { name: "ADMIN" }
         })
         
-        if (employerRole) {
+        if (adminRole) {
           await prisma.userRoleAssignment.create({
             data: {
               userId: existingUser.id,
-              roleId: employerRole.id,
-        isActive: true
+              roleId: adminRole.id,
+              isActive: true
             }
           })
-          console.log(`✅ Assigned EMPLOYER role to existing interviewer: ${interviewer.name}`)
+          console.log(`✅ Assigned ADMIN role to existing interviewer: ${interviewer.name}`)
         }
       }
     }

@@ -5,6 +5,10 @@ import { useEffect, useState } from "react"
 import { useRouter, usePathname, useParams, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { TourProvider } from "@/components/onboarding/TourProvider"
+import { DemoModeProvider } from "@/lib/demo"
+import { DemoModeBanner } from "@/components/demo"
+import { ConfirmationProvider } from "@/components/ui/confirmation-modal"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -45,7 +49,6 @@ import {
   Tv,
   Activity,
   Droplets,
-  Pill,
   Lock,
   ChevronsLeft,
   ChevronsRight,
@@ -249,7 +252,7 @@ const getMCCManagerNavigationItems = (lang: string): NavigationItem[] => [
     href: `/${lang}/dashboard`,
     icon: LayoutDashboard,
     requiredPermissions: [],
-    roles: ["MCC_MANAGER", "SUPER_ADMIN", "AGENT", "FIELD_AGENT"]
+    roles: ["MCC_MANAGER", "SUPER_ADMIN", "AGENT"]
   },
   // Operations - hub for periods, processing, types, payments (dairy + crop)
   {
@@ -296,18 +299,14 @@ const getMCCManagerNavigationItems = (lang: string): NavigationItem[] => [
     requiredPermissions: [],
     roles: ["MCC_MANAGER", "SUPER_ADMIN"]
   },
-  // Inventory (for EMPLOYER, BRANCH_MANAGER - keep for other roles)
-  { 
-    id: "inventory",
-    name: "Inventory", 
-    href: `/${lang}/dashboard/inventory`, 
-    icon: Building2, 
+  // Settings - configure collection center (periods, onboarding, warehouses, etc.)
+  {
+    id: "mcc-settings",
+    name: "Settings",
+    href: `/${lang}/dashboard/mcc/settings`,
+    icon: Settings,
     requiredPermissions: [],
-    roles: ["EMPLOYER", "SUPER_ADMIN", "BRANCH_MANAGER"],
-    children: [
-      { id: "inventory-milk", name: "Collection Center Inventory", href: `/${lang}/dashboard/mcc`, icon: Building2, requiredPermissions: [], roles: ["EMPLOYER", "SUPER_ADMIN", "BRANCH_MANAGER"] },
-      { id: "inventory-pharmacy", name: "Pharmacy Inventory", href: `/${lang}/dashboard/pharmacy`, icon: Pill, requiredPermissions: [], roles: ["EMPLOYER", "SUPER_ADMIN", "BRANCH_MANAGER"] }
-    ]
+    roles: ["MCC_MANAGER", "SUPER_ADMIN"]
   },
 ]
 
@@ -363,11 +362,6 @@ const getNavigationItems = (user: any, lang: string): NavigationItem[] => {
 
   // MCC_MANAGER and other operational roles get the standard navigation
   const allItems = getMCCManagerNavigationItems(lang)
-  
-  // Special handling for DCC users - ensure they can see stock management
-  if (user.role === "DCC") {
-    console.log('🎯 DCC User detected, ensuring stock management access')
-  }
   
   // Special handling for MCC_MANAGER users - ensure they can see MCC management
   if (user.role === "MCC_MANAGER") {
@@ -514,8 +508,8 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
     const loadNotifications = async () => {
       if (!isAuthenticated || !user) return
       try {
-        // Only relevant for DCC for now
-        if (user.role !== "DCC") {
+        // Only relevant for AGENT or MCC_MANAGER for stock order notifications
+        if (user.role !== "AGENT" && user.role !== "MCC_MANAGER") {
           if (isMounted) {
             setNotifications([])
             setHasNewNotifications(false)
@@ -1165,6 +1159,9 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
         </SheetContent>
       </Sheet>
 
+      {/* Demo Mode Banner */}
+      <DemoModeBanner />
+
       {/* Main Content */}
       <main className="dashboard-main">
         <div className={pathname.includes("/dashboard/mcc") ? "w-full max-w-full px-2 sm:px-4 lg:px-6 pb-10" : "px-4 sm:px-6 lg:px-10 pb-10"}>
@@ -1182,7 +1179,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
       </div>
     }>
-      <DashboardLayoutContent>{children}</DashboardLayoutContent>
+      <DemoModeProvider>
+        <ConfirmationProvider>
+          <TourProvider>
+            <DashboardLayoutContent>{children}</DashboardLayoutContent>
+          </TourProvider>
+        </ConfirmationProvider>
+      </DemoModeProvider>
     </ClientOnly>
   )
 } 

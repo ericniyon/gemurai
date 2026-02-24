@@ -462,16 +462,22 @@ export default function MCCProcessingPage() {
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-2xl border border-gray-200 bg-white shadow-2xl">
-          <DialogHeader className="space-y-1 pb-4 border-b border-gray-100">
-            <DialogTitle className="text-xl font-semibold text-gray-900">
-              Record Milk Processing
-            </DialogTitle>
-            <DialogDescription className="text-sm text-gray-600">
-              Convert raw milk to processed product (e.g. pasteurization)
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <DialogContent className="sm:max-w-[500px] p-0 gap-0 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+          <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+            <DialogHeader className="relative">
+              <DialogTitle className="flex items-center gap-4 text-2xl font-bold text-white tracking-tight">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                  <Package className="h-6 w-6" />
+                </div>
+                Record Milk Processing
+              </DialogTitle>
+              <DialogDescription className="text-sm text-slate-300 mt-2">
+                Convert raw milk to processed product (e.g. pasteurization)
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-4 px-6 py-6 min-h-[200px] bg-gradient-to-b from-slate-50/80 to-white">
             <div className="space-y-2">
               <Label htmlFor="rawMilkProductId">Raw Milk Product *</Label>
               <Select
@@ -561,19 +567,20 @@ export default function MCCProcessingPage() {
                 className="rounded-lg"
               />
             </div>
-            <DialogFooter className="pt-4 border-t border-gray-100">
+          </div>
+            <DialogFooter className="flex flex-row gap-3 px-6 py-5 border-t border-slate-200 bg-white rounded-b-3xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)]">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsFormOpen(false)}
-                className="rounded-xl border-gray-200 hover:bg-gray-50"
+                className="rounded-lg border-slate-200 text-slate-700 hover:bg-slate-100"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-60"
+                className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 disabled:opacity-60"
               >
                 {isSubmitting ? (
                   <>

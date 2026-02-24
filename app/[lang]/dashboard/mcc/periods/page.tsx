@@ -19,7 +19,10 @@ import {
   Droplets,
   DollarSign,
   Activity,
+  HelpCircle,
 } from "lucide-react"
+import { HelpTooltip, HelpModal, useHelpModal } from "@/components/onboarding"
+import { HELP_CONTENT } from "@/lib/help-content"
 import {
   Dialog,
   DialogContent,
@@ -63,6 +66,12 @@ export default function MCCPeriodsPage() {
     periodNumber: "",
     startDate: "",
     endDate: "",
+  })
+
+  // Help modal for quinzenne/period explanation
+  const { isOpen: isHelpOpen, openHelp, closeHelp, activeContent: helpContent } = useHelpModal({
+    quinzenne: HELP_CONTENT.quinzenne?.modal,
+    collectionPeriod: HELP_CONTENT.collectionPeriod?.modal,
   })
 
   const fetchPeriods = async () => {
@@ -197,8 +206,13 @@ export default function MCCPeriodsPage() {
                 <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
                   MCC Periods
                 </h1>
-                <p className="mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">
+                <p className="mt-2 max-w-2xl text-sm text-gray-600 sm:text-base flex items-center gap-1">
                   Manage milk collection aggregation periods (quinzenne, monthly)
+                  <HelpTooltip
+                    content={HELP_CONTENT.quinzenne?.tooltip || "Quinzenne = bi-monthly period (15 days)"}
+                    onLearnMore={() => openHelp("quinzenne")}
+                    size="sm"
+                  />
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -433,14 +447,27 @@ export default function MCCPeriodsPage() {
       </div>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-[500px] rounded-2xl border border-gray-200 bg-white shadow-2xl">
-          <DialogHeader className="space-y-1 pb-4 border-b border-gray-100">
-            <DialogTitle className="text-xl font-semibold text-gray-900">Create MCC Period</DialogTitle>
-            <DialogDescription className="text-sm text-gray-600">
+        <DialogContent className="sm:max-w-[500px] p-0 gap-0 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+          <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+            <DialogHeader className="relative">
+              <DialogTitle className="flex items-center gap-4 text-2xl font-bold text-white tracking-tight">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                  <Calendar className="h-6 w-6" />
+                </div>
+                Create MCC Period
+              </DialogTitle>
+            <DialogDescription className="text-sm text-blue-100 flex items-center gap-1 mt-1">
               Define a new milk collection aggregation period (e.g. quinzenne 1–15, 16–30)
+              <HelpTooltip
+                content="Quinzenne (French: quinzaine) is a 15-day bi-monthly period used for payment cycles"
+                onLearnMore={() => openHelp("quinzenne")}
+                size="sm"
+              />
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-4 px-6 py-6 min-h-[200px] bg-gradient-to-b from-slate-50/80 to-white">
             <div className="space-y-2">
               <Label htmlFor="periodNumber">Period Number *</Label>
               <Input
@@ -483,18 +510,19 @@ export default function MCCPeriodsPage() {
                 className="rounded-lg"
               />
             </div>
-            <DialogFooter className="pt-4 border-t border-gray-100">
+          </div>
+            <DialogFooter className="flex flex-row gap-3 px-6 py-5 border-t border-slate-200 bg-white rounded-b-3xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)]">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsFormOpen(false)}
-                className="rounded-xl border-gray-200 hover:bg-gray-50"
+                className="rounded-lg border-slate-200 text-slate-700 hover:bg-slate-100"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 hover:from-blue-700 hover:to-indigo-700"
+                className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium px-5"
               >
                 Create Period
               </Button>
@@ -502,6 +530,9 @@ export default function MCCPeriodsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Help Modal for Quinzenne explanation */}
+      <HelpModal open={isHelpOpen} onOpenChange={closeHelp} helpContent={helpContent} />
     </div>
   )
 }

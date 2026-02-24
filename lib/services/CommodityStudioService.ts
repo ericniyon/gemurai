@@ -170,6 +170,11 @@ export class CommodityStudioService {
         qualityFields: {
           orderBy: { displayOrder: "asc" },
         },
+        qualityRules: {
+          include: {
+            qualityField: true,
+          },
+        },
       },
       orderBy: { name: "asc" },
     })

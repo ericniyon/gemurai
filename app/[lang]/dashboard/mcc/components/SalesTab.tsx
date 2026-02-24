@@ -728,20 +728,21 @@ export default function SalesTab({ mccId }: SalesTabProps) {
         </CardContent>
       </Card>
 
-      {/* Add Sale Dialog */}
+      {/* Add Sale Dialog - Record Commodity Collection pattern */}
       <Dialog open={addSaleOpen} onOpenChange={setAddSaleOpen}>
-        <DialogContent className="max-w-3xl bg-white border-0 shadow-2xl rounded-2xl">
-          <DialogHeader className="pb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg">
-                <Plus className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl font-bold text-gray-900">Record New Sale</DialogTitle>
-                <DialogDescription className="text-gray-600 mt-1">Enter the details of the milk sale transaction</DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border border-slate-200 shadow-xl rounded-3xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+          <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+            <DialogHeader className="relative">
+              <DialogTitle className="flex items-center gap-4 text-2xl font-bold text-white tracking-tight">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                  <Plus className="h-5 w-5" />
+                </div>
+                Record New Sale
+              </DialogTitle>
+              <DialogDescription className="mt-2 text-slate-300 text-base">Enter the details of the milk sale transaction</DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="flex-1 overflow-y-auto px-6 py-6 min-h-[200px] bg-gradient-to-b from-slate-50/80 to-white">
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-3">
               <Label htmlFor="litersSold" className="text-sm font-semibold text-gray-700">Liters Sold *</Label>
@@ -849,39 +850,29 @@ export default function SalesTab({ mccId }: SalesTabProps) {
               </div>
             )}
           </div>
-          <DialogFooter className="pt-6 border-t border-gray-200">
-            <Button 
-              variant="outline" 
-              onClick={() => setAddSaleOpen(false)}
-              className="border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl"
-            >
-              Cancel
-            </Button>
-            <Button 
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200" 
-              onClick={submitSale}
-              disabled={!formData.litersSold || !formData.unitPrice || !formData.companyName || !formData.companyContact}
-            >
-              Record Sale
-            </Button>
-          </DialogFooter>
+          </div>
+          <div className="flex items-center justify-between gap-4 px-6 py-5 border-t border-slate-200 bg-white rounded-b-3xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)]">
+            <Button variant="outline" onClick={() => setAddSaleOpen(false)} className="rounded-xl border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 px-4 py-2.5 font-medium">Cancel</Button>
+            <Button className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-6 py-2.5 font-semibold text-white shadow-lg shadow-emerald-500/25 disabled:opacity-70" onClick={submitSale} disabled={!formData.litersSold || !formData.unitPrice || !formData.companyName || !formData.companyContact}>Record Sale</Button>
+          </div>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Sale Dialog */}
+      {/* Edit Sale Dialog - Record Commodity Collection pattern */}
       <Dialog open={editSaleOpen} onOpenChange={setEditSaleOpen}>
-        <DialogContent className="max-w-3xl bg-white border-0 shadow-2xl rounded-2xl">
-          <DialogHeader className="pb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg">
-                <Edit className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <DialogTitle className="text-2xl font-bold text-gray-900">Edit Sale Record</DialogTitle>
-                <DialogDescription className="text-gray-600 mt-1">Update the details of this sale transaction</DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border border-slate-200 shadow-xl rounded-3xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+          <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+            <DialogHeader className="relative">
+              <DialogTitle className="flex items-center gap-4 text-2xl font-bold text-white tracking-tight">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                  <Edit className="h-5 w-5" />
+                </div>
+                Edit Sale Record
+              </DialogTitle>
+              <DialogDescription className="mt-2 text-slate-300 text-base">Update the details of this sale transaction</DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="flex-1 overflow-y-auto px-6 py-6 min-h-[200px] bg-gradient-to-b from-slate-50/80 to-white">
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-3">
               <Label htmlFor="edit-litersSold" className="text-sm font-semibold text-gray-700">Liters Sold *</Label>
@@ -979,22 +970,11 @@ export default function SalesTab({ mccId }: SalesTabProps) {
               </div>
             )}
           </div>
-          <DialogFooter className="pt-6 border-t border-gray-200">
-            <Button 
-              variant="outline" 
-              onClick={() => setEditSaleOpen(false)}
-              className="border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl"
-            >
-              Cancel
-            </Button>
-            <Button 
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200" 
-              onClick={submitSale}
-              disabled={!formData.litersSold || !formData.unitPrice || !formData.companyName || !formData.companyContact}
-            >
-              Update Sale
-            </Button>
-          </DialogFooter>
+          </div>
+          <div className="flex items-center justify-between gap-4 px-6 py-5 border-t border-slate-200 bg-white rounded-b-3xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)]">
+            <Button variant="outline" onClick={() => setEditSaleOpen(false)} className="rounded-xl border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 px-4 py-2.5 font-medium">Cancel</Button>
+            <Button className="rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 px-6 py-2.5 font-semibold text-white shadow-lg shadow-sky-500/25 disabled:opacity-70" onClick={submitSale} disabled={!formData.litersSold || !formData.unitPrice || !formData.companyName || !formData.companyContact}>Update Sale</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -27,13 +27,20 @@ import {
   Droplets,
   Coffee,
   Wheat,
+  Egg,
   Warehouse as WarehouseIcon,
   Truck,
   UserCheck,
   Search,
+  HelpCircle,
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { cn } from "@/lib/utils"
+import { HelpTooltip } from "@/components/onboarding/HelpTooltip"
+import { HelpModal, useHelpModal } from "@/components/onboarding/HelpModal"
+import { HELP_CONTENT, getModalContent } from "@/lib/help-content"
+import { useTour } from "@/components/onboarding/useTour"
+import { COMMODITY_COLLECTION_TOUR_STEPS, COMMODITY_COLLECTION_TOUR_ID } from "@/components/onboarding/tour-steps"
 
 interface CommodityCollectionFormProps {
   open: boolean
@@ -55,6 +62,7 @@ const STEPS = [
 function getCollectionTypeIcon(name: string) {
   const n = (name || "").toLowerCase()
   if (n.includes("dairy") || n.includes("milk")) return Droplets
+  if (n.includes("poultry") || n.includes("egg")) return Egg
   if (n.includes("coffee")) return Coffee
   if (n.includes("cereal") || n.includes("grain") || n.includes("maize")) return Wheat
   return Package
@@ -83,6 +91,20 @@ export function CommodityCollectionForm({
   const [agents, setAgents] = useState<any[]>([])
   const [step, setStep] = useState(1)
   const [deliveredBy, setDeliveredBy] = useState<"farmer" | "agent">("farmer")
+
+  const { start: startTour } = useTour({
+    tourId: COMMODITY_COLLECTION_TOUR_ID,
+    steps: COMMODITY_COLLECTION_TOUR_STEPS,
+    autoStart: false,
+  })
+
+  const helpModal = useHelpModal({
+    deliveredBy: getModalContent("deliveredBy")!,
+    farmerCode: getModalContent("farmerCode")!,
+    commodityType: getModalContent("commodityType")!,
+    advances: getModalContent("advances")!,
+    agentAdvance: getModalContent("agentAdvance")!,
+  })
   const [formData, setFormData] = useState({
     collectionTypeId: "", // "all" or category id
     commodityId: "",
@@ -380,7 +402,11 @@ export function CommodityCollectionForm({
   const validateStep = (s: number): boolean => {
     const newErrors: Record<string, string> = {}
     if (s === 1) {
-      if (!formData.farmerId) newErrors.farmerId = "Select the farmer (use farmer code if agent delivery)"
+      // Farmer is required only when farmer delivers directly
+      // When agent delivers, farmer is optional (agent may collect from multiple sources)
+      if (deliveredBy === "farmer" && !formData.farmerId) {
+        newErrors.farmerId = "Select the farmer"
+      }
       if (deliveredBy === "agent" && !formData.agentId) newErrors.agentId = "Select agent (Umucunda) who brought this collection"
     }
     if (s === 2) {
@@ -410,7 +436,12 @@ export function CommodityCollectionForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.commodityId || !formData.farmerId || !formData.quantity || !formData.pricePerUnit) {
+    // Farmer is required only when farmer delivers directly
+    if (deliveredBy === "farmer" && !formData.farmerId) {
+      toast.error("Please select a farmer")
+      return
+    }
+    if (!formData.commodityId || !formData.quantity || !formData.pricePerUnit) {
       toast.error("Please fill in all required fields")
       return
     }
@@ -588,52 +619,63 @@ export function CommodityCollectionForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border border-slate-200/80 shadow-2xl rounded-2xl [&>button]:absolute [&>button]:right-4 [&>button]:top-4 [&>button]:text-slate-400 [&>button]:hover:text-slate-600 [&>button]:hover:bg-slate-100 [&>button]:rounded-lg [&>button]:z-10">
-        {/* Header with stepper — no background */}
-        <div className="px-6 py-5 border-b border-slate-200/80">
-          <DialogHeader>
-            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 mb-2">
-              <Package className="h-3.5 w-3.5 text-[#0099f2]" />
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col p-0 gap-0 bg-white border border-slate-200 shadow-xl rounded-3xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+        {/* Header with gradient and stepper */}
+        <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(0,153,242,0.25),transparent)]" />
+          <DialogHeader className="relative">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-3 py-1.5 mb-3 border border-white/10">
+              <Package className="h-3.5 w-3.5 text-sky-300" />
+              <span className="text-xs font-semibold uppercase tracking-wide text-sky-100">
                 HarvestPlus • Collections
               </span>
             </div>
-            <DialogTitle className="flex items-center gap-3 text-xl font-bold text-slate-900">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0099f2]/10 text-[#0099f2]">
-                <Package className="h-5 w-5" />
+            <DialogTitle className="flex items-center gap-4 text-2xl font-bold text-white tracking-tight">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                <Package className="h-6 w-6" />
               </div>
               Record Commodity Collection
             </DialogTitle>
-            <DialogDescription className="mt-1.5 text-slate-500">
+            <DialogDescription className="mt-2 text-slate-300 text-base">
               Step {step} of {STEPS.length} — {STEPS[step - 1].title}
             </DialogDescription>
           </DialogHeader>
           {/* Stepper */}
-          <div className="mt-5 flex items-center justify-between">
+          <div className="relative mt-6 flex items-start justify-between gap-2">
             {STEPS.map((s, i) => {
               const Icon = s.icon
               const isActive = step === s.id
               const isComplete = step > s.id
               return (
-                <div key={s.id} className="flex flex-1 items-center">
-                  <div
-                    className={cn(
-                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 font-semibold text-sm transition-all",
-                      isComplete && "border-emerald-500 bg-emerald-500 text-white",
-                      isActive && !isComplete && "border-[#0099f2] bg-[#0099f2]/15 text-[#0099f2] scale-110",
-                      !isActive && !isComplete && "border-slate-200 bg-slate-50 text-slate-400"
-                    )}
-                  >
-                    {isComplete ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                  </div>
-                  {i < STEPS.length - 1 && (
+                <div key={s.id} className="flex flex-1 flex-col items-center">
+                  <div className="flex flex-1 w-full items-center justify-center">
                     <div
                       className={cn(
-                        "mx-1 h-0.5 flex-1 rounded-full transition-colors",
-                        isComplete ? "bg-emerald-500/50" : "bg-slate-200"
+                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-2 font-semibold text-sm transition-all duration-200",
+                        isComplete && "border-emerald-400 bg-emerald-500 text-white shadow-lg shadow-emerald-500/30",
+                        isActive && !isComplete && "border-sky-300 bg-white/20 text-white scale-110 shadow-lg ring-4 ring-white/20",
+                        !isActive && !isComplete && "border-white/30 bg-white/5 text-slate-400"
                       )}
-                    />
-                  )}
+                    >
+                      {isComplete ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                    </div>
+                    {i < STEPS.length - 1 && (
+                      <div
+                        className={cn(
+                          "mx-1 h-1 flex-1 max-w-[60px] rounded-full transition-colors",
+                          isComplete ? "bg-emerald-400/80" : "bg-white/20"
+                        )}
+                      />
+                    )}
+                  </div>
+                  <span
+                    className={cn(
+                      "mt-2 text-xs font-medium text-center max-w-[72px] leading-tight",
+                      isActive ? "text-white" : isComplete ? "text-emerald-200" : "text-slate-400"
+                    )}
+                  >
+                    {s.short}
+                  </span>
                 </div>
               )
             })}
@@ -641,53 +683,59 @@ export function CommodityCollectionForm({
         </div>
 
         <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <div className="flex-1 overflow-y-auto px-6 py-6 min-h-[320px]">
+          <div className="flex-1 overflow-y-auto px-6 py-6 min-h-[320px] bg-gradient-to-b from-slate-50/80 to-white">
             {/* Step 1: Who is delivering? + Farmer (farmer code) + Agent if agent */}
             {step === 1 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div>
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                   <Label className="text-base font-semibold text-slate-800 flex items-center gap-2">
-                    <Truck className="h-4 w-4 text-[#0099f2]" />
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-600">
+                      <Truck className="h-4 w-4" />
+                    </span>
                     Who is delivering this collection?
                   </Label>
-                  <p className="mt-1 text-sm text-slate-500">Choose Farmer (direct) or Agent (Umucunda). If agent, select the agent and the farmer code for whom the collection is.</p>
+                  <p className="mt-2 text-sm text-slate-500">Choose Farmer (direct) or Agent (Umucunda). If agent, select the agent. Farmer selection is optional for agent deliveries.</p>
                 </div>
                 {(loadingFarmers || (!isAgentContext && loadingAgents)) ? (
-                  <div className="flex flex-col items-center justify-center py-12 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50">
-                    <Loader2 className="h-10 w-10 animate-spin text-[#0099f2] mb-3" />
+                  <div className="flex flex-col items-center justify-center py-14 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/70">
+                    <Loader2 className="h-10 w-10 animate-spin text-sky-600 mb-3" />
                     <p className="text-sm font-medium text-slate-600">Loading farmers and agents...</p>
                   </div>
                 ) : (
                   <>
                     {!isAgentContext && (
-                      <div className="space-y-3">
-                        <div className="flex gap-4 flex-wrap">
-                          <label className="flex items-center gap-2 cursor-pointer rounded-xl border-2 border-slate-200 px-4 py-3 transition-all hover:border-[#0099f2]/40 has-[:checked]:border-[#0099f2] has-[:checked]:bg-[#0099f2]/5">
+                      <div className="space-y-4">
+                        <div className="flex gap-3 flex-wrap">
+                          <label className="flex items-center gap-3 cursor-pointer rounded-xl border-2 border-slate-200 px-5 py-4 transition-all hover:border-sky-300 hover:bg-sky-50/50 has-[:checked]:border-sky-500 has-[:checked]:bg-sky-50 has-[:checked]:ring-2 has-[:checked]:ring-sky-500/20">
                             <input
                               type="radio"
                               name="deliveredBy"
                               checked={deliveredBy === "farmer"}
                               onChange={() => { setDeliveredBy("farmer"); setFormData((p) => ({ ...p, agentId: "" })); setAgentCodeInput("") }}
-                              className="h-4 w-4 text-[#0099f2] border-slate-300"
+                              className="h-4 w-4 text-sky-600 border-slate-300"
                             />
-                            <User className="h-4 w-4 text-slate-500" />
-                            <span className="text-sm font-medium">Farmer (direct)</span>
+                            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 has-[:checked]:bg-sky-100 has-[:checked]:text-sky-600">
+                              <User className="h-5 w-5" />
+                            </span>
+                            <span className="text-sm font-semibold text-slate-700">Farmer (direct)</span>
                           </label>
-                          <label className="flex items-center gap-2 cursor-pointer rounded-xl border-2 border-slate-200 px-4 py-3 transition-all hover:border-[#0099f2]/40 has-[:checked]:border-[#0099f2] has-[:checked]:bg-[#0099f2]/5">
+                          <label className="flex items-center gap-3 cursor-pointer rounded-xl border-2 border-slate-200 px-5 py-4 transition-all hover:border-sky-300 hover:bg-sky-50/50 has-[:checked]:border-sky-500 has-[:checked]:bg-sky-50 has-[:checked]:ring-2 has-[:checked]:ring-sky-500/20">
                             <input
                               type="radio"
                               name="deliveredBy"
                               checked={deliveredBy === "agent"}
                               onChange={() => setDeliveredBy("agent")}
-                              className="h-4 w-4 text-[#0099f2] border-slate-300"
+                              className="h-4 w-4 text-sky-600 border-slate-300"
                             />
-                            <UserCheck className="h-4 w-4 text-slate-500" />
-                            <span className="text-sm font-medium">Agent (Umucunda)</span>
+                            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600 has-[:checked]:bg-sky-100 has-[:checked]:text-sky-600">
+                              <UserCheck className="h-5 w-5" />
+                            </span>
+                            <span className="text-sm font-semibold text-slate-700">Agent (Umucunda)</span>
                           </label>
                         </div>
                         {deliveredBy === "agent" && (
-                          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-                            Agent collections must be registered with the farmer code. First select or look up the agent who brought the collection (by code or name), then select the farmer (by name or code) for whom it is.
+                          <p className="text-sm text-amber-800 bg-amber-50/80 border border-amber-200 rounded-xl px-4 py-3">
+                            Agent (Umucunda) collection: Select the agent who brought this collection. Optionally, you can also specify a farmer if the collection is for a specific farmer.
                           </p>
                         )}
                       </div>
@@ -789,10 +837,13 @@ export function CommodityCollectionForm({
                     <div className="space-y-4">
                       <div>
                         <Label className="text-sm font-medium text-slate-700">
-                          Farmer (for whom is this collection) <span className="text-red-500">*</span>
+                          Farmer (for whom is this collection) {deliveredBy === "farmer" && <span className="text-red-500">*</span>}
+                          {deliveredBy === "agent" && <span className="text-gray-400 text-xs font-normal ml-1">(optional)</span>}
                         </Label>
                         <p className="mt-1 text-sm text-slate-500">
-                          Type the farmer code and use the look-up icon, or search by name. Once the farmer is found, you can continue.
+                          {deliveredBy === "agent" 
+                            ? "Optional: Agents can collect from multiple farmers. Select a farmer to record this collection for a specific farmer, or leave empty if recording a bulk/unattributed collection."
+                            : "Type the farmer code and use the look-up icon, or search by name. Once the farmer is found, you can continue."}
                         </p>
                       </div>
 
@@ -1180,27 +1231,31 @@ export function CommodityCollectionForm({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between gap-4 px-6 py-4 border-t border-slate-200/80 bg-slate-50/60 rounded-b-2xl">
+          <div className="flex items-center justify-between gap-4 px-6 py-5 border-t border-slate-200 bg-white rounded-b-3xl shadow-[0_-4px_20px_-4px_rgba(0,0,0,0.06)]">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               onClick={step === 1 ? () => onOpenChange(false) : handleBack}
-              className="text-slate-600 hover:text-slate-900 hover:bg-slate-200/80"
+              className="rounded-xl border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 px-4 py-2.5 font-medium"
             >
-              <ChevronLeft className="h-4 w-4 mr-1" />
+              <ChevronLeft className="h-4 w-4 mr-2" />
               {step === 1 ? "Cancel" : "Back"}
             </Button>
             {step < 4 ? (
-              <Button type="button" onClick={handleNext} className="rounded-xl bg-[#0099f2] hover:bg-[#0099f2]/90 px-5 text-white">
+              <Button
+                type="button"
+                onClick={handleNext}
+                className="rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white px-6 py-2.5 font-semibold shadow-lg shadow-sky-500/25 transition-all hover:shadow-sky-500/30"
+              >
                 Next
-                <ChevronRight className="h-4 w-4 ml-1" />
+                <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
             ) : (
               <Button
                 type="button"
                 disabled={isLoading}
                 onClick={(e) => handleSubmit(e as unknown as React.FormEvent)}
-                className="rounded-xl bg-[#0099f2] hover:bg-[#0099f2]/90 px-5 py-2.5 font-semibold text-white shadow-lg shadow-[#0099f2]/25"
+                className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-6 py-2.5 font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-emerald-500/30 disabled:opacity-70"
               >
                 {isLoading ? (
                   <>

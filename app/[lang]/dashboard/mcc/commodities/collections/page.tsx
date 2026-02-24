@@ -289,24 +289,28 @@ export default function CommodityCollectionsPage() {
 
       {/* Quality review screen – dynamic schema from commodity quality fields */}
       <Dialog open={!!qualityReviewCollection} onOpenChange={(open) => !open && setQualityReviewCollection(null)}>
-        <DialogContent className="max-w-lg rounded-2xl border border-slate-200 bg-white shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-lg font-bold text-slate-900">
-              <ClipboardList className="h-5 w-5 text-primary" />
-              Quality Review
-            </DialogTitle>
-            <DialogDescription>
-              {qualityReviewCollection && (
-                <>
-                  {qualityReviewCollection.commodity?.name} ·{" "}
-                  {new Date(qualityReviewCollection.collectionDate).toLocaleDateString()} ·{" "}
-                  {qualityReviewCollection.farmer?.name}
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-lg rounded-3xl border border-slate-200 bg-white shadow-xl [&>button]:absolute [&>button]:right-5 [&>button]:top-5 [&>button]:text-slate-400 [&>button]:hover:text-slate-700 [&>button]:hover:bg-slate-100 [&>button]:rounded-full [&>button]:z-10 [&>button]:h-9 [&>button]:w-9">
+          <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 px-6 pt-6 pb-6 text-white">
+            <DialogHeader className="relative">
+              <DialogTitle className="flex items-center gap-4 text-2xl font-bold text-white tracking-tight">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-white border border-white/20 shadow-lg">
+                  <ClipboardList className="h-5 w-5" />
+                </div>
+                Quality Review
+              </DialogTitle>
+              <DialogDescription className="mt-2 text-slate-300 text-base">
+                {qualityReviewCollection && (
+                  <>
+                    {qualityReviewCollection.commodity?.name} ·{" "}
+                    {new Date(qualityReviewCollection.collectionDate).toLocaleDateString()} ·{" "}
+                    {qualityReviewCollection.farmer?.name}
+                  </>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
           {qualityReviewCollection && (
-            <div className="space-y-4 pt-2">
+            <div className="space-y-4 px-6 py-6 bg-gradient-to-b from-slate-50/80 to-white">
               {qualityReviewCollection.qualityScore != null && (
                 <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Quality score</p>
