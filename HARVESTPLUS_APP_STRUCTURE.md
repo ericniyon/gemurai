@@ -11,14 +11,14 @@
 ### Main Application: **HarvestPlus**
 HarvestPlus is the main application that manages **two distinct sectors**:
 
-1. **MCC (Dairy) Sector** - Milk Collection & Processing
+1. **MCC (Digital) Sector** - Milk Collection & Processing
 2. **Agriculture (Crops) Sector** - Crop Collection & Processing
 
 ---
 
 ## 📊 Sector Structure
 
-### 1. MCC (Dairy) Sector
+### 1. MCC (Digital) Sector
 
 **Location:** `/en/dashboard/mcc`
 
@@ -68,10 +68,10 @@ HarvestPlus is the main application that manages **two distinct sectors**:
 
 ## 🔄 Unified Features (Both Sectors)
 
-These features work across **both MCC (Dairy) and Agriculture (Crops)**:
+These features work across **both MCC (Digital) and Agriculture (Crops)**:
 
 1. **Multi-Commodity Collections** (`commodity_collections`)
-   - Single form for all commodities (Dairy, Coffee, Cereals, etc.)
+   - Single form for all commodities (Digital, Coffee, Cereals, etc.)
    - Dynamic quality fields
    - Commodity-aware validation
 
@@ -91,7 +91,7 @@ These features work across **both MCC (Dairy) and Agriculture (Crops)**:
 
 5. **ID Verification** (`id_verifications`)
    - Mandatory National ID enforcement
-   - Works for all farmers (dairy & crops)
+   - Works for all farmers (Digital & crops)
 
 ---
 
@@ -102,7 +102,7 @@ HarvestPlus (Main App)
 ├── HarvestPlus Dashboard
 │   └── Sector selection & overview
 │
-├── MCC - Dairy Sector
+├── MCC - Digital Sector
 │   ├── MCC Dashboard
 │   ├── Milk Collections (milk_collections)
 │   ├── MCC Periods (mcc_periods)
@@ -130,7 +130,7 @@ HarvestPlus (Main App)
 ### HarvestPlus Main
 - `/en/dashboard/harvestplus` - Main dashboard (sector selection)
 
-### MCC (Dairy) Sector
+### MCC (Digital) Sector
 - `/en/dashboard/mcc` - MCC Dashboard
 - `/en/dashboard/mcc/collections` - Milk Collections
 - `/en/dashboard/mcc/periods` - MCC Periods (if exists)
@@ -166,10 +166,10 @@ HarvestPlus (Main App)
 
 1. **Access HarvestPlus:**
    - Navigate to `/en/dashboard/harvestplus`
-   - See both sectors (MCC Dairy & Agriculture Crops)
+   - See both sectors (MCC Digital & Agriculture Crops)
 
-2. **Work with MCC (Dairy) Sector:**
-   - Click "MCC - Dairy Sector" or navigate to `/en/dashboard/mcc`
+2. **Work with MCC (Digital) Sector:**
+   - Click "MCC - Digital Sector" or navigate to `/en/dashboard/mcc`
    - Manage milk collections, periods, processing
    - Handle customers, suppliers, sales, payments
 
@@ -187,7 +187,7 @@ HarvestPlus (Main App)
 ## 🎯 Key Principles
 
 1. **Clear Sector Separation:**
-   - MCC (Dairy) = Milk operations
+   - MCC (Digital) = Milk operations
    - Agriculture (Crops) = Crop operations
    - Each sector has its own dashboard and management flow
 
@@ -202,7 +202,7 @@ HarvestPlus (Main App)
    - Dynamic quality fields per commodity
 
 4. **Data Model Clarity:**
-   - `milk_collections` = MCC (Dairy) operations
+   - `milk_collections` = MCC (Digital) operations
    - `crop_collections` = Agriculture (Crops) operations
    - `commodity_collections` = Unified multi-commodity system
 
@@ -211,7 +211,7 @@ HarvestPlus (Main App)
 ## ✅ Implementation Status
 
 - ✅ HarvestPlus main dashboard created
-- ✅ MCC (Dairy) sector page with clear header
+- ✅ MCC (Digital) sector page with clear header
 - ✅ Agriculture (Crops) sector page created
 - ✅ Navigation structure updated
 - ✅ Clear separation between sectors
@@ -219,4 +219,4 @@ HarvestPlus (Main App)
 
 ---
 
-**The app is now structured to clearly manage both MCC (Dairy) and Agriculture (Crops) sectors under the HarvestPlus platform!**
+**The app is now structured to clearly manage both MCC (Digital) and Agriculture (Crops) sectors under the HarvestPlus platform!**

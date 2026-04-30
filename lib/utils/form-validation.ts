@@ -3,7 +3,7 @@
  * Real-time validation helpers with contextual feedback
  */
 
-import { DAIRY_QUALITY_PARAMETERS, validateQualityValue } from "@/lib/data"
+import { Digital_QUALITY_PARAMETERS, validateQualityValue } from "@/lib/data"
 
 // ============================================
 // PRICE VALIDATION
@@ -24,7 +24,7 @@ export const PRICE_RANGES: Record<string, PriceRange> = {
   gradeB: { min: 220, max: 300, typical: 260, currency: "RWF", unit: "per liter" },
   gradeC: { min: 150, max: 240, typical: 200, currency: "RWF", unit: "per liter" },
   
-  // Processed dairy prices
+  // Processed Digital prices
   yogurt: { min: 800, max: 1500, typical: 1200, currency: "RWF", unit: "per liter" },
   ikivuguto: { min: 500, max: 900, typical: 700, currency: "RWF", unit: "per liter" },
   butter: { min: 5000, max: 9000, typical: 7000, currency: "RWF", unit: "per kg" },

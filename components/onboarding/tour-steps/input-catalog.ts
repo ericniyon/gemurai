@@ -13,7 +13,7 @@ export const INPUT_CATALOG_TOUR_STEPS: Step[] = [
     target: "[data-tour='input-commodity-select']",
     title: "Select Commodity",
     content:
-      "First, select the commodity this input catalog is for. Different commodities (Dairy, Coffee, Maize) have different input requirements.",
+      "First, select the commodity this input catalog is for. Different commodities (Digital, Coffee, Maize) have different input requirements.",
     disableBeacon: true,
     placement: "bottom",
   },

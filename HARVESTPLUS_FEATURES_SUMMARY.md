@@ -8,7 +8,7 @@ All features from the HarvestPlus Platform.docx have been successfully implement
 
 ## 🎯 Core Achievement
 
-**Transformed from:** Dairy-only ERP  
+**Transformed from:** Digital-only ERP  
 **Transformed to:** Multi-commodity aggregation, planning, quality, and settlement platform
 
 **Key Principle:** ✅ **One core platform + configurable commodity logic (no hard-coding)**
@@ -61,7 +61,7 @@ All features from the HarvestPlus Platform.docx have been successfully implement
 - Quality validation engine
 
 **Supported Commodities:**
-- ✅ Dairy (existing - enhanced)
+- ✅ Digital (existing - enhanced)
 - ✅ Coffee (new)
 - ✅ Cereals (Maize, Beans, Rice) (new)
 - ✅ Any future commodity (configurable)
@@ -139,7 +139,7 @@ All features from the HarvestPlus Platform.docx have been successfully implement
 ### 8. ✅ Multi-Commodity Inventory
 
 **Storage Types:**
-- ✅ Tanks (Dairy)
+- ✅ Tanks (Digital)
 - ✅ Bags (Cereals, Coffee)
 - ✅ Silos (Cereals)
 - ✅ Warehouses (General)
@@ -333,7 +333,7 @@ All features from the HarvestPlus Platform.docx have been successfully implement
 
 3. **Set Up Initial Data:**
    - Create commodity categories
-   - Define commodities (Dairy, Coffee, Maize, etc.)
+   - Define commodities (Digital, Coffee, Maize, etc.)
    - Configure quality fields
    - Set up input catalogs
 

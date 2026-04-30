@@ -10,7 +10,7 @@ Based on **HarvestPlus_Platform_Content.txt** (and existing Phase 1 / alignment 
 
 **Spec:** Clear “Verified / Not Verified” states; block payment approval if ID missing.
 
-**Current:** Backend blocks payout when any farmer is unverified; API returns `unverifiedFarmers`. The payments dashboard does **not** show verification status or disable the Approve button when unverified.
+**Current:** Backend blocks payout when any farmer is unverified; API returns `unverifiedFarmers`. **(Updated:)** The payments dashboard now shows verification status and disables Approve when unverified; see §6 implementation status below.
 
 **Update:**
 
@@ -28,15 +28,9 @@ Based on **HarvestPlus_Platform_Content.txt** (and existing Phase 1 / alignment 
 
 **Spec:** “Agent Collection App (commodity-aware)” as a Phase 1 key screen.
 
-**Current:** MCC intake is commodity-aware and supports agent selection; there is no dedicated agent-facing flow (e.g. mobile or simplified UI for field agents).
+**Current (updated):** ✅ **Implemented.** Dedicated agent flow at `/[lang]/dashboard/agent/collections`: MCC selector, then "Record collection" opens `CommodityCollectionForm` with `overrideMccId` and `overrideAgentId` (from auth). Commodity-first, dynamic quality; agents record as themselves. **Optional remaining:** dedicated `POST /api/v1/agent/collections` that enforces caller is agent; currently uses same MCC collection API with `agentId` from client.
 
-**Update (Phase 2):**
-
-- Add a dedicated **Agent Collection** flow (e.g. `/[lang]/dashboard/agent/collections` or separate app):
-  - Commodity selector at top (Dairy, Coffee, Maize, etc.) → auto-loads units, quality fields, pricing logic.
-  - Same dynamic collection form as MCC intake (or a simplified subset).
-  - `agentId` from auth token; no need for MCC to select agent.
-- **API:** Either keep using `POST /api/v1/mcc/commodities/collections` with `agentId` from token, or add `POST /api/v1/agent/collections` that enforces caller is agent and auto-fills `agentId`.
+**Update (Phase 2):** *(Flow done; optional: add `POST /api/v1/agent/collections` for server-side agent enforcement.)*
 
 **Outcome:** Agents can record collections in the field without using the full MCC dashboard.
 
@@ -46,7 +40,7 @@ Based on **HarvestPlus_Platform_Content.txt** (and existing Phase 1 / alignment 
 
 **Spec:** “Audit logs for payments & quality changes.”
 
-**Current:** Prepayments have full audit (`agent_prepayment_audit`). There is no dedicated audit for quality schema changes or quality result overrides.
+**Current:** Prepayments have full audit (`agent_prepayment_audit`). Quality schema changes are now audited via `quality_audit_log`; quality result overrides at MCC are not yet audited. See §6 and §7 below.
 
 **Update:**
 
@@ -83,7 +77,7 @@ Based on **HarvestPlus_Platform_Content.txt** (and existing Phase 1 / alignment 
 
 ### 2.2 Commodity Selection at “Top of Every Flow” (Spec – “How This Looks in the SYSTEM”)
 
-**Spec:** “When an agent starts a collection: Select Commodity: Dairy / Coffee / Maize / Beans / Rice” → auto-loads units, quality fields, pricing logic, storage type.
+**Spec:** “When an agent starts a collection: Select Commodity: Digital / Coffee / Maize / Beans / Rice” → auto-loads units, quality fields, pricing logic, storage type.
 
 **Current:** MCC intake and collection form are already commodity-first and dynamic. Ensure the same pattern is true everywhere collections are started (including any future Agent Collection App).
 
@@ -114,12 +108,12 @@ Based on **HarvestPlus_Platform_Content.txt** (and existing Phase 1 / alignment 
 
 ## 3. Branding & Positioning (Spec §9 – “How I’d Brand This”)
 
-**Spec:** Move from “HarvestPlus Dairy ERP” to “HarvestPlus by GEMURA – Multi-Commodity Aggregation & Settlement Platform” with sub-verticals (HarvestPlus Dairy, HarvestPlus Coffee, HarvestPlus Grains).
+**Spec:** Move from “HarvestPlus Digital ERP” to “HarvestPlus by GEMURA – Multi-Commodity Aggregation & Settlement Platform” with sub-verticals (HarvestPlus Digital, HarvestPlus Coffee, HarvestPlus Grains).
 
 **Updates:**
 
 - **UI:** Use “HarvestPlus by GEMURA” (or “GEMURA – HarvestPlus”) in app title, login, and main navigation; use “Multi-Commodity Aggregation & Settlement” (or similar) in tagline or footer.
-- **Sub-verticals:** Where useful (e.g. reports or filters), allow filtering or labeling by “Dairy”, “Coffee”, “Grains” (driven by commodity config, not hard-coded).
+- **Sub-verticals:** Where useful (e.g. reports or filters), allow filtering or labeling by “Digital”, “Coffee”, “Grains” (driven by commodity config, not hard-coded).
 - **Docs / Help:** Short explanation that the platform supports multiple commodities and that each value chain uses the same backbone with commodity-specific rules.
 
 **Outcome:** Clear positioning as national agri-infrastructure and multi-commodity platform.
@@ -152,3 +146,40 @@ Based on **HarvestPlus_Platform_Content.txt** (and existing Phase 1 / alignment 
 - **Add new commodity in &lt;1 day:** Supported via Commodity Studio (§10).
 
 If you add **HarvestPlus – General Collection Center System (GCCS).docx** to the repo (or paste its sections), recommendations can be tightened to match that document exactly.
+
+---
+
+## 6. Implementation status vs this document (current system)
+
+*As of review against the codebase, the following items are already implemented; the “Current” and “Update” text in §§1.1–1.3 above is partly outdated.*
+
+| Section | Doc said | Actual state |
+|--------|----------|--------------|
+| **1.1 Payments UI** | Dashboard does not show verification / disable Approve | **Done.** `GET /api/v1/payments/collections` returns `farmerIdVerified` per collection. Payments page shows Verified/Not verified badge, disables Approve when any farmer unverified, surfaces `unverifiedFarmers` on error. |
+| **1.2 Agent Collection App** | No dedicated agent-facing flow | **Done.** `/[lang]/dashboard/agent/collections` exists: MCC selector, then CommodityCollectionForm with `overrideAgentId` from auth. Optional: add `POST /api/v1/agent/collections` for server-side agent enforcement. |
+| **1.3 Quality audit** | No dedicated audit for schema or overrides | **Partial.** `quality_audit_log` and `QualityAuditService` exist; schema changes (Commodity Studio fields/rules) are audited. **Missing:** audit when quality result is overridden at MCC/quality review; admin UI to filter by quality actions. |
+| **2.3 farmer_ledger** | Add `commodityId` | **Not done.** `farmer_ledger` has no `commodityId`; commodity is derived via `refId` → collection. Recommendation still valid. |
+
+---
+
+## 7. What’s missing from this document (given the current system)
+
+This section lists capabilities or context that exist in the system but are **not** covered (or are underplayed) in the recommendations above.
+
+1. **Trainings / YDEN**  
+   A full **training module** exists: `/[lang]/trainings` (library, modules, certifications), `TrainingService`, APIs for enroll, progress, recommended, lesson content, certifications. GCCS is described as core tech for the **Young Digital Entrepreneurs Network (YDEN)**; the doc does not mention trainings, upskilling, or certifications as part of GCCS/YDEN roadmap or “What’s already aligned.”
+
+2. **System purpose and strategic intent**  
+   [SYSTEM_PURPOSE_AND_STRATEGIC_INTENT.md](./SYSTEM_PURPOSE_AND_STRATEGIC_INTENT.md) captures GCCS as shared national-grade infrastructure for young food-systems entrepreneurs (producers, cooperatives, aggregators, processors, offtakers). This doc does not reference that purpose or use it to prioritise recommendations (e.g. “does this help market access, payments, or value-chain participation?”).
+
+3. **Branding in the app**  
+   Settings general page uses “HarvestPlus by YDEN” and “Multi-Commodity Aggregation & Settlement Platform”; marketing and about pages reference HarvestPlus and YDEN. The doc says “HarvestPlus by GEMURA”; product may use YDEN or GEMURA—worth aligning the doc with chosen brand.
+
+4. **Quality result override audit**  
+   The doc recommends emitting audit when “quality result is overridden or manually changed (e.g. at MCC/quality review).” Schema changes are already audited; **override at MCC/quality review** is not yet written to `quality_audit_log`. No code path found that calls `logQualityAudit` for overrides.
+
+5. **Quality audit admin UI**  
+   “Optional: Admin UI to filter audit by ‘quality’ actions” is still valid. The existing `/[lang]/dashboard/settings/audit` page uses a different audit API; there is no UI that reads from `quality_audit_log` or filters by quality action type.
+
+6. **Other product areas**  
+   The codebase includes applications/DCC, pharmacy, marketplace, wallet, vouchers, farm-level data, etc. This doc is GCCS/HarvestPlus-focused; if those areas are in scope for “the system,” consider a short note on how they relate to GCCS or a separate recommendations doc.

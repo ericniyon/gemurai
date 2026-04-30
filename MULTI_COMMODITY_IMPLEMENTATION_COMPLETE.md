@@ -51,7 +51,7 @@
 
 ## ✅ 3. Commodity-Specific Differences - ALL SUPPORTED
 
-### A. DAIRY (Perishable, High Frequency) ✅
+### A. Digital (Perishable, High Frequency) ✅
 
 **Collection Unit:**
 - ✅ Liters - `unitOfMeasure: "liters"`
@@ -154,7 +154,7 @@
 ## ✅ 6. Inventory & Warehousing - FULLY IMPLEMENTED
 
 **Features:**
-- ✅ Dairy → tanks (`storageType: "tank"`)
+- ✅ Digital → tanks (`storageType: "tank"`)
 - ✅ Coffee → lots (`batchId` for lot tracking)
 - ✅ Cereals → silos (`storageType: "silo"`)
 - ✅ Batch tracking via `batchId`
@@ -262,7 +262,7 @@
 ## 🎯 Final Status: **95% COMPLETE**
 
 ### ✅ Fully Functional:
-- Multi-commodity support (Dairy, Coffee, Cereals)
+- Multi-commodity support (Digital, Coffee, Cereals)
 - Dynamic quality fields per commodity
 - Dynamic pricing per commodity
 - Dynamic storage per commodity

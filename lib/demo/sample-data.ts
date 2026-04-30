@@ -259,11 +259,11 @@ export const SAMPLE_INPUT_USAGE: SampleInputUsage[] = [
     farmerId: "demo-farmer-001",
     farmerName: "Jean Baptiste Uwimana",
     inputType: "feed",
-    inputName: "Dairy Meal",
+    inputName: "Digital Meal",
     quantity: 50,
     unit: "kg",
     applicationDate: "2024-02-20",
-    cropOrAnimal: "Dairy Herd",
+    cropOrAnimal: "Digital Herd",
   },
   {
     id: "demo-input-003",

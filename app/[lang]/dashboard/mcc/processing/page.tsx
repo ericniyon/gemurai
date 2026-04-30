@@ -217,10 +217,10 @@ export default function MCCProcessingPage() {
               href={`/${lang}/dashboard/mcc`}
               className="text-slate-500 hover:text-slate-900 transition-colors"
             >
-              MCC (Dairy)
+              MCC (Digital)
             </Link>
             <span className="text-slate-400">/</span>
-            <span className="font-medium text-[#0099f2]">Dairy Processing</span>
+            <span className="font-medium text-[#0099f2]">Digital Processing</span>
           </nav>
 
           <header className="mb-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between px-4 sm:px-6">
@@ -233,7 +233,7 @@ export default function MCCProcessingPage() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                  Dairy Processing
+                  Digital Processing
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">
                   Record raw milk to processed product conversions (pasteurization, etc.)

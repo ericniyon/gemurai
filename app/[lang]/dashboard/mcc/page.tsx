@@ -77,7 +77,7 @@ const TAB_CONFIG: { value: (typeof VALID_TABS)[number]; label: string; icon: Rea
   { value: "warehouses", label: "Warehouses", icon: Warehouse },
 ]
 
-export default function MCCDairyPage() {
+export default function MCCDigitalPage() {
   const { user } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
@@ -167,7 +167,7 @@ export default function MCCDairyPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-                  MCC (Dairy)
+                  MCC (Digital)
                 </h1>
                 <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400">
                   Sales, customers, suppliers, wallet, and warehouses in one place.

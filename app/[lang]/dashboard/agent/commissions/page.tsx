@@ -66,6 +66,18 @@ interface FarmerPayout {
   total: number
 }
 
+interface AgentCommissionApi {
+  agentId: string
+  agentName: string
+  totalCollected?: number
+  excellentPercent?: number
+  conditionalPercent?: number
+  rejectedPercent?: number
+  totalCommission?: number
+  paidCommission?: number
+  pendingCommission?: number
+}
+
 export default function AgentCommissionsPage() {
   const { user } = useAuth()
   const params = useParams()
@@ -73,77 +85,49 @@ export default function AgentCommissionsPage() {
 
   const [selectedPeriod, setSelectedPeriod] = useState<string>("current")
   const [loading, setLoading] = useState(true)
+  const [apiCommission, setApiCommission] = useState<AgentCommissionApi | null>(null)
   const [currentCommission, setCurrentCommission] = useState<CommissionPeriod | null>(null)
   const [commissionHistory, setCommissionHistory] = useState<CommissionPeriod[]>([])
   const [farmerPayouts, setFarmerPayouts] = useState<FarmerPayout[]>([])
 
   useEffect(() => {
-    // Simulate loading commission data
     const loadData = async () => {
       setLoading(true)
-      await new Promise((r) => setTimeout(r, 500))
-
-      // Current period commission
+      let commission: AgentCommissionApi | null = null
+      const token = localStorage.getItem("Gemurai_token")
+      if (token) {
+        try {
+          const res = await fetch("/api/v1/payments/agent-commissions", {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          const data = await res.json()
+          if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+            commission = data.data[0]
+            setApiCommission(commission)
+          } else {
+            setApiCommission(null)
+          }
+        } catch {
+          setApiCommission(null)
+        }
+      }
       setCurrentCommission({
         id: "current",
-        period: "1st - 15th",
-        month: "April",
-        year: 2024,
-        totalLiters: 420,
-        totalFarmers: 12,
-        successfulRate: 57,
-        conditionalRate: 6.3,
-        rejectedRate: 1.5,
-        grossCommission: 29400,
+        period: new Date().getDate() <= 15 ? "1st - 15th" : "16th - End",
+        month: new Date().toLocaleString("en-US", { month: "long" }),
+        year: new Date().getFullYear(),
+        totalLiters: commission?.totalCollected ?? 0,
+        totalFarmers: 0,
+        successfulRate: commission?.excellentPercent ?? 0,
+        conditionalRate: commission?.conditionalPercent ?? 0,
+        rejectedRate: commission?.rejectedPercent ?? 0,
+        grossCommission: commission?.totalCommission ?? 0,
         deductions: 0,
-        netCommission: 29400,
+        netCommission: commission?.pendingCommission ?? commission?.totalCommission ?? 0,
         status: "pending",
       })
-
-      // Commission history
-      setCommissionHistory([
-        {
-          id: "prev1",
-          period: "16th - 31st",
-          month: "March",
-          year: 2024,
-          totalLiters: 580,
-          totalFarmers: 15,
-          successfulRate: 62,
-          conditionalRate: 5.5,
-          rejectedRate: 1.2,
-          grossCommission: 38200,
-          deductions: 2000,
-          netCommission: 36200,
-          status: "paid",
-          paymentDate: "2024-04-02",
-        },
-        {
-          id: "prev2",
-          period: "1st - 15th",
-          month: "March",
-          year: 2024,
-          totalLiters: 510,
-          totalFarmers: 14,
-          successfulRate: 58,
-          conditionalRate: 6.0,
-          rejectedRate: 1.8,
-          grossCommission: 34500,
-          deductions: 1500,
-          netCommission: 33000,
-          status: "paid",
-          paymentDate: "2024-03-18",
-        },
-      ])
-
-      // Farmer payouts for current period
-      setFarmerPayouts([
-        { id: "1", farmerName: "John Uwimana", farmerCode: "NYA-001234", liters: 200, fatPercent: 8.5, snfPercent: 8.5, payout: 300, total: 550 },
-        { id: "2", farmerName: "Alice Mukamana", farmerCode: "NYA-001235", liters: 110, fatPercent: 8.8, snfPercent: 8.5, payout: 350, total: 460 },
-        { id: "3", farmerName: "Peter Mugiransa", farmerCode: "NYA-001236", liters: 70, fatPercent: 6.5, snfPercent: 6.2, payout: 560, total: 560 },
-        { id: "4", farmerName: "Joyce Niyosenga", farmerCode: "NYA-001237", liters: 40, fatPercent: 6.2, snfPercent: 6.2, payout: 400, total: 230 },
-      ])
-
+      setCommissionHistory([])
+      setFarmerPayouts([])
       setLoading(false)
     }
 
@@ -201,8 +185,12 @@ export default function AgentCommissionsPage() {
             </Select>
           </div>
 
-          {/* Current Commission Card */}
-          {currentCommission && (
+          {/* My Commission Card (from API when agent has collections) */}
+          {loading ? (
+            <Card className="border-0 shadow-md">
+              <CardContent className="p-8 text-center text-gray-500">Loading commission data…</CardContent>
+            </Card>
+          ) : currentCommission && (apiCommission || currentCommission.netCommission > 0) ? (
             <Card className="bg-gradient-to-br from-[#1e3a5f] to-[#2d5a87] text-white border-0 overflow-hidden">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -210,7 +198,7 @@ export default function AgentCommissionsPage() {
                     <p className="text-blue-200 text-sm">
                       {currentCommission.month} {currentCommission.year} • {currentCommission.period}
                     </p>
-                    <p className="text-xs text-blue-300 mt-1">Kamana Mark</p>
+                    <p className="text-xs text-blue-300 mt-1">{user?.name ?? "Agent"}</p>
                   </div>
                   <Badge className={cn(statusConfig[currentCommission.status].color, "text-xs")}>
                     {statusConfig[currentCommission.status].label}
@@ -219,41 +207,49 @@ export default function AgentCommissionsPage() {
 
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="text-blue-200 text-sm">Progress to Paid</p>
+                    <p className="text-blue-200 text-sm">Pending commission</p>
                     <p className="text-3xl font-bold mt-1">
-                      Ksh {currentCommission.netCommission.toLocaleString()}
+                      RWF {currentCommission.netCommission.toLocaleString()}
                     </p>
                     <div className="flex items-center gap-4 mt-3 text-sm text-blue-200">
-                      <span>Total Collected: {currentCommission.totalLiters} Liters</span>
+                      <span>Total collected: {currentCommission.totalLiters} units</span>
                     </div>
                   </div>
                   <div className="text-right space-y-2">
                     <div>
-                      <p className="text-blue-200 text-xs">Resc ProPoste Rete</p>
-                      <p className="text-lg font-semibold">{currentCommission.totalLiters}L</p>
+                      <p className="text-blue-200 text-xs">Total commission</p>
+                      <p className="text-lg font-semibold">RWF {(apiCommission?.totalCommission ?? currentCommission.grossCommission).toLocaleString()}</p>
                     </div>
-                    <div>
-                      <p className="text-blue-200 text-xs">635L</p>
-                    </div>
+                    {apiCommission?.paidCommission != null && apiCommission.paidCommission > 0 && (
+                      <div>
+                        <p className="text-blue-200 text-xs">Paid</p>
+                        <p className="text-lg font-semibold">RWF {apiCommission.paidCommission.toLocaleString()}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-white/20 flex items-center justify-between">
-                  <p className="text-sm">Total Commission to De Paid</p>
+                  <p className="text-sm">Total commission to be paid</p>
                   <p className="text-xl font-bold">
-                    Ksh {currentCommission.netCommission.toLocaleString()}
+                    RWF {currentCommission.netCommission.toLocaleString()}
                   </p>
                 </div>
-
-                <Button className="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 text-white">
-                  APPROVE PAYOUT
-                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-0 shadow-md">
+              <CardContent className="p-8 text-center">
+                <p className="text-gray-600 font-medium">No commission data yet</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Commission is calculated from collections where you are assigned as the agent. Record collections to see your commission here.
+                </p>
               </CardContent>
             </Card>
           )}
 
-          {/* Quality Summary */}
-          {currentCommission && (
+          {/* Quality Summary (when we have collection/commission data) */}
+          {currentCommission && (apiCommission || (currentCommission.totalLiters > 0)) && (
             <Card className="border-0 shadow-md">
               <CardHeader>
                 <CardTitle className="text-lg">Collection Quality Summary</CardTitle>

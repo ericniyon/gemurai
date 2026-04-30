@@ -12,7 +12,7 @@ The **Dual Inventory System** has been successfully implemented, supporting both
 
 1. **🥛 Milk Inventory** (Existing)
    - **MCC Management**: Farmers, milk collections, processing workflows
-   - **Products**: Raw milk, processed milk, dairy products, byproducts
+   - **Products**: Raw milk, processed milk, Digital products, byproducts
    - **Warehouses**: Collection centers, processing plants, cold storage, distribution
    - **Integration**: Real-time stock moves from milk collections
 

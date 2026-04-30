@@ -41,7 +41,7 @@ const STEPS = [
 
 function getCollectionTypeIcon(name: string) {
   const n = (name || "").toLowerCase()
-  if (n.includes("dairy") || n.includes("milk")) return Droplets
+  if (n.includes("Digital") || n.includes("milk")) return Droplets
   if (n.includes("coffee")) return Coffee
   if (n.includes("cereal") || n.includes("grain") || n.includes("maize")) return Wheat
   return Package

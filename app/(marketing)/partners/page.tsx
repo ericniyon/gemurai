@@ -47,7 +47,7 @@ export default function PartnersPage() {
         </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center animate-fade-in-up relative z-10">
-          <h1 className="text-4xl font-bold text-white mb-4">Work with YDEN to power your dairy value chain</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">Work with YDEN to power your Digital value chain</h1>
           <p className="text-xl max-w-3xl mx-auto" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
             We co-design youth pipelines that serve your business, cooperative, or development program.
           </p>
@@ -61,11 +61,11 @@ export default function PartnersPage() {
         </ScrollReveal>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { label: "Dairy processors & off-takers", icon: <Building2 /> },
+            { label: "Digital processors & off-takers", icon: <Building2 /> },
             { label: "Cooperatives & farmer organizations", icon: <Users /> },
             { label: "Financial institutions & impact investors", icon: <Briefcase /> },
             { label: "Development agencies and NGOs", icon: <Handshake /> },
-            { label: "Technology providers in dairy and agriculture", icon: <Handshake /> },
+            { label: "Technology providers in Digital and agriculture", icon: <Handshake /> },
           ].map((item, idx) => (
             <ScrollReveal key={idx} delay={idx * 100}>
               <div className="flex flex-col items-center text-center p-6 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors h-full">
@@ -94,7 +94,7 @@ export default function PartnersPage() {
             },
             {
               title: "Co-financed Youth Ventures",
-              desc: "Support youth-owned dairy and feed businesses with blended finance and risk sharing.",
+              desc: "Support youth-owned Digital and feed businesses with blended finance and risk sharing.",
             },
             {
               title: "Pilot & Innovation Projects",

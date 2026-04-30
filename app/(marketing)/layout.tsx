@@ -4,10 +4,10 @@ import { YdenFooter } from "@/components/yden/footer"
 
 export const metadata: Metadata = {
   title: {
-    default: "YDEN | Young Dairy Entrepreneurs Network",
+    default: "YDEN | Young Digital Entrepreneurs Network",
     template: "%s | YDEN",
   },
-  description: "YDEN connects young people across Rwanda to dairy entrepreneurship opportunities, partners, and resources.",
+  description: "YDEN connects young people across Rwanda to Digital entrepreneurship opportunities, partners, and resources.",
 }
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {

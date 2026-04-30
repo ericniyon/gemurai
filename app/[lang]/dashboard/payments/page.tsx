@@ -522,7 +522,7 @@ export default function PaymentsDashboardPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900">No agent commission data</h3>
                         <p className="mt-2 max-w-md text-sm text-gray-500">
-                          Agent commissions are calculated from Milk &amp; Dairy collections where an agent (Abacunda) was assigned.
+                          Agent commissions are calculated from Milk &amp; Digital collections where an agent (Abacunda) was assigned.
                           Record collections with an agent to see commission data here.
                         </p>
                       </CardContent>

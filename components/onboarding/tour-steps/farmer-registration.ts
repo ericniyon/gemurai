@@ -5,7 +5,7 @@ export const FARMER_REGISTRATION_TOUR_STEPS: Step[] = [
     target: "[data-tour='farmer-form-welcome']",
     title: "Register a New Farmer",
     content:
-      "This form helps you register new dairy farmers with your MCC. Complete all required fields marked with (*) to ensure accurate records and smooth operations.",
+      "This form helps you register new Digital farmers with your MCC. Complete all required fields marked with (*) to ensure accurate records and smooth operations.",
     disableBeacon: true,
     placement: "center",
   },
@@ -69,7 +69,7 @@ export const FARMER_REGISTRATION_TOUR_STEPS: Step[] = [
     target: "[data-tour='farmer-farm-details']",
     title: "Step 3: Farm Details",
     content:
-      "Enter information about the farmer's dairy operation including herd size and cooperative membership.",
+      "Enter information about the farmer's Digital operation including herd size and cooperative membership.",
     disableBeacon: true,
     placement: "right",
   },
@@ -77,7 +77,7 @@ export const FARMER_REGISTRATION_TOUR_STEPS: Step[] = [
     target: "[data-tour='farmer-herd-size']",
     title: "Herd Size",
     content:
-      "Enter the total number of dairy cattle owned. This helps estimate expected milk production and plan collection routes.",
+      "Enter the total number of Digital cattle owned. This helps estimate expected milk production and plan collection routes.",
     disableBeacon: true,
     placement: "bottom",
   },
@@ -85,7 +85,7 @@ export const FARMER_REGISTRATION_TOUR_STEPS: Step[] = [
     target: "[data-tour='farmer-cooperative']",
     title: "Cooperative Membership",
     content:
-      "Indicate if the farmer is a member of a dairy cooperative. Cooperative members may have different payment terms and deductions.",
+      "Indicate if the farmer is a member of a Digital cooperative. Cooperative members may have different payment terms and deductions.",
     disableBeacon: true,
     placement: "bottom",
   },

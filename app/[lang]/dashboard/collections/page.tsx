@@ -47,7 +47,7 @@ const TYPE_OPTIONS: {
   {
     id: "commodity",
     name: "Commodity Collections",
-    description: "Multi-commodity intake (dairy, coffee, cereals) with dynamic quality",
+    description: "Multi-commodity intake (Digital, coffee, cereals) with dynamic quality",
     icon: Package,
     roles: ["MCC_MANAGER", "SUPER_ADMIN"],
     iconColor: "text-[#0099f2]",
@@ -57,7 +57,7 @@ const TYPE_OPTIONS: {
   {
     id: "milk",
     name: "Milk Collections",
-    description: "Dairy milk with quality tests and deductions",
+    description: "Digital milk with quality tests and deductions",
     icon: Droplets,
     roles: ["MCC_MANAGER", "SUPER_ADMIN"],
     iconColor: "text-sky-600",
@@ -208,7 +208,7 @@ export default function CollectionsPage() {
 
   const getCommodityIcon = (name?: string) => {
     const n = (name || "").toLowerCase()
-    if (n.includes("milk") || n.includes("dairy")) return <Droplets className="h-4 w-4 text-sky-600" />
+    if (n.includes("milk") || n.includes("Digital")) return <Droplets className="h-4 w-4 text-sky-600" />
     if (n.includes("coffee")) return <Coffee className="h-4 w-4 text-amber-600" />
     return <Wheat className="h-4 w-4 text-emerald-600" />
   }
@@ -508,7 +508,7 @@ export default function CollectionsPage() {
                         <Package className="h-10 w-10 text-slate-400" />
                       </div>
                       <p className="text-sm font-medium text-gray-700">No commodity collections yet</p>
-                      <p className="text-sm text-gray-500 max-w-sm">Record dairy, coffee, or cereal intake with quality and pricing.</p>
+                      <p className="text-sm text-gray-500 max-w-sm">Record Digital, coffee, or cereal intake with quality and pricing.</p>
                       <Button onClick={() => handleTypeSelect("commodity")} className="gap-2 rounded-xl bg-blue-600 hover:bg-blue-700">
                         Record commodity collection
                         <ArrowRight className="h-4 w-4" />
@@ -596,7 +596,7 @@ export default function CollectionsPage() {
                         <Droplets className="h-10 w-10 text-sky-500" />
                       </div>
                       <p className="text-sm font-medium text-gray-700">No milk collections yet</p>
-                      <p className="text-sm text-gray-500 max-w-sm">Record dairy milk with quality tests and deductions.</p>
+                      <p className="text-sm text-gray-500 max-w-sm">Record Digital milk with quality tests and deductions.</p>
                       <Button onClick={() => handleTypeSelect("milk")} className="gap-2 rounded-xl bg-sky-600 hover:bg-sky-700">
                         Record milk collection
                         <ArrowRight className="h-4 w-4" />

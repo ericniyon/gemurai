@@ -1,14 +1,14 @@
 /**
  * YDEN HarvestPlus Lookup Data
- * Pre-loaded standardized data for dairy products, fertilizers, and pesticides
+ * Pre-loaded standardized data for Digital products, fertilizers, and pesticides
  */
 
-// Dairy Products
+// Digital Products
 export {
   MILK_GRADES,
-  DAIRY_QUALITY_PARAMETERS,
-  DAIRY_INPUTS,
-  DAIRY_PRODUCTS,
+  Digital_QUALITY_PARAMETERS,
+  Digital_INPUTS,
+  Digital_PRODUCTS,
   COLLECTION_PERIOD_TYPES,
   COLLECTION_PERIODS,
   MILK_COLLECTION_SHIFTS,
@@ -18,16 +18,16 @@ export {
   calculateMilkPrice,
   getQualityParameter,
   validateQualityValue,
-} from "./dairy-products"
+} from "./Digital-products"
 
 export type {
   MilkGrade,
   QualityParameter,
-  DairyInputCategory,
-  DairyInputItem,
-  DairyProduct,
+  DigitalInputCategory,
+  DigitalInputItem,
+  DigitalProduct,
   CollectionPeriodType,
-} from "./dairy-products"
+} from "./Digital-products"
 
 // Fertilizers
 export {

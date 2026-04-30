@@ -48,6 +48,9 @@ export async function getApplicationWithAuth(id: string) {
       return {
         application: {
           id: application.id,
+          status: (application as any).status || "SUBMITTED",
+          createdAt: (application as any).createdAt?.toISOString?.() || new Date().toISOString(),
+          updatedAt: (application as any).updatedAt?.toISOString?.() || new Date().toISOString(),
           formData: application.formData,
           evaluations: application.evaluations.map(evaluation => ({
             id: evaluation.id,
@@ -66,83 +69,64 @@ export async function getApplicationWithAuth(id: string) {
       }
     }
 
-    // If not found in database, try to get from Google Sheets
-    console.log("🔍 Application not found in database, checking if it's a Google Sheets application")
-    
-    // Import GoogleSheetsService to fetch the specific application
-    const { GoogleSheetsService } = await import("@/lib/services/google-sheets-service")
-    
-    try {
-      // Fetch all applications from Google Sheets
-      const googleSheetsResult = await GoogleSheetsService.fetchApplicationsWithFallback()
-      
-      if (googleSheetsResult.source === 'google-sheets' && googleSheetsResult.data.length > 0) {
-        // Find the specific application by ID
-        const googleSheetsApp = googleSheetsResult.data.find(app => app.id === id)
-        
-        if (googleSheetsApp) {
-          console.log("✅ Found application in Google Sheets:", googleSheetsApp.id)
-          
-          const permissions = {
-            canView: true,
-            canEdit: false,
-            canDelete: false,
-            canEvaluate: false
-          }
+    type NexgenForumRow = {
+      id: string
+      payload: Record<string, unknown> | null
+      submitted_at: Date | string
+      created_at: Date | string
+      updated_at: Date | string
+    }
 
-          return {
-            application: {
-              id: googleSheetsApp.id,
-              formData: googleSheetsApp.formData || {},
-              evaluations: googleSheetsApp.evaluations || []
-            },
-            user: {
-              id: "public",
-              role: "public",
-              permissions: ["applications.view"]
-            },
-            permissions
-          }
-        }
+    // Fallback for Nexgen forum submissions stored in nexgen_forum_applications
+    const forumRows = await prisma.$queryRawUnsafe<NexgenForumRow[]>(
+      `
+        SELECT id, payload, submitted_at, created_at, updated_at
+        FROM nexgen_forum_applications
+        WHERE id = $1
+        LIMIT 1
+      `,
+      id
+    ).catch((error) => {
+      const message = String(error?.message || "")
+      if (message.toLowerCase().includes("nexgen_forum_applications") && message.toLowerCase().includes("does not exist")) {
+        return []
       }
-    } catch (error) {
-      console.error("❌ Error fetching from Google Sheets:", error)
-    }
-    
-    // If still not found, return a basic structure
-    const mockApplication = {
-      id: id,
-      formData: {
-        'ID': id,
-        'First Name': 'Google Sheets',
-        'Lat Name': 'Application',
-        'Total Score': 'N/A',
-        'Vulnerability Category': 'Unknown',
-        'district': 'Unknown',
-        'Phone Number': 'N/A'
-      },
-      evaluations: []
-    }
+      throw error
+    })
 
-    const permissions = {
-      canView: true,
-      canEdit: false,
-      canDelete: false,
-      canEvaluate: false
+    const forumApplication = forumRows?.[0]
+    if (forumApplication) {
+      const permissions = {
+        canView: true,
+        canEdit: false,
+        canDelete: false,
+        canEvaluate: false
+      }
+
+      const createdAt = new Date(forumApplication.submitted_at || forumApplication.created_at || new Date()).toISOString()
+      const updatedAt = new Date(forumApplication.updated_at || forumApplication.submitted_at || new Date()).toISOString()
+
+      return {
+        application: {
+          id: forumApplication.id,
+          status: "SUBMITTED",
+          createdAt,
+          updatedAt,
+          formData: forumApplication.payload || {},
+          evaluations: []
+        },
+        user: {
+          id: "public",
+          role: "public",
+          permissions: ["applications.view"]
+        },
+        permissions
+      }
     }
 
     return {
-      application: {
-        id: mockApplication.id,
-        formData: mockApplication.formData,
-        evaluations: mockApplication.evaluations
-      },
-      user: {
-        id: "public",
-        role: "public",
-        permissions: ["applications.view"]
-      },
-      permissions
+      error: "Application not found",
+      errorType: "NOT_FOUND"
     }
   } catch (error) {
     console.error("Error fetching application:", error)

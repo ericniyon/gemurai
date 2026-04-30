@@ -66,7 +66,8 @@ import {
   DollarSign,
   HandCoins,
   RefreshCw,
-  Warehouse
+  Warehouse,
+  Radio
 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { usePermissionUpdates } from "@/hooks/use-permission-updates"
@@ -184,6 +185,13 @@ const getAdminNavigationItems = (lang: string): NavigationItem[] => [
     roles: ["ADMIN", "SUPER_ADMIN"]
   },
   {
+    id: "admin-applications",
+    name: "Applications",
+    href: `/${lang}/dashboard/applications`,
+    icon: ClipboardList,
+    roles: ["ADMIN", "SUPER_ADMIN"]
+  },
+  {
     id: "admin-settings",
     name: "Settings",
     href: `/${lang}/dashboard/settings`,
@@ -240,12 +248,27 @@ const getAdminNavigationItems = (lang: string): NavigationItem[] => [
         roles: ["ADMIN", "SUPER_ADMIN"]
       }
     ]
+  },
+  {
+    id: "trainings",
+    name: "Training",
+    href: `/${lang}/trainings`,
+    icon: GraduationCap,
+    roles: ["ADMIN", "SUPER_ADMIN"]
   }
 ]
 
 // Define navigation items for MCC_MANAGER (Collection Center Manager) and other operational roles
-// Order: Dashboard → Operations → Collections → HarvestPlus → Farm-Level Data → Collection Center
+// Order: Agent hub (AGENT only) → Dashboard → Operations → Collections → …
 const getMCCManagerNavigationItems = (lang: string): NavigationItem[] => [
+  {
+    id: "agent-hub",
+    name: "Agent hub",
+    href: `/${lang}/dashboard/agent`,
+    icon: Smartphone,
+    requiredPermissions: [],
+    roles: ["AGENT"],
+  },
   { 
     id: "mcc-dashboard",
     name: "Dashboard", 
@@ -254,7 +277,7 @@ const getMCCManagerNavigationItems = (lang: string): NavigationItem[] => [
     requiredPermissions: [],
     roles: ["MCC_MANAGER", "SUPER_ADMIN", "AGENT"]
   },
-  // Operations - hub for periods, processing, types, payments (dairy + crop)
+  // Operations - hub for periods, processing, types, payments (Digital + crop)
   {
     id: "operations",
     name: "Operations",
@@ -271,6 +294,15 @@ const getMCCManagerNavigationItems = (lang: string): NavigationItem[] => [
     icon: ClipboardList,
     requiredPermissions: [],
     roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+  },
+  // Pre-Collection / Supply signals (Journey 0 - surface supply before trucks move)
+  {
+    id: "pre-collection",
+    name: "Supply signals",
+    href: `/${lang}/dashboard/pre-collection`,
+    icon: Radio,
+    requiredPermissions: [],
+    roles: ["MCC_MANAGER", "SUPER_ADMIN", "AGENT"]
   },
   // HarvestPlus - single menu (Farmer Payments, Agent Advances, Reconciliation are tabs on the page)
   {
@@ -292,12 +324,21 @@ const getMCCManagerNavigationItems = (lang: string): NavigationItem[] => [
   },
   // Collection Center - single page (Sales, Customers, Suppliers, Ikofi, Warehouses, collections tabs)
   {
-    id: "mcc-dairy",
+    id: "mcc-Digital",
     name: "Collection Center",
     href: `/${lang}/dashboard/mcc`,
     icon: Building2,
     requiredPermissions: [],
     roles: ["MCC_MANAGER", "SUPER_ADMIN"]
+  },
+  // Training – standalone learning portal (lightweight; no operational modules loaded)
+  {
+    id: "trainings",
+    name: "Training",
+    href: `/${lang}/trainings`,
+    icon: GraduationCap,
+    requiredPermissions: [],
+    roles: ["MCC_MANAGER", "SUPER_ADMIN", "AGENT", "FARMER"]
   },
   // Settings - configure collection center (periods, onboarding, warehouses, etc.)
   {
@@ -508,8 +549,9 @@ function DashboardLayoutContent({ children }: { children: ReactNode }) {
     const loadNotifications = async () => {
       if (!isAuthenticated || !user) return
       try {
-        // Only relevant for AGENT or MCC_MANAGER for stock order notifications
-        if (user.role !== "AGENT" && user.role !== "MCC_MANAGER") {
+        // Only fetch for roles allowed by the stock-orders API (avoid 403)
+        const allowedRoles = ["MCC_MANAGER", "DCC", "EMPLOYER", "BRANCH_MANAGER"]
+        if (!allowedRoles.includes(user.role)) {
           if (isMounted) {
             setNotifications([])
             setHasNewNotifications(false)

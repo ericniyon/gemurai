@@ -1,6 +1,6 @@
 /**
- * Dairy Products Lookup Tables
- * Based on Rwanda National Dairy Strategy and industry standards
+ * Digital Products Lookup Tables
+ * Based on Rwanda National Digital Strategy and industry standards
  */
 
 export interface MilkGrade {
@@ -18,7 +18,7 @@ export const MILK_GRADES: MilkGrade[] = [
   {
     code: "A",
     name: "Grade A (Premium)",
-    description: "Premium quality milk with high fat content and low SCC, suitable for premium dairy products",
+    description: "Premium quality milk with high fat content and low SCC, suitable for premium Digital products",
     priceMultiplier: 1.15,
     minFat: 3.5,
     maxFat: 6.0,
@@ -75,7 +75,7 @@ export interface QualityParameter {
   }
 }
 
-export const DAIRY_QUALITY_PARAMETERS: QualityParameter[] = [
+export const Digital_QUALITY_PARAMETERS: QualityParameter[] = [
   {
     field: "fat",
     label: "Fat Content",
@@ -207,15 +207,15 @@ export const DAIRY_QUALITY_PARAMETERS: QualityParameter[] = [
   },
 ]
 
-export interface DairyInputCategory {
+export interface DigitalInputCategory {
   code: string
   name: string
   nameKinyarwanda?: string
   description: string
-  items: DairyInputItem[]
+  items: DigitalInputItem[]
 }
 
-export interface DairyInputItem {
+export interface DigitalInputItem {
   name: string
   nameKinyarwanda?: string
   unit: string
@@ -224,17 +224,17 @@ export interface DairyInputItem {
   withdrawalPeriod?: string // For vet products
 }
 
-export const DAIRY_INPUTS: DairyInputCategory[] = [
+export const Digital_INPUTS: DigitalInputCategory[] = [
   {
     code: "feed",
     name: "Animal Feed",
     nameKinyarwanda: "Ibiryo by'inka",
-    description: "Commercial feeds and supplements for dairy cattle",
+    description: "Commercial feeds and supplements for Digital cattle",
     items: [
-      { name: "Dairy Meal", nameKinyarwanda: "Ibiribwa by'inka", unit: "kg", description: "Balanced concentrate feed for lactating cows", dosage: "2-4 kg per cow per day" },
+      { name: "Digital Meal", nameKinyarwanda: "Ibiribwa by'inka", unit: "kg", description: "Balanced concentrate feed for lactating cows", dosage: "2-4 kg per cow per day" },
       { name: "Hay (Rhodes Grass)", nameKinyarwanda: "Ubwatsi bwumye", unit: "kg", description: "Dried grass for roughage", dosage: "5-8 kg per cow per day" },
       { name: "Silage (Maize)", nameKinyarwanda: "Ubwatsi butewe", unit: "kg", description: "Fermented maize for energy", dosage: "15-25 kg per cow per day" },
-      { name: "Dairy Concentrate", nameKinyarwanda: "Ibiryo bikomeye", unit: "kg", description: "High-energy supplement", dosage: "1-2 kg per 3L milk produced" },
+      { name: "Digital Concentrate", nameKinyarwanda: "Ibiryo bikomeye", unit: "kg", description: "High-energy supplement", dosage: "1-2 kg per 3L milk produced" },
       { name: "Molasses", nameKinyarwanda: "Umwunyu w'ikigori", unit: "liters", description: "Energy supplement and palatability enhancer", dosage: "0.5-1 kg per cow per day" },
       { name: "Wheat Bran", nameKinyarwanda: "Ubususa bw'ingano", unit: "kg", description: "By-product feed for energy and fiber", dosage: "1-3 kg per cow per day" },
       { name: "Cotton Seed Cake", nameKinyarwanda: "Ikondo ry'ipamba", unit: "kg", description: "Protein supplement", dosage: "1-2 kg per cow per day" },
@@ -246,10 +246,10 @@ export const DAIRY_INPUTS: DairyInputCategory[] = [
     code: "minerals",
     name: "Mineral Supplements",
     nameKinyarwanda: "Minerari",
-    description: "Mineral blocks and supplements for dairy cattle",
+    description: "Mineral blocks and supplements for Digital cattle",
     items: [
       { name: "Mineral Block (Salt Lick)", nameKinyarwanda: "Ibuye ry'umunyu", unit: "kg", description: "Free-choice mineral supplementation" },
-      { name: "Dairy Mineral Premix", nameKinyarwanda: "Minerari z'inka", unit: "kg", description: "Balanced mineral supplement powder", dosage: "50-100g per cow per day" },
+      { name: "Digital Mineral Premix", nameKinyarwanda: "Minerari z'inka", unit: "kg", description: "Balanced mineral supplement powder", dosage: "50-100g per cow per day" },
       { name: "Calcium Supplement", nameKinyarwanda: "Kalusiyumu", unit: "kg", description: "For preventing milk fever", dosage: "As recommended by vet" },
       { name: "Phosphorus Supplement", nameKinyarwanda: "Fosifori", unit: "kg", description: "For bone health and milk production" },
       { name: "Magnesium Oxide", nameKinyarwanda: "Magnezyumu", unit: "kg", description: "For preventing grass tetany", dosage: "30-50g per cow per day" },
@@ -259,7 +259,7 @@ export const DAIRY_INPUTS: DairyInputCategory[] = [
     code: "vet",
     name: "Veterinary Products",
     nameKinyarwanda: "Imiti y'amatungo",
-    description: "Medicines and treatments for dairy cattle health",
+    description: "Medicines and treatments for Digital cattle health",
     items: [
       { name: "Dewormer (Albendazole)", nameKinyarwanda: "Imiti y'inzoka", unit: "dose", description: "Internal parasite control", dosage: "7.5mg per kg body weight", withdrawalPeriod: "14 days milk" },
       { name: "Acaricide (Tick Control)", nameKinyarwanda: "Imiti y'inyenzi", unit: "liters", description: "External parasite control", withdrawalPeriod: "Check product label" },
@@ -289,7 +289,7 @@ export const DAIRY_INPUTS: DairyInputCategory[] = [
   },
   {
     code: "equipment",
-    name: "Dairy Equipment",
+    name: "Digital Equipment",
     nameKinyarwanda: "Ibikoresho by'amata",
     description: "Equipment for milking and milk handling",
     items: [
@@ -306,24 +306,24 @@ export const DAIRY_INPUTS: DairyInputCategory[] = [
     code: "hygiene",
     name: "Hygiene Products",
     nameKinyarwanda: "Ibikoresho by'isuku",
-    description: "Cleaning and sanitation products for dairy operations",
+    description: "Cleaning and sanitation products for Digital operations",
     items: [
       { name: "Teat Dip (Pre-milking)", nameKinyarwanda: "Isuku y'amabere", unit: "liters", description: "Pre-milking teat disinfectant" },
       { name: "Teat Dip (Post-milking)", nameKinyarwanda: "Isuku y'amabere nyuma yo gukama", unit: "liters", description: "Post-milking teat sealant" },
       { name: "Udder Wash", nameKinyarwanda: "Isuku y'irembo", unit: "liters", description: "Udder cleaning solution" },
-      { name: "Dairy Detergent (Alkaline)", nameKinyarwanda: "Isabune", unit: "kg", description: "For cleaning milk equipment" },
-      { name: "Dairy Sanitizer (Chlorine-based)", nameKinyarwanda: "Imiti isukura", unit: "liters", description: "Equipment sanitization" },
+      { name: "Digital Detergent (Alkaline)", nameKinyarwanda: "Isabune", unit: "kg", description: "For cleaning milk equipment" },
+      { name: "Digital Sanitizer (Chlorine-based)", nameKinyarwanda: "Imiti isukura", unit: "liters", description: "Equipment sanitization" },
       { name: "Milking Towels (Disposable)", nameKinyarwanda: "Ibitambaro", unit: "pack", description: "Single-use udder towels" },
     ],
   },
 ]
 
 /**
- * Dairy Products Lookup Table (Table 1)
- * Based on Rwanda National Dairy Strategy and local dairy processors
- * Reference: Masaka Farms profile, Rwanda National Dairy Strategy
+ * Digital Products Lookup Table (Table 1)
+ * Based on Rwanda National Digital Strategy and local Digital processors
+ * Reference: Masaka Farms profile, Rwanda National Digital Strategy
  */
-export interface DairyProduct {
+export interface DigitalProduct {
   code: string
   name: string
   nameKinyarwanda: string
@@ -340,7 +340,7 @@ export interface DairyProduct {
   }
 }
 
-export const DAIRY_PRODUCTS: DairyProduct[] = [
+export const Digital_PRODUCTS: DigitalProduct[] = [
   {
     code: "RAW_MILK",
     name: "Fresh Milk (Raw)",
@@ -378,7 +378,7 @@ export const DAIRY_PRODUCTS: DairyProduct[] = [
     code: "YOGURT",
     name: "Yogurt",
     nameKinyarwanda: "Yogurt",
-    description: "Cultured milk product, flavored or plain. Produced by local dairy processors including Masaka Farms.",
+    description: "Cultured milk product, flavored or plain. Produced by local Digital processors including Masaka Farms.",
     unitOfMeasure: "liters",
     processingRequired: true,
     storageType: "refrigerated",
@@ -422,7 +422,7 @@ export const DAIRY_PRODUCTS: DairyProduct[] = [
     code: "MASCARPONE",
     name: "Mascarpone Cheese",
     nameKinyarwanda: "Foromaje ya Mascarpone",
-    description: "Soft Italian-style cheese produced by Rwandan dairy processors. Used in desserts like tiramisu.",
+    description: "Soft Italian-style cheese produced by Rwandan Digital processors. Used in desserts like tiramisu.",
     unitOfMeasure: "kg",
     processingRequired: true,
     storageType: "refrigerated",
@@ -478,7 +478,7 @@ export const DAIRY_PRODUCTS: DairyProduct[] = [
 /**
  * Collection Period Types (Quinzenne System)
  * Quinzenne (French origin) = bi-monthly/fortnightly period
- * This is the standard payment cycle used in Rwanda's dairy sector
+ * This is the standard payment cycle used in Rwanda's Digital sector
  */
 export interface CollectionPeriodType {
   code: string
@@ -496,7 +496,7 @@ export const COLLECTION_PERIOD_TYPES: CollectionPeriodType[] = [
     name: "Bi-monthly (Quinzenne)",
     nameKinyarwanda: "Igice cy'ukwezi",
     nameFrench: "Quinzaine",
-    description: "Two collection/payment periods per month: 1st-15th and 16th-end. This is the standard system used in Rwanda's dairy cooperatives for organizing collections and processing farmer payments.",
+    description: "Two collection/payment periods per month: 1st-15th and 16th-end. This is the standard system used in Rwanda's Digital cooperatives for organizing collections and processing farmer payments.",
     durationDays: 15,
     periodsPerMonth: 2,
   },
@@ -570,7 +570,7 @@ export function calculateMilkPrice(basePrice: number, grade: MilkGrade): number 
 }
 
 export function getQualityParameter(field: string): QualityParameter | undefined {
-  return DAIRY_QUALITY_PARAMETERS.find((p) => p.field === field)
+  return Digital_QUALITY_PARAMETERS.find((p) => p.field === field)
 }
 
 export function validateQualityValue(

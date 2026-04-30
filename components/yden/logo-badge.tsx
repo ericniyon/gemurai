@@ -7,7 +7,7 @@ type LogoBadgeProps = {
   className?: string
 }
 
-export function LogoBadge({ variant = "dark", label = "Young Dairy Entrepreneurs Network", className }: LogoBadgeProps) {
+export function LogoBadge({ variant = "dark", label = "Young Digital Entrepreneurs Network", className }: LogoBadgeProps) {
   const textClasses =
     variant === "dark"
       ? "text-white/90"

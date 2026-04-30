@@ -36,7 +36,7 @@
 
 ### B. Core Platform Modules ✅ **COMPLETE**
 
-| Module | Dairy | Coffee | Cereals | Implementation |
+| Module | Digital | Coffee | Cereals | Implementation |
 |--------|-------|--------|---------|----------------|
 | User Profiles & IDs | ✅ | ✅ | ✅ | `farmers` table with `nationalId`, `ikofiId` |
 | Agent Management | ✅ | ✅ | ✅ | `farmer_agent_assignments`, `agent_prepayments` |
@@ -51,7 +51,7 @@
 
 ## 3. ✅ Commodity-Specific Differences (Plug-in Logic)
 
-### A. DAIRY (Perishable, High Frequency) ✅ **COMPLETE**
+### A. Digital (Perishable, High Frequency) ✅ **COMPLETE**
 
 **Collection Unit:**
 - ✅ Liters - `unitOfMeasure: "liters"` in commodities
@@ -73,7 +73,7 @@
 - ✅ Dynamic - Quality rules with `impactOnPricing: true`
 
 **Implementation:**
-- Commodity can be created with category "Perishables" → "Dairy"
+- Commodity can be created with category "Perishables" → "Digital"
 - Quality fields defined dynamically via Quality Schema Builder
 - Pricing multipliers applied via quality rules
 
@@ -229,7 +229,7 @@
 ### Implementation: ✅ **COMPLETE**
 
 **Features:**
-- ✅ Dairy → tanks - `storageType: "tank"` or `"cold_storage"`
+- ✅ Digital → tanks - `storageType: "tank"` or `"cold_storage"`
 - ✅ Coffee → lots - `batchId` for lot tracking
 - ✅ Cereals → silos / bagged inventory - `storageType: "silo"` or `"warehouse"`
 
@@ -297,11 +297,11 @@
 
 ### Recommended Update:
 - Update to "HarvestPlus by GEMURA"
-- Sub-verticals: "HarvestPlus Dairy", "HarvestPlus Coffee", "HarvestPlus Grains"
+- Sub-verticals: "HarvestPlus Digital", "HarvestPlus Coffee", "HarvestPlus Grains"
 
 **Files to Update:**
 - `app/[lang]/dashboard/layout.tsx` - Sidebar branding
-- `app/[lang]/dashboard/payments/page.tsx` - "HarvestPlus Dairy Payments Dashboard"
+- `app/[lang]/dashboard/payments/page.tsx` - "HarvestPlus Digital Payments Dashboard"
 - Various page titles and headers
 
 ---
@@ -311,7 +311,7 @@
 ### ✅ Fully Implemented (95%):
 1. ✅ Core Design Principle - One platform, multiple commodity profiles
 2. ✅ Common Modules - All 8 modules reusable across commodities
-3. ✅ Commodity-Specific Differences - Dairy, Coffee, Cereals all supported
+3. ✅ Commodity-Specific Differences - Digital, Coffee, Cereals all supported
 4. ✅ Commodity Selection - At top of collection flows
 5. ✅ Dynamic Collection Screens - Quality fields load per commodity
 6. ✅ Quality Review - Commodity-aware validation

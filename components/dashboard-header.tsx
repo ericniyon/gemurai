@@ -124,7 +124,7 @@ function DashboardHeaderContent() {
               </div>
               <div>
                 <h1 className="text-lg font-bold text-white">YDEN</h1>
-                <p className="text-xs text-navy-200">Young Dairy Entrepreneurs Network</p>
+                <p className="text-xs text-navy-200">Young Digital Entrepreneurs Network</p>
               </div>
             </Link>
           </div>

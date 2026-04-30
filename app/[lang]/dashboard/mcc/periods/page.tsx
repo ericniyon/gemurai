@@ -188,7 +188,7 @@ export default function MCCPeriodsPage() {
               href={`/${lang}/dashboard/mcc`}
               className="text-slate-500 hover:text-slate-900 transition-colors"
             >
-              MCC (Dairy)
+              MCC (Digital)
             </Link>
             <span className="text-slate-400">/</span>
             <span className="font-medium text-[#0099f2]">MCC Periods</span>

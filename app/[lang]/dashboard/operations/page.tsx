@@ -28,8 +28,8 @@ const OPERATIONS = [
     borderColor: "border-[#0099f2]/30",
   },
   {
-    id: "dairy-processing",
-    name: "Dairy Processing",
+    id: "Digital-processing",
+    name: "Digital Processing",
     description: "Process milk from raw to finished products",
     href: "mcc/processing",
     icon: Activity,
@@ -38,9 +38,9 @@ const OPERATIONS = [
     borderColor: "border-sky-200",
   },
   {
-    id: "dairy-payments",
-    name: "Dairy Payments",
-    description: "Process and track dairy payments",
+    id: "Digital-payments",
+    name: "Digital Payments",
+    description: "Process and track Digital payments",
     href: "mcc/payments",
     icon: CreditCard,
     iconColor: "text-emerald-600",
@@ -137,7 +137,7 @@ export default function OperationsPage() {
               Periods, processing & payments
             </h1>
             <p className="mt-2 max-w-2xl text-slate-600 sm:text-base">
-              Choose an area to manage MCC periods, dairy or crop processing, crop types, or dairy payments.
+              Choose an area to manage MCC periods, Digital or crop processing, crop types, or Digital payments.
             </p>
           </header>
 

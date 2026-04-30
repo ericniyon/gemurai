@@ -25,7 +25,7 @@ export function YdenFooter() {
               </div>
             </div>
             <p className="text-sm leading-relaxed text-slate-400">
-              {settings.platformDescription || "The home of youth in the dairy value chain in Rwanda. Building a new generation of skilled, profitable, and climate-smart dairy entrepreneurs."}
+              {settings.platformDescription || "The home of youth in the Digital value chain in Rwanda. Building a new generation of skilled, profitable, and climate-smart Digital entrepreneurs."}
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-slate-400 hover:text-white transition-colors">

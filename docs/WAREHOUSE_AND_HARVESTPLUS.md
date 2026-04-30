@@ -15,7 +15,7 @@
 ### B. MCC-level warehouses (`mcc_warehouses` + `products`)
 
 - **Tables:** `mcc_warehouses` (per MCC, type: COLLECTION_CENTER | PROCESSING_PLANT | COLD_STORAGE | DISTRIBUTION_CENTER), `products` (with `mccWarehouseId`, `stock`, `unitOfMeasure`, etc.).
-- **Used by:** `/api/v1/mcc/stock` and legacy dairy “MCC stock” view. Products belong to an MCC warehouse; stock is a simple numeric field on `products`, not driven by StockMove.
+- **Used by:** `/api/v1/mcc/stock` and legacy Digital “MCC stock” view. Products belong to an MCC warehouse; stock is a simple numeric field on `products`, not driven by StockMove.
 - **No direct link** to global `Warehouse`: they are separate. So “MCC warehouse” today is “MCC + list of products with stock,” not the same as “Warehouse + Location + StockMove.”
 
 ---

@@ -152,7 +152,7 @@
 ## Domain Mapping: MCC Milk Aggregation
 
 ### Amakusanyirizo Concept
-**Milk Aggregation**: Collection of milk from dairy farmers, quality testing, inventory management, and processing workflows.
+**Milk Aggregation**: Collection of milk from Digital farmers, quality testing, inventory management, and processing workflows.
 
 ### Current System Mapping
 

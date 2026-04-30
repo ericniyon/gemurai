@@ -82,13 +82,13 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
   },
 
   herdSize: {
-    tooltip: "Total number of dairy cattle owned by the farmer (milking and dry cows)",
+    tooltip: "Total number of Digital cattle owned by the farmer (milking and dry cows)",
     modal: {
       title: "Herd Size Information",
       description: "Recording cattle inventory",
-      content: "Herd size helps estimate expected milk production capacity and plan collection logistics. It includes all dairy cattle owned by the farmer, including milking cows, dry cows, and heifers.",
+      content: "Herd size helps estimate expected milk production capacity and plan collection logistics. It includes all Digital cattle owned by the farmer, including milking cows, dry cows, and heifers.",
       tips: [
-        "Include both milking and non-milking dairy cattle",
+        "Include both milking and non-milking Digital cattle",
         "Update this number when cattle are bought, sold, or calve",
         "This helps predict seasonal production patterns",
       ],
@@ -111,11 +111,11 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
   },
 
   cooperativeMember: {
-    tooltip: "Whether the farmer is a member of a dairy cooperative",
+    tooltip: "Whether the farmer is a member of a Digital cooperative",
     modal: {
       title: "Cooperative Membership",
       description: "Benefits of cooperative membership",
-      content: "Dairy cooperative members often receive additional benefits such as better prices, access to inputs on credit, training opportunities, and collective bargaining power.",
+      content: "Digital cooperative members often receive additional benefits such as better prices, access to inputs on credit, training opportunities, and collective bargaining power.",
       tips: [
         "Indicate the cooperative name if the farmer is a member",
         "Cooperative members may have different payment terms",
@@ -148,7 +148,7 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
     modal: {
       title: "Collection Periods (Quinzenne System)",
       description: "Understanding the bi-monthly payment system used in Rwanda",
-      content: "Collections are organized into two periods per month for payment processing using the 'Quinzenne' system (from French 'quinzaine' meaning fortnight). Period 1 covers days 1-15, and Period 2 covers days 16 to end of month. This is the standard payment cycle used across Rwanda's dairy cooperatives.",
+      content: "Collections are organized into two periods per month for payment processing using the 'Quinzenne' system (from French 'quinzaine' meaning fortnight). Period 1 covers days 1-15, and Period 2 covers days 16 to end of month. This is the standard payment cycle used across Rwanda's Digital cooperatives.",
       tips: [
         "Period 1 (Quinzenne 1): Collections from 1st to 15th of the month",
         "Period 2 (Quinzenne 2): Collections from 16th to end of month",
@@ -164,7 +164,7 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
     modal: {
       title: "What is Quinzenne?",
       description: "Understanding the quinzenne payment system",
-      content: "Quinzenne comes from the French word 'quinzaine' meaning a period of 15 days or a fortnight. In Rwanda's dairy sector, the quinzenne system divides each month into two collection and payment periods. This allows farmers to receive payments twice per month rather than waiting until month-end.",
+      content: "Quinzenne comes from the French word 'quinzaine' meaning a period of 15 days or a fortnight. In Rwanda's Digital sector, the quinzenne system divides each month into two collection and payment periods. This allows farmers to receive payments twice per month rather than waiting until month-end.",
       tips: [
         "Quinzenne 1: Day 1 to Day 15 of each month",
         "Quinzenne 2: Day 16 to end of month",
@@ -260,11 +260,11 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
   },
 
   proteinContent: {
-    tooltip: "Protein percentage (2.8-4.5%) - important for dairy product manufacturing",
+    tooltip: "Protein percentage (2.8-4.5%) - important for Digital product manufacturing",
     modal: {
       title: "Protein Content",
       description: "Milk protein quality parameter",
-      content: "Protein content indicates the nutritional quality of milk and its suitability for processing into cheese, yogurt, and other dairy products. Higher protein content generally commands better prices.",
+      content: "Protein content indicates the nutritional quality of milk and its suitability for processing into cheese, yogurt, and other Digital products. Higher protein content generally commands better prices.",
       tips: [
         "Normal range: 3.0-3.5% for cow's milk",
         "Higher protein improves cheese yield",
@@ -415,13 +415,13 @@ export const HELP_CONTENT: Record<string, HelpEntry> = {
   // ============================================
 
   commodityType: {
-    tooltip: "Category of agricultural product being collected (Dairy, Cereals, Cash Crops, etc.)",
+    tooltip: "Category of agricultural product being collected (Digital, Cereals, Cash Crops, etc.)",
     modal: {
       title: "Commodity Categories",
       description: "Types of products collected",
       content: "The MCC may collect various agricultural commodities beyond milk. Each category has specific quality parameters, storage requirements, and pricing methods.",
       tips: [
-        "Dairy: Milk and milk products (Amata)",
+        "Digital: Milk and milk products (Amata)",
         "Cereals: Maize, rice, wheat, sorghum (Ibinyampeke)",
         "Cash Crops: Coffee, tea, pyrethrum (Ibihingwa by'ubucuruzi)",
         "Pulses: Beans, soybeans, groundnuts (Imboga)",

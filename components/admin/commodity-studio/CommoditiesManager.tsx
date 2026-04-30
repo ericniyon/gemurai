@@ -125,7 +125,7 @@ export function CommoditiesManager() {
 
   const getCommodityIcon = (name: string) => {
     const lower = name.toLowerCase()
-    if (lower.includes("milk") || lower.includes("dairy")) return "🥛"
+    if (lower.includes("milk") || lower.includes("Digital")) return "🥛"
     if (lower.includes("coffee")) return "☕"
     if (lower.includes("maize") || lower.includes("corn")) return "🌽"
     if (lower.includes("bean")) return "🫘"
@@ -365,7 +365,7 @@ export function CommoditiesManager() {
                     className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400 dark:border-slate-600 dark:text-slate-100"
                   />
                   <Label htmlFor="isPerishable" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                    Perishable (e.g. dairy — requires cold chain)
+                    Perishable (e.g. Digital — requires cold chain)
                   </Label>
                 </div>
               </div>
@@ -423,7 +423,7 @@ export function CommoditiesManager() {
                       value={formData.defaultCollectionFrequency}
                       onValueChange={(value) => setFormData({ ...formData, defaultCollectionFrequency: value })}
                       options={[
-                        { label: "Daily (e.g. dairy)", value: "daily" },
+                        { label: "Daily (e.g. Digital)", value: "daily" },
                         { label: "Weekly (e.g. coffee)", value: "weekly" },
                         { label: "Seasonal", value: "seasonal" },
                         { label: "Harvest window", value: "harvest_window" },

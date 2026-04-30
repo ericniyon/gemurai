@@ -193,6 +193,14 @@ interface RegisterTranslation {
       label: string
       placeholder: string
     }
+    firstName: {
+      label: string
+      placeholder: string
+    }
+    lastName: {
+      label: string
+      placeholder: string
+    }
     gender: {
       label: string
       placeholder: string
@@ -253,6 +261,14 @@ interface RegisterTranslation {
     buttons: {
       register: string
       registering: string
+      next: string
+      back: string
+    }
+    stepper: {
+      step1: string
+      step2: string
+      step3: string
+      stepOf: string
     }
     validation: {
       missingFields: {
@@ -763,7 +779,7 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
     },
     form: {
       title: "Create Account",
-      subtitle: "Enter your details to Apply to become a DCC",
+      subtitle: "Enter your details to Apply to become a Member",
       tabs: {
         individual: "Individual",
         cooperative: "Cooperative",
@@ -783,6 +799,14 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
       fullName: {
         label: "Full Name",
         placeholder: "Enter your full name"
+      },
+      firstName: {
+        label: "First name",
+        placeholder: "First name"
+      },
+      lastName: {
+        label: "Last name",
+        placeholder: "Last name"
       },
       gender: {
         label: "Gender",
@@ -843,7 +867,15 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
       },
       buttons: {
         register: "Create Account",
-        registering: "Creating Account..."
+        registering: "Creating Account...",
+        next: "Continue",
+        back: "Back"
+      },
+      stepper: {
+        step1: "Account type",
+        step2: "Your details",
+        step3: "Contact & password",
+        stepOf: "Step {current} of {total}"
       },
       validation: {
         missingFields: {
@@ -915,6 +947,14 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
         label: "Nom Complet",
         placeholder: "Entrez votre nom complet"
       },
+      firstName: {
+        label: "Prénom",
+        placeholder: "Prénom"
+      },
+      lastName: {
+        label: "Nom",
+        placeholder: "Nom"
+      },
       gender: {
         label: "Genre",
         placeholder: "Sélectionnez le genre (optionnel)"
@@ -974,7 +1014,15 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
       },
       buttons: {
         register: "Créer un Compte",
-        registering: "Création du Compte..."
+        registering: "Création du Compte...",
+        next: "Continuer",
+        back: "Retour"
+      },
+      stepper: {
+        step1: "Type de compte",
+        step2: "Vos informations",
+        step3: "Contact et mot de passe",
+        stepOf: "Étape {current} sur {total}"
       },
       validation: {
         missingFields: {
@@ -1046,6 +1094,14 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
         label: "Amazina Yombi",
         placeholder: "Andika amazina yawe yombi"
       },
+      firstName: {
+        label: "Izina rya mbere",
+        placeholder: "Izina rya mbere"
+      },
+      lastName: {
+        label: "Izina rya nyuma",
+        placeholder: "Izina rya nyuma"
+      },
       gender: {
         label: "Igitsina",
         placeholder: "Hitamo igitsina (bishoboka)"
@@ -1105,7 +1161,15 @@ export const registerTranslations: Record<string, RegisterTranslation> = {
       },
       buttons: {
         register: "Fungura Konti",
-        registering: "Konti Irafungurwa..."
+        registering: "Konti Irafungurwa...",
+        next: "Komeza",
+        back: "Garuka"
+      },
+      stepper: {
+        step1: "Ubwoko bwa konti",
+        step2: "Amakuru yawe",
+        step3: "Ubutumwa n'ijambo ry'ibanga",
+        stepOf: "Intambwe {current} kuri {total}"
       },
       validation: {
         missingFields: {

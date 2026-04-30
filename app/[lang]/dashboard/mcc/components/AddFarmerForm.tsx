@@ -506,7 +506,7 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
                     <Label className="text-slate-700 font-medium flex items-center">
                       Herd Size
                       <HelpTooltip
-                        content={HELP_CONTENT.herdSize?.tooltip || "Total number of dairy cattle"}
+                        content={HELP_CONTENT.herdSize?.tooltip || "Total number of Digital cattle"}
                         onLearnMore={() => helpModal.openModal("herdSize")}
                       />
                     </Label>
@@ -523,7 +523,7 @@ export function AddFarmerForm({ open, onOpenChange, onSuccess }: AddFarmerFormPr
                     <Label className="text-slate-700 font-medium flex items-center">
                       Cooperative Member
                       <HelpTooltip
-                        content={HELP_CONTENT.cooperativeMember?.tooltip || "Whether the farmer is a member of a dairy cooperative"}
+                        content={HELP_CONTENT.cooperativeMember?.tooltip || "Whether the farmer is a member of a Digital cooperative"}
                         onLearnMore={() => helpModal.openModal("cooperativeMember")}
                       />
                     </Label>

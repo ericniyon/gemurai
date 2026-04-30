@@ -18,15 +18,18 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
-    const agentId = searchParams.get("agentId")
+    const agentIdParam = searchParams.get("agentId")
     const mccId = searchParams.get("mccId") || user.mccId
 
     const where: any = {
       mccId: mccId || undefined,
     }
 
-    if (agentId) {
-      where.agentId = agentId
+    // When user is AGENT, return only their own commission data
+    if (user.role === "AGENT") {
+      where.agentId = user.id
+    } else if (agentIdParam) {
+      where.agentId = agentIdParam
     }
 
     // Get collections grouped by agent

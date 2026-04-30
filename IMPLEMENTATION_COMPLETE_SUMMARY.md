@@ -188,7 +188,7 @@ app/[lang]/
 ## 🎉 Result
 
 The platform is now:
-- ✅ **Multi-commodity** (Dairy, Coffee, Cereals, etc.)
+- ✅ **Multi-commodity** (Digital, Coffee, Cereals, etc.)
 - ✅ **Configurable** (No hard-coding)
 - ✅ **Geo-aware** (Location intelligence)
 - ✅ **Compliant** (ID verification, audit trails)

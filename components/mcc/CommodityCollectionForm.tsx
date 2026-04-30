@@ -61,7 +61,7 @@ const STEPS = [
 
 function getCollectionTypeIcon(name: string) {
   const n = (name || "").toLowerCase()
-  if (n.includes("dairy") || n.includes("milk")) return Droplets
+  if (n.includes("Digital") || n.includes("milk")) return Droplets
   if (n.includes("poultry") || n.includes("egg")) return Egg
   if (n.includes("coffee")) return Coffee
   if (n.includes("cereal") || n.includes("grain") || n.includes("maize")) return Wheat
@@ -377,7 +377,7 @@ export function CommodityCollectionForm({
       const cat = c.category
       if (cat && !seen.has(cat.id)) {
         seen.add(cat.id)
-        const displayName = cat.name.toLowerCase().includes("dairy") ? "Milk & Dairy" : cat.name
+        const displayName = cat.name.toLowerCase().includes("Digital") ? "Milk & Digital" : cat.name
         cats.push({ id: cat.id, name: displayName })
       }
     })
@@ -390,7 +390,7 @@ export function CommodityCollectionForm({
       : commodities.filter((c) => c.category?.id === formData.collectionTypeId)
 
   const selectedCollectionType = collectionTypeOptions.find((o) => o.id === formData.collectionTypeId)
-  const isMilkDairy = selectedCollectionType?.name === "Milk & Dairy"
+  const isMilkDigital = selectedCollectionType?.name === "Milk & Digital"
 
   const handleQualityFieldChange = (fieldName: string, value: any) => {
     setFormData((prev) => ({
@@ -973,7 +973,7 @@ export function CommodityCollectionForm({
               <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                 <div>
                   <Label className="text-base font-semibold text-slate-800">What type of collection?</Label>
-                  <p className="mt-1 text-sm text-slate-500">Select category (e.g. Milk & Dairy) then choose the commodity</p>
+                  <p className="mt-1 text-sm text-slate-500">Select category (e.g. Milk & Digital) then choose the commodity</p>
                 </div>
                 {loadingCommodities ? (
                   <div className="flex flex-col items-center justify-center py-12 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50">

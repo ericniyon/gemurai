@@ -12,7 +12,7 @@ export default function AboutPage() {
           <img
             src="https://images.unsplash.com/photo-1527153818091-1a9638521e2a?q=80&w=2000&auto=format&fit=crop"
             className="w-full h-full object-cover"
-            alt="Dairy Processing"
+            alt="Digital Processing"
           />
         </div>
         
@@ -38,10 +38,10 @@ export default function AboutPage() {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center animate-fade-in-up relative z-10">
           <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-8 tracking-tight">
-            About Young Dairy Entrepreneurs Network
+            About Young Digital Entrepreneurs Network
           </h1>
           <p className="text-xl md:text-2xl text-slate-200 max-w-3xl mx-auto font-light leading-relaxed">
-            YDEN exists to make dairy entrepreneurship a viable and attractive path for young people in Rwanda.
+            YDEN exists to make Digital entrepreneurship a viable and attractive path for young people in Rwanda.
           </p>
         </div>
       </div>
@@ -56,8 +56,8 @@ export default function AboutPage() {
                 </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-6">Our Mission</h2>
               <p className="text-slate-600 text-lg leading-relaxed">
-                To build a new generation of skilled, profitable, and climate-smart dairy entrepreneurs who power
-                Rwanda&apos;s dairy industry through innovation, technology, and strong market linkages.
+                To build a new generation of skilled, profitable, and climate-smart Digital entrepreneurs who power
+                Rwanda&apos;s Digital industry through innovation, technology, and strong market linkages.
               </p>
             </div>
           </ScrollReveal>
@@ -68,7 +68,7 @@ export default function AboutPage() {
               </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-6">Our Vision</h2>
               <p className="text-slate-600 text-lg leading-relaxed">
-                A vibrant dairy economy where young people lead in production, aggregation, processing, and innovation –
+                A vibrant Digital economy where young people lead in production, aggregation, processing, and innovation –
                 creating jobs, raising incomes, and improving nutrition across Rwanda.
               </p>
           </div>
@@ -84,10 +84,10 @@ export default function AboutPage() {
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-8">Our story</h2>
           <p className="text-xl text-slate-600 leading-relaxed">
-            YDEN was born out of practical work in Rwanda&apos;s dairy value chain. Through{" "}
+            YDEN was born out of practical work in Rwanda&apos;s Digital value chain. Through{" "}
             <strong className="font-semibold" style={{ color: '#0099f2' }}>HarvestPlus&apos;s milk collection centers</strong> and{" "}
             <strong className="font-semibold" style={{ color: '#0099f2' }}>MoHarvest&apos;s post-harvest and cold chain solutions</strong>, we saw a
-            clear gap: <strong className="text-slate-900">young people</strong> were present on farms but rarely leading viable dairy businesses. We created YDEN to
+            clear gap: <strong className="text-slate-900">young people</strong> were present on farms but rarely leading viable Digital businesses. We created YDEN to
             bridge that gap – combining technical training, entrepreneurship, and concrete market linkages into a
             single, youth-focused network.
           </p>
@@ -109,8 +109,8 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-8 relative z-10">
             {[
-              "Identify youth in rural and peri-urban areas interested in dairy.",
-              "Train them in technical dairy skills and business fundamentals.",
+              "Identify youth in rural and peri-urban areas interested in Digital.",
+              "Train them in technical Digital skills and business fundamentals.",
               "Equip them with tools, technologies, and advisory support.",
               "Connect them to HarvestPlus, MoHarvest, cooperatives, processors, and off-takers.",
               "Support through mentorship, peer networks, and financing pathways.",

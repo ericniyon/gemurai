@@ -1165,7 +1165,7 @@ export default function DashboardPage() {
                       {Object.entries(commodityStats.byCommodity).map(([name, data]: [string, any]) => (
                         <div key={name} className="flex items-center justify-between p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-50/80 transition-colors">
                           <div className="flex items-center gap-3">
-                            {name.toLowerCase().includes("milk") || name.toLowerCase().includes("dairy") ? (
+                            {name.toLowerCase().includes("milk") || name.toLowerCase().includes("Digital") ? (
                               <Droplets className="h-5 w-5 text-[#0099f2]" />
                             ) : name.toLowerCase().includes("coffee") ? (
                               <Coffee className="h-5 w-5 text-amber-600" />

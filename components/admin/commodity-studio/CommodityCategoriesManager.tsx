@@ -263,7 +263,7 @@ export function CommodityCategoriesManager() {
                 required
               />
               <p className="text-xs text-gray-500">
-                Examples: Perishables (Dairy, Fish, Horticulture), Semi-Perishables (Coffee), Non-Perishables (Cereals, Pulses, Oilseeds)
+                Examples: Perishables (Digital, Fish, Horticulture), Semi-Perishables (Coffee), Non-Perishables (Cereals, Pulses, Oilseeds)
               </p>
             </div>
 

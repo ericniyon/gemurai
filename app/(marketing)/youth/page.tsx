@@ -46,10 +46,10 @@ export default function YouthPage() {
               For Aspiring Agripreneurs
             </span>
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              Are you ready to build your <span style={{ color: '#0099f2' }}>dairy business</span>?
+              Are you ready to build your <span style={{ color: '#0099f2' }}>Digital business</span>?
             </h1>
             <p className="text-xl text-slate-200 mb-8">
-              YDEN helps you start and grow as a young dairy entrepreneur – even if you don&apos;t own cows yet. We
+              YDEN helps you start and grow as a young Digital entrepreneur – even if you don&apos;t own cows yet. We
               provide the skills, the tech, and the market.
             </p>
             <Button
@@ -80,7 +80,7 @@ export default function YouthPage() {
               {[
                 "Age 18–35",
                 "Living in Rwanda",
-                "Interested in dairy production, aggregation, processing, logistics, feed, or digital services",
+                "Interested in Digital production, aggregation, processing, logistics, feed, or digital services",
                 "Willing to commit time and effort to training and implementation",
               ].map((req, i) => (
                 <li key={i} className="flex items-center text-slate-700 bg-slate-50 p-4 rounded-lg border border-slate-100">

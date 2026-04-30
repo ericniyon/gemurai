@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-**Goal:** Evolve HarvestPlus from dairy-only ERP to **multi-commodity aggregation, planning, quality, and settlement platform** supporting Dairy, Coffee, Cereals, and other non-perishables.
+**Goal:** Evolve HarvestPlus from Digital-only ERP to **multi-commodity aggregation, planning, quality, and settlement platform** supporting Digital, Coffee, Cereals, and other non-perishables.
 
 **Key Principle:** One core platform + configurable commodity logic (no hard-coding)
 
@@ -24,7 +24,7 @@
 - Define input catalogs
 
 ### 2. **Multi-Commodity Support**
-- Dairy (existing - enhance)
+- Digital (existing - enhance)
 - Coffee (new)
 - Cereals (new - Maize, Beans, Rice)
 - Other non-perishables

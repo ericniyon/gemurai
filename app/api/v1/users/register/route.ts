@@ -290,73 +290,53 @@ export async function POST(request: NextRequest) {
 
         console.log(`✅ User created: ${user.email}`);
 
-        // Validate and assign role
-        const validRoles = ['CONSUMER', 'EMPLOYER', 'AGENT', 'INTERVIEWER', 'FIELD_AGENT']
-        const requestedRole = role.toUpperCase()
-        
-        if (!validRoles.includes(requestedRole)) {
-          console.warn(`⚠️ Invalid role requested: ${requestedRole}, defaulting to CONSUMER`)
-        }
-
-        const finalRole = validRoles.includes(requestedRole) ? requestedRole : 'CONSUMER'
-        
-        // Find the role in database
-        console.log(`🔍 Looking for ${finalRole} role in database...`);
-        const userRole = await prisma.role.findUnique({
-          where: { name: finalRole }
-        })
+        // Role assignment is optional (nullable): use requested role if it exists in DB, else fallback, else skip
+        const requestedRole = (role && String(role).trim()) ? String(role).toUpperCase() : 'FARMER'
+        const availableRoles = await prisma.role.findMany({ select: { id: true, name: true } })
+        let userRole = availableRoles.find((r) => r.name === requestedRole) ?? null
 
         if (!userRole) {
-          console.error(`❌ ${finalRole} role not found in database`);
-          
-          // Log all available roles for debugging
-          const availableRoles = await prisma.role.findMany({
-            select: { name: true }
-          });
-          console.error('Available roles in database:', availableRoles.map(r => r.name));
-          
-          // Delete the user since role assignment failed
-          await prisma.user.delete({ where: { id: user.id } });
-          return NextResponse.json(
-            { 
-              success: false, 
-              message: `Registration failed: ${finalRole} role not found. Available roles: ${availableRoles.map(r => r.name).join(', ')}` 
-            },
-            { status: 500 }
-          );
+          // Fallback to FARMER for individual, or first available role for org
+          const fallbackName = registrationType === 'individual' ? 'FARMER' : 'FARMER'
+          userRole = availableRoles.find((r) => r.name === fallbackName) ?? availableRoles[0] ?? null
+          if (userRole) {
+            console.warn(`⚠️ Role ${requestedRole} not found, using fallback: ${userRole.name}`)
+          }
         }
 
-        // Create role assignment
-        await prisma.userRoleAssignment.create({
-          data: {
-            userId: user.id,
-            roleId: userRole.id,
-            assignedBy: null, // Self-registration
-            assignedAt: new Date(),
-            isActive: true
-          }
-        })
+        let finalRole: string | null = null
+        let permissions: string[] = []
 
-        console.log(`✅ Successfully assigned ${finalRole} role to ${user.email}`);
-
-        // Generate token with permissions from role
-        const rolePermissions = await prisma.permission.findMany({
-          where: {
-            rolePermissions: {
-              some: {
-                roleId: userRole.id
-              }
+        if (userRole) {
+          await prisma.userRoleAssignment.create({
+            data: {
+              userId: user.id,
+              roleId: userRole.id,
+              assignedBy: null,
+              assignedAt: new Date(),
+              isActive: true
             }
-          },
-          select: { name: true }
-        });
+          })
+          finalRole = userRole.name
+          console.log(`✅ Assigned role ${finalRole} to ${user.email}`)
 
-        const permissions = rolePermissions.map(p => p.name);
+          const rolePermissions = await prisma.permission.findMany({
+            where: {
+              rolePermissions: {
+                some: { roleId: userRole!.id }
+              }
+            },
+            select: { name: true }
+          })
+          permissions = rolePermissions.map((p) => p.name)
+        } else {
+          console.warn(`⚠️ No role assigned (no roles in database); registration still successful`)
+        }
 
         const token = await generateAuthToken({
           id: user.id,
           email: user.email,
-          role: finalRole,
+          role: (finalRole ?? 'FARMER') as import('@prisma/client').UserRole,
           name: user.name,
           permissions: permissions,
           rolePermissions: permissions,

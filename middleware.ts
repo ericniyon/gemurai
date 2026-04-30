@@ -20,6 +20,7 @@ const publicRoutes = [
   "/api/v1/auth/verify",
   "/superadmin/login",
   "/application",
+  "/nexgen-forum",
   "/api/v1/applications/public",
   "/en",
   "/rw",
@@ -62,7 +63,15 @@ const localizedPublicRoutes = [
   "/rw/forgot-password",
   "/en/reset-password",
   "/rw/reset-password",
+  // Training portal – fully public (no auth required)
+  "/en/trainings",
+  "/rw/trainings",
 ]
+
+// Training portal and all subpaths are public (no auth)
+function isTrainingsPath(pathname: string): boolean {
+  return pathname.startsWith("/en/trainings") || pathname.startsWith("/rw/trainings")
+}
 
 // List of routes that require specific roles
 const roleProtectedRoutes = new Map([
@@ -157,6 +166,11 @@ export async function middleware(request: NextRequest) {
     path === "/register" ||
     path === "/forgot-password"
   ) {
+    return response
+  }
+
+  // Training portal: fully public, no auth required
+  if (isTrainingsPath(path)) {
     return response
   }
 

@@ -26,7 +26,7 @@
 ## System Overview
 
 **Gemurai** is a comprehensive digital platform for managing:
-- **Milk Collection Centers (MCCs)** - Dairy cooperative management
+- **Milk Collection Centers (MCCs)** - Digital cooperative management
 - **Digital Community Champions (DCCs)** - Digital commerce and community services
 - **Marketplace** - Product sales and inventory management
 - **Pharmacy** - Prescription and medication management
@@ -35,7 +35,7 @@
 
 ### Key Business Domains
 
-1. **Dairy/Milk Management**: Farmers, MCCs, milk collections, processing, payments
+1. **Digital/Milk Management**: Farmers, MCCs, milk collections, processing, payments
 2. **Digital Commerce**: DCCs, product sales, stock orders, inventory
 3. **Pharmacy**: Prescriptions, medications, inventory tracking
 4. **User Management**: Multi-role authentication, permissions, applications

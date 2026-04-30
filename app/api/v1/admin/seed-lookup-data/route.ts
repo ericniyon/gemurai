@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { verifyAuthToken } from "@/lib/token"
-import { DAIRY_INPUTS } from "@/lib/data/dairy-products"
+import { Digital_INPUTS } from "@/lib/data/Digital-products"
 import { COMMON_FERTILIZERS, FERTILIZER_CATEGORIES } from "@/lib/data/fertilizers"
 import { APPROVED_PESTICIDES, PESTICIDE_CATEGORIES, WHO_HAZARD_CLASSES } from "@/lib/data/pesticides"
 
@@ -12,15 +12,15 @@ interface SeedResult {
   errors: string[]
 }
 
-async function seedDairyInputs(commodityId: string): Promise<SeedResult> {
+async function seedDigitalInputs(commodityId: string): Promise<SeedResult> {
   const result: SeedResult = {
-    category: "dairy",
+    category: "Digital",
     itemsCreated: 0,
     itemsSkipped: 0,
     errors: [],
   }
 
-  for (const category of DAIRY_INPUTS) {
+  for (const category of Digital_INPUTS) {
     for (const item of category.items) {
       try {
         const existing = await prisma.input_catalog.findFirst({
@@ -207,11 +207,11 @@ export async function POST(request: NextRequest) {
     }
 
     const results: SeedResult[] = []
-    const categoriesToSeed = categories || ["dairy", "fertilizers", "pesticides"]
+    const categoriesToSeed = categories || ["Digital", "fertilizers", "pesticides"]
 
-    if (categoriesToSeed.includes("dairy")) {
-      const dairyResult = await seedDairyInputs(commodityId)
-      results.push(dairyResult)
+    if (categoriesToSeed.includes("Digital")) {
+      const DigitalResult = await seedDigitalInputs(commodityId)
+      results.push(DigitalResult)
     }
 
     if (categoriesToSeed.includes("fertilizers")) {
@@ -272,7 +272,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const dairyCount = DAIRY_INPUTS.reduce((sum, cat) => sum + cat.items.length, 0)
+    const DigitalCount = Digital_INPUTS.reduce((sum, cat) => sum + cat.items.length, 0)
     const fertilizerCount = COMMON_FERTILIZERS.length
     const pesticideCount = APPROVED_PESTICIDES.filter(p => p.registrationStatus !== "banned").length
 
@@ -280,13 +280,13 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         availableLookupData: {
-          dairy: {
-            categories: DAIRY_INPUTS.map(cat => ({
+          Digital: {
+            categories: Digital_INPUTS.map(cat => ({
               code: cat.code,
               name: cat.name,
               itemCount: cat.items.length,
             })),
-            totalItems: dairyCount,
+            totalItems: DigitalCount,
           },
           fertilizers: {
             categories: FERTILIZER_CATEGORIES.map(cat => ({
@@ -310,7 +310,7 @@ export async function GET(request: NextRequest) {
             totalItems: pesticideCount,
           },
         },
-        totalAvailable: dairyCount + fertilizerCount + pesticideCount,
+        totalAvailable: DigitalCount + fertilizerCount + pesticideCount,
       },
     })
   } catch (error) {

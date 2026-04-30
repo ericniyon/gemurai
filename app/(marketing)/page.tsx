@@ -130,15 +130,15 @@ export default function HomePage() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white mb-8 animate-fade-in-up">
             <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#016629' }}></span>
-            <span className="text-sm font-medium tracking-wide uppercase">The Future of Rwandan Dairy</span>
+            <span className="text-sm font-medium tracking-wide uppercase">The Future of Rwandan Digital</span>
           </div>
 
           <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-tight mb-6 animate-fade-in-up delay-100 drop-shadow-lg">
-            Building the next generation of dairy entrepreneurs in Rwanda
+            Building the next generation of Digital entrepreneurs in Rwanda
           </h1>
 
           <p className="text-xl md:text-2xl text-slate-200 max-w-3xl mx-auto mb-10 font-light leading-relaxed animate-fade-in-up delay-200">
-            YDEN connects young people to skills, technology, finance, and markets across the dairy value chain – from farm to cold chain to processing to table.
+            YDEN connects young people to skills, technology, finance, and markets across the Digital value chain – from farm to cold chain to processing to table.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-300">
@@ -173,7 +173,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* The Dairy Ecosystem Section */}
+      {/* The Digital Ecosystem Section */}
       <section id="who-we-are" className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -182,7 +182,7 @@ export default function HomePage() {
               <h4 className="font-bold uppercase tracking-widest text-sm mb-2" style={{ color: '#0099f2' }}>Who We Are</h4>
               <h2 className="text-4xl font-bold text-slate-900 mb-6 leading-tight">Who is YDEN?</h2>
               <p className="text-slate-600 text-lg mb-8 leading-relaxed">
-                Young Dairy Entrepreneurs Network (YDEN) is a youth-led initiative that equips young people in Rwanda to build profitable, climate-smart businesses in the dairy sector. Built around <strong className="text-slate-900">HarvestPlus milk collection</strong>, <strong className="text-slate-900">Kivu Cold</strong> post-harvest solutions, and the <strong className="text-slate-900">HarvestPlus philosophy</strong>, we help youth create real jobs and real income along the entire dairy value chain.
+                Young Digital Entrepreneurs Network (YDEN) is a youth-led initiative that equips young people in Rwanda to build profitable, climate-smart businesses in the Digital sector. Built around <strong className="text-slate-900">HarvestPlus milk collection</strong>, <strong className="text-slate-900">Kivu Cold</strong> post-harvest solutions, and the <strong className="text-slate-900">HarvestPlus philosophy</strong>, we help youth create real jobs and real income along the entire Digital value chain.
               </p>
 
               <Link href="/about" className="font-bold flex items-center gap-2 hover:gap-3 transition-all group" style={{ color: '#0099f2' }}>
@@ -243,7 +243,7 @@ export default function HomePage() {
             <span className="font-bold tracking-wide uppercase text-sm" style={{ color: '#016629' }}>Our Focus</span>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">What we focus on</h2>
             <p className="text-slate-600 mt-4 max-w-2xl mx-auto">
-              Comprehensive support across the dairy value chain to empower youth entrepreneurs
+              Comprehensive support across the Digital value chain to empower youth entrepreneurs
             </p>
           </ScrollReveal>
 
@@ -252,7 +252,7 @@ export default function HomePage() {
               {
                 icon: <GraduationCap size={32} />,
                 title: "Skills & Training",
-                desc: "Practical training in dairy husbandry, youngstock management, fodder and feeding, milk handling, and agribusiness.",
+                desc: "Practical training in Digital husbandry, youngstock management, fodder and feeding, milk handling, and agribusiness.",
                 color: "from-[#016629] to-[#014520]",
                 colorLight: "from-[rgba(1,102,41,0.1)] to-[rgba(1,102,41,0.05)]",
                 bgColor: "bg-[rgba(1,102,41,0.1)]",
@@ -262,7 +262,7 @@ export default function HomePage() {
               {
                 icon: <Smartphone size={32} />,
                 title: "Technology & Innovation",
-                desc: "Access to tools such as milk testing devices, cold chain solutions, digital recordkeeping, and precision dairy technologies.",
+                desc: "Access to tools such as milk testing devices, cold chain solutions, digital recordkeeping, and precision Digital technologies.",
                 color: "from-[#0099f2] to-[#0080d1]",
                 colorLight: "from-[rgba(0,153,242,0.1)] to-[rgba(0,153,242,0.05)]",
                 bgColor: "bg-[rgba(0,153,242,0.1)]",
@@ -343,11 +343,11 @@ export default function HomePage() {
 
       {/* Impact Statistics with Parallax */}
       <section id="impact" className="py-24 relative overflow-hidden">
-        {/* Background Image - Dairy themed */}
+        {/* Background Image - Digital themed */}
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=2000&auto=format&fit=crop"
-            alt="Dairy farm background"
+            alt="Digital farm background"
             fill
             className="object-cover"
             priority
@@ -360,15 +360,15 @@ export default function HomePage() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 drop-shadow-lg">YDEN in numbers</h2>
-            <p className="text-white/90 text-lg max-w-2xl mx-auto">Our impact across Rwanda's dairy value chain</p>
+            <p className="text-white/90 text-lg max-w-2xl mx-auto">Our impact across Rwanda's Digital value chain</p>
           </ScrollReveal>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { number: "120+", label: "youth trained in dairy entrepreneurship", icon: <Users size={32} /> },
+              { number: "120+", label: "youth trained in Digital entrepreneurship", icon: <Users size={32} /> },
               { number: "5", label: "pilot districts engaged", icon: <Truck size={32} /> },
               { number: "3", label: "core value-chain partners (HarvestPlus, Kivu Cold Group, others)", icon: <Award size={32} /> },
-              { number: "20+", label: "youth-led dairy ventures supported", icon: <TrendingUp size={32} /> },
+              { number: "20+", label: "youth-led Digital ventures supported", icon: <TrendingUp size={32} /> },
             ].map((stat, i) => (
               <ScrollReveal key={i} delay={i * 100}>
                 <div className="group relative bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-300 hover:scale-105">
@@ -409,7 +409,7 @@ export default function HomePage() {
               {[
                 { step: "01", title: "Learn", desc: "Join a YDEN bootcamp or training cohort to build technical and business skills." },
                 { step: "02", title: "Launch", desc: "Get matched with opportunities—calf rearing, feed production, milk aggregation, cold chain services, and more." },
-                { step: "03", title: "Grow", desc: "Access mentorship, markets, and financing to scale your dairy enterprise." },
+                { step: "03", title: "Grow", desc: "Access mentorship, markets, and financing to scale your Digital enterprise." },
               ].map((item, i) => (
                 <ScrollReveal key={i} delay={i * 200}>
                   <div className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 text-center group hover:-translate-y-2 transition-transform duration-300">
@@ -456,7 +456,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="md:w-1/2 p-12 md:p-16 flex flex-col justify-center">
-              <h2 className="text-3xl font-bold text-white mb-6">From youth to dairy entrepreneur</h2>
+              <h2 className="text-3xl font-bold text-white mb-6">From youth to Digital entrepreneur</h2>
               <p className="text-slate-300 text-lg leading-relaxed mb-8">
                 At 24, Aline from Kayonza started with 2 calves and basic training from YDEN. After joining our youngstock program and supplying milk through HarvestPlus&apos;s collection centre, she now manages a small herd, employs 2 other youth, and has consistent income every month.
               </p>
@@ -474,7 +474,7 @@ export default function HomePage() {
           <ScrollReveal className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">Partner with YDEN</h2>
             <p className="text-lg text-slate-600 max-w-3xl mx-auto">
-              We partner with cooperatives, processors, financial institutions, technology providers, and development partners who share our vision of a strong, youth-driven dairy sector. Through structured programs, we help you recruit, train, and support youth enterprises that plug directly into your value chain.
+              We partner with cooperatives, processors, financial institutions, technology providers, and development partners who share our vision of a strong, youth-driven Digital sector. Through structured programs, we help you recruit, train, and support youth enterprises that plug directly into your value chain.
             </p>
           </ScrollReveal>
           <div className="text-center">
@@ -512,7 +512,7 @@ export default function HomePage() {
             </div>
 
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Ready to transform the dairy value chain?
+              Ready to transform the Digital value chain?
             </h2>
             <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
               Whether you are a young person looking for opportunity, or a processor looking for quality supply.

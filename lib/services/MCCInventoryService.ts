@@ -148,7 +148,7 @@ export class MCCInventoryService {
           name: "Raw Milk",
           description: "Fresh milk collected from farmers",
           price: 500, // Base price per liter
-          category: "Dairy",
+          category: "Digital",
           subcategory: "Raw Milk",
           sellerId: mccId, // MCC as seller
           mccProductType: "RAW_MILK",
@@ -174,7 +174,7 @@ export class MCCInventoryService {
           name: "Pasteurized Milk",
           description: "Heat-treated milk for extended shelf life",
           price: 600, // Higher price for processed milk
-          category: "Dairy",
+          category: "Digital",
           subcategory: "Processed Milk",
           sellerId: mccId,
           mccProductType: "PROCESSED_MILK",

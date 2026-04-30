@@ -87,6 +87,13 @@ export function YdenNavigation() {
             })}
             <div className="pl-2">
               <Button
+                to="/nexgen-forum"
+                variant="secondary"
+                className="py-2 px-4 text-sm mr-2"
+              >
+                Application
+              </Button>
+              <Button
                 to="/en/login"
                 variant={scrolled || pathname !== "/" ? "primary" : "secondary"}
                 className="py-2 px-4 text-sm"
@@ -134,7 +141,10 @@ export function YdenNavigation() {
           ))}
 
           <div className="border-t border-slate-100 my-4 pt-4">
-            <div className="px-4">
+            <div className="px-4 space-y-3">
+              <Button to="/nexgen-forum" variant="secondary" className="w-full justify-center py-3">
+                Application
+              </Button>
               <Button to="/en/login" variant="primary" className="w-full justify-center py-3">
                 Join YDEN
               </Button>

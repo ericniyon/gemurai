@@ -261,8 +261,8 @@ export function FrequencySeasonManager() {
   const getFrequencyExamples = () => {
     if (!selectedCommodityData) return []
     const name = selectedCommodityData.name.toLowerCase()
-    if (name.includes("milk") || name.includes("dairy")) {
-      return [{ frequency: "daily", description: "Dairy: Daily collection" }]
+    if (name.includes("milk") || name.includes("Digital")) {
+      return [{ frequency: "daily", description: "Digital: Daily collection" }]
     }
     if (name.includes("coffee")) {
       return [
@@ -393,7 +393,7 @@ export function FrequencySeasonManager() {
                       <ul className="space-y-2 text-sm text-gray-700">
                         <li className="flex items-start gap-2">
                           <span className="text-blue-600 font-bold mt-0.5">•</span>
-                          <span><strong className="text-blue-900">Daily:</strong> For perishables like dairy, fish, horticulture</span>
+                          <span><strong className="text-blue-900">Daily:</strong> For perishables like Digital, fish, horticulture</span>
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="text-blue-600 font-bold mt-0.5">•</span>

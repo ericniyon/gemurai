@@ -9,124 +9,124 @@ export interface GlossaryTerm {
   kinyarwanda: string
   french?: string
   description: string
-  category: "dairy" | "agriculture" | "finance" | "system" | "general"
+  category: "Digital" | "agriculture" | "finance" | "system" | "general"
 }
 
 export const GLOSSARY: GlossaryTerm[] = [
   // ============================================
-  // DAIRY TERMS
+  // Digital TERMS
   // ============================================
   {
     english: "Milk",
     kinyarwanda: "Amata",
     french: "Lait",
-    description: "Liquid produced by cows for human consumption and dairy processing",
-    category: "dairy",
+    description: "Liquid produced by cows for human consumption and Digital processing",
+    category: "Digital",
   },
   {
     english: "Fermented Milk (Ikivuguto)",
     kinyarwanda: "Ikivuguto",
     french: "Lait fermenté",
     description: "Traditional Rwandan fermented milk, similar to yogurt. Naturally cultured with beneficial bacteria.",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Cow",
     kinyarwanda: "Inka",
     french: "Vache",
     description: "Female cattle, especially one that has had a calf and is used for milk production",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Calf",
     kinyarwanda: "Ikimasa",
     french: "Veau",
     description: "Young cow, especially under one year old",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Herd",
     kinyarwanda: "Ubusho/Ishyamba ry'inka",
     french: "Troupeau",
     description: "Group of cattle kept together",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Milking",
     kinyarwanda: "Gukama",
     french: "Traite",
     description: "Process of extracting milk from a cow",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Udder",
     kinyarwanda: "Irembo",
     french: "Pis",
     description: "Mammary gland of a cow from which milk is extracted",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Lactometer",
     kinyarwanda: "Igipimo cy'amata",
     french: "Lactomètre",
     description: "Device for measuring milk density to detect water adulteration",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Milk Collection Center (MCC)",
     kinyarwanda: "Ikigo cy'amata",
     french: "Centre de collecte de lait",
     description: "Facility where farmers bring milk for aggregation, testing, and cooling",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Butter",
     kinyarwanda: "Amavuta y'inka",
     french: "Beurre",
-    description: "Dairy product made from churning cream or milk",
-    category: "dairy",
+    description: "Digital product made from churning cream or milk",
+    category: "Digital",
   },
   {
     english: "Ghee",
     kinyarwanda: "Amavuta atobuye",
     french: "Ghee",
     description: "Clarified butter with extended shelf life, used in cooking",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Cheese",
     kinyarwanda: "Foromaje",
     french: "Fromage",
-    description: "Dairy product made from curdled milk",
-    category: "dairy",
+    description: "Digital product made from curdled milk",
+    category: "Digital",
   },
   {
     english: "Yogurt",
     kinyarwanda: "Yogurt",
     french: "Yaourt",
     description: "Fermented milk product with live bacterial cultures",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Cream",
     kinyarwanda: "Ireme ry'amata",
     french: "Crème",
     description: "Fat-rich portion of milk that rises to the surface",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Powdered Milk",
     kinyarwanda: "Amata y'ubukungu",
     french: "Lait en poudre",
     description: "Dehydrated milk with long shelf life",
-    category: "dairy",
+    category: "Digital",
   },
   {
     english: "Mastitis",
     kinyarwanda: "Indwara y'amabere",
     french: "Mammite",
     description: "Infection of the udder causing inflammation and affecting milk quality",
-    category: "dairy",
+    category: "Digital",
   },
 
   // ============================================
@@ -361,7 +361,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     english: "Quinzenne",
     kinyarwanda: "Igice cy'ukwezi",
     french: "Quinzaine",
-    description: "Bi-monthly period (15 days). Standard payment cycle in Rwanda's dairy sector.",
+    description: "Bi-monthly period (15 days). Standard payment cycle in Rwanda's Digital sector.",
     category: "system",
   },
   {

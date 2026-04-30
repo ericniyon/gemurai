@@ -65,7 +65,7 @@ export const COMMODITY_COLLECTION_TOUR_STEPS: Step[] = [
     target: "[data-tour='collection-commodity']",
     title: "Select Specific Commodity",
     content:
-      "After selecting a category, choose the specific commodity. For dairy, this is typically 'Fresh Milk'. For crops, select the appropriate item.",
+      "After selecting a category, choose the specific commodity. For Digital, this is typically 'Fresh Milk'. For crops, select the appropriate item.",
     disableBeacon: true,
     placement: "bottom",
   },

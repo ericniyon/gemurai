@@ -31,6 +31,8 @@ export interface CommodityCollectionInput {
   createdByUserId?: string
   batchId?: string
   notes?: string
+  collectionPointType?: string // FR-1: FARM_GATE, VILLAGE_HUB, COLLECTION_CENTER, COLD_ROOM, PROCESSOR_INTAKE
+  transportMode?: string      // FR-2: BICYCLE, MOTORCYCLE, TRICYCLE, FOUR_WHEELER
 }
 
 export class CommodityCollectionService {
@@ -118,6 +120,8 @@ export class CommodityCollectionService {
           totalAmount,
           deductions: deductions,
           advances,
+          collectionPointType: data.collectionPointType ?? undefined,
+          transportMode: data.transportMode ?? undefined,
           agentAdvance,
           totalDeductions,
           netPayment,

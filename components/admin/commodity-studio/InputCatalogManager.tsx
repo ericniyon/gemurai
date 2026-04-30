@@ -232,7 +232,7 @@ export function InputCatalogManager() {
             <div>
               <CardTitle className="text-2xl font-bold text-blue-900">Input Catalog</CardTitle>
               <CardDescription className="text-gray-600 mt-1">
-                Define farm-level inputs per commodity. Examples: Dairy (feed, vet, AI, minerals), Coffee (seedlings, fertilizer, labor), Cereals (seed, fertilizer, pesticides)
+                Define farm-level inputs per commodity. Examples: Digital (feed, vet, AI, minerals), Coffee (seedlings, fertilizer, labor), Cereals (seed, fertilizer, pesticides)
               </CardDescription>
             </div>
           </div>

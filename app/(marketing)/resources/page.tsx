@@ -10,7 +10,7 @@ export default function ResourcesPage() {
   const [activeTab, setActiveTab] = useState<TabType>("all")
 
   const resources = [
-    { type: "toolkits", title: "Starting a small dairy enterprise", format: "PDF Guide", size: "2.4 MB" },
+    { type: "toolkits", title: "Starting a small Digital enterprise", format: "PDF Guide", size: "2.4 MB" },
     { type: "toolkits", title: "Basics of milk hygiene", format: "Video Course", size: "15 Mins" },
     { type: "toolkits", title: "Introduction to fodder and silage", format: "PDF Guide", size: "1.8 MB" },
     { type: "stories", title: "How Jean Pierre doubled his yield", format: "Case Study", size: "Read Now" },

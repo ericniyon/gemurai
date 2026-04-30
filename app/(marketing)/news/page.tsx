@@ -12,7 +12,7 @@ export default function NewsPage() {
       category: "Announcements",
       image: "https://images.unsplash.com/photo-1576505123548-d31e8a621033?q=80&w=800&auto=format&fit=crop",
       summary:
-        "We are calling all aspiring dairy entrepreneurs in the Eastern Province to apply for our upcoming specialized bootcamp focusing on youngstock.",
+        "We are calling all aspiring Digital entrepreneurs in the Eastern Province to apply for our upcoming specialized bootcamp focusing on youngstock.",
     },
     {
       title: "YDEN Partners with Kivu Cold Group",
@@ -23,12 +23,12 @@ export default function NewsPage() {
         "A strategic alliance to bring affordable cold chain technology to youth aggregators in remote districts, reducing milk spoilage.",
     },
     {
-      title: "Field Day: Nyagatare Dairy Tour",
+      title: "Field Day: Nyagatare Digital Tour",
       date: "September 10, 2023",
       category: "Events",
       image: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?q=80&w=800&auto=format&fit=crop",
       summary:
-        "Join us for a practical learning visit to one of Rwanda's leading model dairy farms. Learn best practices in feeding and hygiene.",
+        "Join us for a practical learning visit to one of Rwanda's leading model Digital farms. Learn best practices in feeding and hygiene.",
     },
   ]
 
@@ -57,7 +57,7 @@ export default function NewsPage() {
       <div className="bg-white py-12 border-b border-slate-200 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in-up">
           <h1 className="text-3xl font-bold text-slate-900">News & Events</h1>
-          <p className="text-slate-600 mt-2">Latest updates from the network and the dairy sector.</p>
+          <p className="text-slate-600 mt-2">Latest updates from the network and the Digital sector.</p>
         </div>
       </div>
 

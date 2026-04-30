@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     url: "https://www.harvestplus.rw",
     siteName: "HarvestPlus by YDEN",
     title: "HarvestPlus by YDEN - Multi-Commodity Aggregation Platform",
-    description: "Multi-Commodity Aggregation & Settlement Platform for Dairy, Coffee, Cereals & Other Commodities",
+    description: "Multi-Commodity Aggregation & Settlement Platform for Digital, Coffee, Cereals & Other Commodities",
     images: [{
       url: "/placeholder.jpg",
       width: 1200,

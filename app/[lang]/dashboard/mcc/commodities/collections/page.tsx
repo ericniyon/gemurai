@@ -67,7 +67,7 @@ export default function CommodityCollectionsPage() {
 
   const getCommodityIcon = (name?: string) => {
     const n = (name || "").toLowerCase()
-    if (n.includes("milk") || n.includes("dairy")) return <Droplets className="h-4 w-4 text-blue-600" />
+    if (n.includes("milk") || n.includes("Digital")) return <Droplets className="h-4 w-4 text-blue-600" />
     if (n.includes("coffee")) return <Coffee className="h-4 w-4 text-amber-600" />
     return <Wheat className="h-4 w-4 text-emerald-600" />
   }
@@ -133,7 +133,7 @@ export default function CommodityCollectionsPage() {
                   Multi-Commodity Collections
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">
-                  Record and manage collections across all commodities (Dairy, Coffee, Cereals, etc.)
+                  Record and manage collections across all commodities (Digital, Coffee, Cereals, etc.)
                 </p>
               </div>
             </div>

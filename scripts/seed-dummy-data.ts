@@ -176,10 +176,10 @@ async function main() {
     console.log('\n📦 Creating products...')
     const products = []
     const productData = [
-      { name: 'Fresh Milk', category: 'Dairy', price: 800, stock: 1000, mccProductType: 'RAW_MILK' },
-      { name: 'Pasteurized Milk', category: 'Dairy', price: 1000, stock: 500, mccProductType: 'PROCESSED_MILK' },
-      { name: 'Yogurt', category: 'Dairy', price: 1200, stock: 300, mccProductType: 'MILK_PRODUCTS' },
-      { name: 'Cheese', category: 'Dairy', price: 5000, stock: 100, mccProductType: 'MILK_PRODUCTS' },
+      { name: 'Fresh Milk', category: 'Digital', price: 800, stock: 1000, mccProductType: 'RAW_MILK' },
+      { name: 'Pasteurized Milk', category: 'Digital', price: 1000, stock: 500, mccProductType: 'PROCESSED_MILK' },
+      { name: 'Yogurt', category: 'Digital', price: 1200, stock: 300, mccProductType: 'MILK_PRODUCTS' },
+      { name: 'Cheese', category: 'Digital', price: 5000, stock: 100, mccProductType: 'MILK_PRODUCTS' },
       { name: 'Maize Seeds', category: 'Seeds', price: 2000, stock: 500, mccProductType: null },
       { name: 'Bean Seeds', category: 'Seeds', price: 2500, stock: 400, mccProductType: null },
       { name: 'Fertilizer NPK', category: 'Fertilizer', price: 15000, stock: 200, mccProductType: null },
@@ -267,7 +267,7 @@ async function main() {
             productsAvailable: random(10, 50),
             status: 'active',
             location: ['Kigali', 'Musanze', 'Huye'][i % 3],
-            specialties: ['Dairy Products', 'Fresh Produce', 'General Store'],
+            specialties: ['Digital Products', 'Fresh Produce', 'General Store'],
             performance: {
               salesGrowth: randomFloat(10, 50),
               customerSatisfaction: randomFloat(4.0, 5.0),
@@ -370,7 +370,7 @@ async function main() {
 
     // 11. Create Brands
     console.log('\n🏷️ Creating brands...')
-    const brandNames = ['Premium Dairy', 'Farm Fresh', 'Organic Valley', 'Local Harvest', 'Quality Goods']
+    const brandNames = ['Premium Digital', 'Farm Fresh', 'Organic Valley', 'Local Harvest', 'Quality Goods']
     for (const brandName of brandNames) {
       await prisma.brand.upsert({
         where: { name: brandName },

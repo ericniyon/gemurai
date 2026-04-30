@@ -7,12 +7,12 @@ import ScrollReveal from "@/components/yden/ui/scroll-reveal"
 export default function ProgramsPage() {
 const programs = [
   {
-    title: "Dairy Skills Bootcamp",
+    title: "Digital Skills Bootcamp",
       icon: <BookOpen className="w-6 h-6" />,
-      audience: "Youth 18–35, interested in dairy production.",
+      audience: "Youth 18–35, interested in Digital production.",
       duration: "2–4 weeks intensive + ongoing mentorship.",
       content: [
-        "Dairy husbandry, youngstock management",
+        "Digital husbandry, youngstock management",
         "Feeding & ration formulation using local resources",
         "Milk hygiene and quality",
         "Recordkeeping & basic farm economics",
@@ -22,7 +22,7 @@ const programs = [
     {
       title: "Youngstock & Heifer Enterprise Track",
       icon: <Activity className="w-6 h-6" />,
-      audience: "Aspiring dairy farmers without land ownership.",
+      audience: "Aspiring Digital farmers without land ownership.",
       duration: "Variable based on growth cycle.",
       content: [
       "Manage calves and heifers for farmers or as co-owners",
@@ -50,13 +50,13 @@ const programs = [
       duration: "Seasonal cycles.",
       content: [
       "Grow and conserve fodder (hay, silage, fodder crops)",
-      "Supply feeds to local dairy farmers",
+      "Supply feeds to local Digital farmers",
       "Explore innovations like hydroponic fodder and forage mixes",
     ],
       outcome: "Vital input supply business for the region.",
   },
   {
-    title: "Digital Dairy & Data Agents",
+    title: "Digital Digital & Data Agents",
       icon: <Wifi className="w-6 h-6" />,
       audience: "Tech-savvy youth.",
       duration: "Project based.",
@@ -105,10 +105,10 @@ const programs = [
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 animate-fade-in-up">
           <span className="font-bold uppercase tracking-wider text-sm mb-4 block" style={{ color: '#016629' }}>Skills for the Future</span>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-            Programs that turn youth into dairy entrepreneurs
+            Programs that turn youth into Digital entrepreneurs
           </h1>
           <p className="text-xl max-w-3xl mx-auto leading-relaxed" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-            Comprehensive tracks designed to build skills, foster innovation, and launch real businesses in the dairy
+            Comprehensive tracks designed to build skills, foster innovation, and launch real businesses in the Digital
             sector.
           </p>
         </div>

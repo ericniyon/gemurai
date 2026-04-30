@@ -92,6 +92,9 @@ model User {
   farmerAgentAssignmentCreator  farmer_agent_assignments[] @relation("FarmerAgentAssignmentCreator")
   agentPrepayments              agent_prepayments[]        @relation("AgentPrepayments")
   agentPrepaymentAuditPerformer agent_prepayment_audit[]   @relation("AgentPrepaymentAuditPerformer")
+  userTrainingProgress         UserTrainingProgress[]
+  userCertifications           UserCertification[]
+  availabilitySignalsCreated   pre_collection_availability_signals[] @relation("AvailabilitySignalsCreated")
 
   @@index([mccId])
   @@index([pharmacyId])
@@ -988,6 +991,7 @@ model farmers {
   season_plans            season_plans[]
   input_usage_logs        input_usage_logs[]
   agentPrepayments        agent_prepayments[]
+  availabilitySignals     pre_collection_availability_signals[]
 
   @@index([mccId])
   @@index([phone])
@@ -1123,6 +1127,7 @@ model mccs {
   staff                          staff[]
   power_assets                   power_assets[]
   capacity_assessments           capacity_assessments[]
+  pre_collection_availability_signals pre_collection_availability_signals[]
   procurements                   procurements[]
   rentals                        rentals[]
   sales                          sales[]
@@ -1766,6 +1771,37 @@ enum CommodityCollectionStatus {
   CANCELLED
 }
 
+// FR-1: Where collection took place
+enum CollectionPointType {
+  FARM_GATE
+  VILLAGE_HUB
+  COLLECTION_CENTER
+  COLD_ROOM
+  PROCESSOR_INTAKE
+}
+
+// FR-2: How commodity was transported
+enum TransportMode {
+  BICYCLE
+  MOTORCYCLE
+  TRICYCLE
+  FOUR_WHEELER
+}
+
+// Journey 0: Pre-Collection Availability Signal source
+enum AvailabilitySignalSource {
+  PCA       // Pre-Collection Agent
+  FARMER_SELF
+  COOP_SCOUT
+}
+
+enum AvailabilitySignalStatus {
+  ACTIVE    // Visible to aggregators
+  RESERVED  // Route accepted
+  COLLECTED
+  EXPIRED
+}
+
 model mcc_payments {
   id                    String                 @id @default(cuid())
   farmerId              String
@@ -2151,7 +2187,7 @@ model commodities {
   unitOfMeasure               String // liters, kg, bags
   pricingMethod               CommodityPricingMethod
   storageType                 String // tank, bags, silo, warehouse
-  isPerishable                Boolean                @default(false) // Perishable (dairy) vs non-perishable (cereals)
+  isPerishable                Boolean                @default(false) // Perishable (Digital) vs non-perishable (cereals)
   defaultCollectionCenterType  String? // MCC, coffee_washing_station, warehouse
   defaultCollectionFrequency  String? // daily, weekly, seasonal
   isActive                    Boolean                @default(true)
@@ -2165,10 +2201,12 @@ model commodities {
   qualityRules     commodity_quality_rules[]
   seasonPlans      season_plans[]
   inputCatalog     input_catalog[]
-  collections      commodity_collections[]
-  agentPrepayments agent_prepayments[]
-  inventoryBatches inventory_batches[]
-  inventoryProduct products?                  @relation("CommodityInventoryProduct", fields: [inventoryProductId], references: [id])
+  collections        commodity_collections[]
+  agentPrepayments   agent_prepayments[]
+  inventoryBatches   inventory_batches[]
+  inventoryProduct   products?                  @relation("CommodityInventoryProduct", fields: [inventoryProductId], references: [id])
+  trainingModules   TrainingModule[]
+  availabilitySignals pre_collection_availability_signals[]
 
   @@index([code])
   @@index([categoryId])
@@ -2370,6 +2408,8 @@ model commodity_collections {
   agentId         String?
   batchId         String? // For lot-based traceability
   notes           String?
+  collectionPointType String?           // FR-1: FARM_GATE, VILLAGE_HUB, COLLECTION_CENTER, COLD_ROOM, PROCESSOR_INTAKE
+  transportMode   String?              // FR-2: BICYCLE, MOTORCYCLE, TRICYCLE, FOUR_WHEELER
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
 
@@ -2391,6 +2431,42 @@ model commodity_collections {
   @@index([status])
   @@index([agentId])
   @@map("commodity_collections")
+}
+
+// Journey 0: Pre-Collection Availability Signal (supply discovery before trucks move)
+model pre_collection_availability_signals {
+  id                  String                    @id @default(cuid())
+  commodityId         String
+  farmerId            String?                    // Optional: unattributed cluster
+  createdByUserId     String?                    // PCA, or farmer (self-report), or coop scout
+  sourceType          AvailabilitySignalSource   // PCA | FARMER_SELF | COOP_SCOUT
+  status              AvailabilitySignalStatus   @default(ACTIVE)
+  estimatedQuantity   Float
+  unit                String
+  readinessAt         DateTime                   // When commodity will be ready
+  qualityIndicators   Json?                      @default("{}") // Basic quality hints
+  locationDescription String?                    // Village, sector, etc.
+  gpsLatitude         Float?
+  gpsLongitude        Float?
+  storageCondition    String                     // cold | ambient
+  mccId               String?                   // Target MCC if known
+  expiresAt           DateTime?                  // Time-bound visibility
+  notes               String?
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+
+  commodity   commodities @relation(fields: [commodityId], references: [id], onDelete: Cascade)
+  farmer      farmers?    @relation(fields: [farmerId], references: [id], onDelete: SetNull)
+  createdBy   User?       @relation("AvailabilitySignalsCreated", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  mcc         mccs?       @relation(fields: [mccId], references: [id], onDelete: SetNull)
+
+  @@index([commodityId])
+  @@index([farmerId])
+  @@index([status])
+  @@index([readinessAt])
+  @@index([mccId])
+  @@index([createdByUserId])
+  @@map("pre_collection_availability_signals")
 }
 
 // Inventory Batch (Commodity-aware warehousing per spec)
@@ -2763,4 +2839,111 @@ model rwanda_village {
   @@unique([cellId, slug])
   @@index([cellId])
   @@map("rwanda_villages")
+}
+
+// ============================================
+// TRAINING MODULE (Standalone Learning Portal)
+// ============================================
+// Lightweight learning portal for farmers, agents, warehouse staff, quality officers.
+// Content stored externally (S3/R2/Supabase); progress and certifications in DB.
+
+enum TrainingTargetRole {
+  Farmer
+  Agent
+  QualityOfficer
+  WarehouseOfficer
+}
+
+enum TrainingDifficultyLevel {
+  Beginner
+  Intermediate
+  Advanced
+}
+
+enum TrainingLessonContentType {
+  video
+  pdf
+  text
+  image
+}
+
+model TrainingModule {
+  id              String                   @id @default(cuid())
+  title           String
+  description     String?
+  commodityId     String?                  // Optional: link to commodity for role/commodity-based recommendations
+  targetRole      TrainingTargetRole       // Farmer | Agent | QualityOfficer | WarehouseOfficer
+  durationMinutes Int                      @default(0)
+  difficultyLevel TrainingDifficultyLevel  @default(Beginner)
+  isActive        Boolean                  @default(true)
+  isPublic        Boolean                  @default(false) // When true, viewable without auth at /trainings/library
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  commodity  commodities?            @relation(fields: [commodityId], references: [id], onDelete: SetNull)
+  lessons    TrainingLesson[]
+  progress   UserTrainingProgress[]
+  certifications UserCertification[]
+
+  @@index([commodityId])
+  @@index([targetRole])
+  @@index([isActive])
+  @@index([isPublic])
+  @@map("training_modules")
+}
+
+model TrainingLesson {
+  id              String                   @id @default(cuid())
+  moduleId        String
+  title           String
+  description     String?
+  contentType     TrainingLessonContentType // video | pdf | text | image
+  contentUrl      String?                  // External URL (S3, R2, Supabase storage)
+  orderIndex      Int                      @default(0)
+  durationMinutes Int                      @default(0)
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  module   TrainingModule          @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  progress UserTrainingProgress[]
+
+  @@index([moduleId])
+  @@index([orderIndex])
+  @@map("training_lessons")
+}
+
+// Progress: completed lessons per user per module. Progress % = completed lessons / total lessons.
+model UserTrainingProgress {
+  id          String    @id @default(cuid())
+  userId      String
+  moduleId    String
+  lessonId    String
+  completedAt DateTime  @default(now())
+
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module TrainingModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  lesson TrainingLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleId, lessonId])
+  @@index([userId])
+  @@index([moduleId])
+  @@map("user_training_progress")
+}
+
+// Certifications are immutable. Certificate number format: GEMURA-CERT-YYYY-NNNNN
+model UserCertification {
+  id                 String    @id @default(cuid())
+  userId             String
+  moduleId          String
+  certificationDate  DateTime  @default(now())
+  expiryDate         DateTime?
+  certificateNumber  String    @unique
+
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module TrainingModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([moduleId])
+  @@index([certificateNumber])
+  @@map("user_certifications")
 }

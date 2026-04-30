@@ -37,6 +37,8 @@ export async function POST(req: NextRequest) {
       productId,
       batchId,
       notes,
+      collectionPointType,
+      transportMode,
     } = data
 
     if (!commodityId || !farmerId || !mccId || !quantity || !pricePerUnit) {
@@ -69,6 +71,8 @@ export async function POST(req: NextRequest) {
       createdByUserId: user.id,
       batchId,
       notes,
+      collectionPointType,
+      transportMode,
     })
 
     return NextResponse.json({
