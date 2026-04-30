@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { verifyAuthToken } from "@/lib/token"
-import { Digital_INPUTS } from "@/lib/data/Digital-products"
+import { Digital_INPUTS } from "@/lib/data/dairy-products"
 import { COMMON_FERTILIZERS, FERTILIZER_CATEGORIES } from "@/lib/data/fertilizers"
 import { APPROVED_PESTICIDES, PESTICIDE_CATEGORIES, WHO_HAZARD_CLASSES } from "@/lib/data/pesticides"
 
