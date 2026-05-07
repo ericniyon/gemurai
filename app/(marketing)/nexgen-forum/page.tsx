@@ -1,23 +1,21 @@
 "use client"
 
-import { FormEvent, useMemo, useState, useEffect } from "react"
-import Image from "next/image"
-import { Card, CardContent } from "@/components/ui/card"
+import { FormEvent, useMemo, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
-import { motion, AnimatePresence } from "framer-motion"
-import confetti from "canvas-confetti"
-import {
-  Check, ChevronRight, ChevronLeft, Loader2, Sprout, Factory, Package, Cpu, PlusCircle,
-  Briefcase, Lightbulb, Calendar, MapPin, Sparkles, User, Award, TrendingUp, HelpCircle,
-  Users, Zap, Target, Rocket, Globe, ArrowRight, CheckCircle2, Info, X, Leaf, Crown, Star
-} from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Loader2 } from "lucide-react"
+import Swal from "sweetalert2"
 
 type Option = { value: string; label: string }
+
+const APPLYING_WITH: Option[] = [
+  { value: "existing_agribusiness_startup", label: "I have an existing agribusiness/startup" },
+  { value: "business_idea_to_develop", label: "I have a business idea I want to develop" },
+]
 
 const AGE_GROUPS: Option[] = [
   { value: "below_18", label: "Below 18" },
@@ -26,13 +24,24 @@ const AGE_GROUPS: Option[] = [
   { value: "31_35", label: "31-35" },
   { value: "above_35", label: "Above 35" },
 ]
-const ENGAGEMENT_LEVEL: Option[] = [
-  { value: "full_time", label: "I work full-time on my business/activity" },
-  { value: "part_time", label: "I work part-time on my business/activity" },
-  { value: "piloting", label: "I am actively testing/piloting" },
-  { value: "preparing_start", label: "I am preparing to start (within 3 months)" },
-  { value: "not_active", label: "I am not currently active" },
+
+const ACTIVITY_LEVEL: Option[] = [
+  { value: "working_daily", label: "I am already working on my business/activity every day." },
+  { value: "side_project", label: "My business/activity is currently a side project." },
+  { value: "testing_piloting", label: "I am currently testing or piloting my idea/product/service." },
+  { value: "preparing_to_start", label: "I am preparing to officially start soon." },
+  { value: "not_currently_active", label: "I am not currently active at the moment." },
 ]
+
+const VALUE_CHAINS: Option[] = [
+  { value: "crop_production", label: "Crop production" },
+  { value: "livestock", label: "Livestock" },
+  { value: "agro_processing", label: "Agro-processing" },
+  { value: "input_supply", label: "Input supply (feeds, seeds, fertilizers)" },
+  { value: "agri_tech", label: "Agri-tech / digital solutions" },
+  { value: "other", label: "Other" },
+]
+
 const EXPERIENCE: Option[] = [
   { value: "lt_3_months", label: "Less than 3 months" },
   { value: "3_6_months", label: "3-6 months" },
@@ -40,19 +49,14 @@ const EXPERIENCE: Option[] = [
   { value: "1_3_years", label: "1-3 years" },
   { value: "gt_3_years", label: "More than 3 years" },
 ]
-const BUSINESS_STATUS: Option[] = [
-  { value: "consistent_revenue", label: "I generate consistent monthly revenue" },
-  { value: "occasional_income", label: "I generate occasional income" },
-  { value: "tested_real_users", label: "I have tested my product/service with real users" },
-  { value: "prototype_no_users", label: "I have a prototype but no users yet" },
-  { value: "idea_only", label: "I only have an idea (no testing yet)" },
-]
+
 const TEAM_SIZE: Option[] = [
-  { value: "just_me", label: "Just myself" },
+  { value: "just_myself", label: "Just myself" },
   { value: "2_5", label: "2-5 people" },
   { value: "6_10", label: "6-10 people" },
   { value: "gt_10", label: "More than 10 people" },
 ]
+
 const MONTHLY_CUSTOMERS: Option[] = [
   { value: "0", label: "0" },
   { value: "1_10", label: "1-10" },
@@ -60,6 +64,7 @@ const MONTHLY_CUSTOMERS: Option[] = [
   { value: "51_100", label: "51-100" },
   { value: "gt_100", label: "More than 100" },
 ]
+
 const MONTHLY_REVENUE: Option[] = [
   { value: "none", label: "No revenue yet" },
   { value: "lt_100k", label: "Below RWF 100,000" },
@@ -67,14 +72,7 @@ const MONTHLY_REVENUE: Option[] = [
   { value: "500k_1m", label: "RWF 500,000 - 1,000,000" },
   { value: "gt_1m", label: "Above RWF 1,000,000" },
 ]
-const GROWTH_PRIORITIES: Option[] = [
-  { value: "increase_production", label: "Increase production/output" },
-  { value: "new_markets", label: "Access new markets/customers" },
-  { value: "product_quality", label: "Improve product quality" },
-  { value: "raise_funding", label: "Raise funding/investment" },
-  { value: "hire_team", label: "Hire and build a team" },
-  { value: "adopt_technology", label: "Adopt new technology" },
-]
+
 const TOOLS_USED: Option[] = [
   { value: "mobile_money", label: "Mobile money (MoMo, Airtel Money)" },
   { value: "social_media", label: "Social media for business (WhatsApp, Instagram, etc.)" },
@@ -83,29 +81,21 @@ const TOOLS_USED: Option[] = [
   { value: "iot_tools", label: "Sensors / IoT / automation tools" },
   { value: "none", label: "None" },
 ]
-const DECISION_STYLE: Option[] = [
-  { value: "data_records", label: "Based on data/records" },
-  { value: "experience_observation", label: "Based on experience/observation" },
-  { value: "no_structure", label: "I don't have a structured approach yet" },
-]
+
 const INNOVATION_STAGE: Option[] = [
   { value: "in_use", label: "Solution is already in use by customers" },
   { value: "mvp_ready", label: "Prototype/MVP ready and tested" },
   { value: "piloting_users", label: "Currently piloting with users" },
   { value: "developing_idea", label: "Still developing the idea" },
 ]
+
 const LEADERSHIP_LEVEL: Option[] = [
   { value: "gt_20", label: "Yes, I lead a group of more than 20 people" },
   { value: "10_20", label: "Yes, I lead 10-20 people" },
   { value: "lt_10", label: "Yes, I lead less than 10 people" },
   { value: "none", label: "No, I do not lead a group" },
 ]
-const GROUP_TYPES: Option[] = [
-  { value: "cooperative", label: "Cooperative" },
-  { value: "farmer_group", label: "Farmer group" },
-  { value: "youth_group", label: "Youth group" },
-  { value: "business_network", label: "Business network" },
-]
+
 const PRIMARY_REASON: Option[] = [
   { value: "grow_scale", label: "To grow and scale my business" },
   { value: "funding_partnerships", label: "To access funding or partnerships" },
@@ -113,18 +103,7 @@ const PRIMARY_REASON: Option[] = [
   { value: "build_networks", label: "To build networks" },
   { value: "general_interest", label: "General interest only" },
 ]
-const POST_FORUM_ACTION: Option[] = [
-  { value: "implement_change", label: "Implement at least one change in my business" },
-  { value: "start_idea", label: "Start or launch my idea" },
-  { value: "share_knowledge", label: "Share knowledge with my group/community" },
-  { value: "not_sure", label: "I am not sure yet" },
-]
-const WEEKLY_COMMITMENT: Option[] = [
-  { value: "lt_5", label: "Less than 5 hours" },
-  { value: "5_10", label: "5-10 hours" },
-  { value: "10_20", label: "10-20 hours" },
-  { value: "gt_20", label: "More than 20 hours" },
-]
+
 const NYAGATARE_CONNECTION: Option[] = [
   { value: "live", label: "I live in Nyagatare" },
   { value: "run_business", label: "I run a business in Nyagatare" },
@@ -132,942 +111,523 @@ const NYAGATARE_CONNECTION: Option[] = [
   { value: "from_nyagatare", label: "I am originally from Nyagatare" },
   { value: "none", label: "No direct connection" },
 ]
-const VALUE_CHAIN_OPTIONS = [
-  { key: "cropProduction", label: "Crop production", placeholder: "Specify crop (e.g. Maize, Rice, Beans)", icon: Sprout },
-  { key: "livestock", label: "Livestock", placeholder: "Specify type (dairy, poultry, beef)", icon: Leaf },
-  { key: "agroProcessing", label: "Agro-processing", placeholder: "Specify product (e.g. Flour, Honey, Jam)", icon: Factory },
-  { key: "inputSupply", label: "Input supply", placeholder: "Specify (feeds, seeds, fertilizers)", icon: Package },
-  { key: "agriTech", label: "Agri-tech / digital solutions", placeholder: "Specify (e.g. IoT, App, Drone)", icon: Cpu },
-  { key: "other", label: "Other", placeholder: "Specify details", icon: PlusCircle },
-] as const
 
-type ValueChainKey = (typeof VALUE_CHAIN_OPTIONS)[number]["key"]
-type ValueChainState = Record<ValueChainKey, { selected: boolean; details: string }>
+const RWANDA_DISTRICTS = [
+  "Bugesera",
+  "Burera",
+  "Gakenke",
+  "Gasabo",
+  "Gatsibo",
+  "Gicumbi",
+  "Gisagara",
+  "Huye",
+  "Kamonyi",
+  "Karongi",
+  "Kayonza",
+  "Kicukiro",
+  "Kirehe",
+  "Muhanga",
+  "Musanze",
+  "Ngoma",
+  "Ngororero",
+  "Nyabihu",
+  "Nyagatare",
+  "Nyamagabe",
+  "Nyamasheke",
+  "Nyanza",
+  "Nyarugenge",
+  "Nyaruguru",
+  "Rubavu",
+  "Ruhango",
+  "Rusizi",
+  "Rutsiro",
+  "Rulindo",
+  "Rwamagana",
+]
 
-type ApplicationFormState = {
-  companyName: string
-  applicantName: string
-  companyDescription: string
-  ageGroup: string
+type FormState = {
   currentSituation: string
+  email: string
+  phoneNumber: string
+  companyName: string
+  district: string
+  ageGroup: string
   engagementLevel: string
-  valueChains: ValueChainState
+  valueChains: string[]
   experienceDuration: string
-  businessStatus: string
   teamSize: string
   monthlyCustomers: string
   monthlyRevenue: string
-  growthPriorities: string[]
   toolsUsed: string[]
-  decisionStyle: string
   innovationStage: string
   leadershipLevel: string
-  groupType: string
   primaryReason: string
-  postForumAction: string
-  weeklyCommitment: string
   nyagatareConnection: string
 }
 
-const initialValueChains = VALUE_CHAIN_OPTIONS.reduce((acc, item) => {
-  acc[item.key] = { selected: false, details: "" }
-  return acc
-}, {} as ValueChainState)
+type FormErrors = Partial<Record<`q${number}`, string>>
 
-const initialForm: ApplicationFormState = {
-  companyName: "", applicantName: "", companyDescription: "", ageGroup: "",
-  currentSituation: "", engagementLevel: "", valueChains: initialValueChains,
-  experienceDuration: "", businessStatus: "", teamSize: "",
-  monthlyCustomers: "", monthlyRevenue: "", growthPriorities: [],
-  toolsUsed: [], decisionStyle: "", innovationStage: "",
-  leadershipLevel: "", groupType: "", primaryReason: "",
-  postForumAction: "", weeklyCommitment: "", nyagatareConnection: "",
+const initialForm: FormState = {
+  currentSituation: "",
+  email: "",
+  phoneNumber: "",
+  companyName: "",
+  district: "",
+  ageGroup: "",
+  engagementLevel: "",
+  valueChains: [],
+  experienceDuration: "",
+  teamSize: "",
+  monthlyCustomers: "",
+  monthlyRevenue: "",
+  toolsUsed: [],
+  innovationStage: "",
+  leadershipLevel: "",
+  primaryReason: "",
+  nyagatareConnection: "",
 }
 
-// Components
-function CountdownTimer() {
-  const targetDate = new Date("2026-03-15T09:00:00").getTime()
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date().getTime()
-      const distance = targetDate - now
-      if (distance > 0) {
-        setTimeLeft({
-          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((distance % (1000 * 60)) / 1000),
-        })
-      }
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [targetDate])
-
-  return (
-    <div className="flex gap-3">
-      {Object.entries(timeLeft).map(([unit, value]) => (
-        <div key={unit} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 text-center min-w-[70px]">
-          <div className="text-2xl font-black text-white">{String(value).padStart(2, "0")}</div>
-          <div className="text-[10px] text-emerald-300 uppercase font-semibold tracking-wider">{unit}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function VisualGridQuestion({ label, value, options, onChange, columns = "grid-cols-1 sm:grid-cols-2", themeColor = "emerald" }: {
-  label: string, value: string, options: Option[], onChange: (value: string) => void, columns?: string, themeColor?: "emerald" | "blue"
+function SingleSelectQuestion({
+  title,
+  value,
+  options,
+  onChange,
+  error,
+  optionsClassName,
+  optionClassName,
+}: {
+  title: string
+  value: string
+  options: Option[]
+  onChange: (value: string) => void
+  error?: string
+  optionsClassName?: string
+  optionClassName?: string
 }) {
-  const isBlue = themeColor === "blue"
   return (
     <div className="space-y-3">
-      <Label className={`text-sm font-semibold flex items-center gap-2 ${isBlue ? "text-blue-700 dark:text-blue-300" : "text-emerald-700 dark:text-emerald-300"}`}>
-        <span className={`w-2 h-2 rounded-full ${isBlue ? "bg-blue-500" : "bg-emerald-500"}`} />
-        {label}
-      </Label>
-      <div className={`grid ${columns} gap-3`}>
-        {options.map((option) => {
-          const isSelected = value === option.value
-          return (
-            <motion.button
-              key={option.value}
-              type="button"
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onChange(option.value)}
-              className={`relative overflow-hidden p-4 rounded-2xl border-2 text-left transition-all duration-300 ${
-                isSelected
-                  ? isBlue
-                    ? "border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100/50 shadow-lg shadow-blue-500/10"
-                    : "border-emerald-500 bg-gradient-to-br from-emerald-50 to-emerald-100/50 shadow-lg shadow-emerald-500/10"
-                  : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className={`text-sm font-medium ${isSelected ? (isBlue ? "text-blue-900 font-semibold" : "text-emerald-900 font-semibold") : "text-slate-600 dark:text-slate-400"}`}>
-                  {option.label}
-                </span>
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                  isSelected ? (isBlue ? "border-blue-500 bg-blue-500" : "border-emerald-500 bg-emerald-500") : "border-slate-300 dark:border-slate-600"
-                }`}>
-                  {isSelected && <Check className="w-3 h-3 text-white" />}
-                </div>
-              </div>
-              {isSelected && (
-                <motion.div
-                  layoutId="selection-highlight"
-                  className={`absolute inset-0 -z-10 opacity-10 ${isBlue ? "bg-blue-500" : "bg-emerald-500"}`}
-                />
-              )}
-            </motion.button>
-          )
-        })}
+      <Label className="text-sm font-semibold text-slate-800">{title}</Label>
+      <div className={cn("space-y-2", optionsClassName)}>
+        {options.map((option) => (
+          <label
+            key={option.value}
+            className={cn(
+              "flex cursor-pointer items-start gap-2 rounded-md border border-slate-200 bg-white p-3 hover:bg-slate-50",
+              optionClassName
+            )}
+          >
+            <input
+              type="radio"
+              className="mt-1 h-4 w-4"
+              name={title}
+              checked={value === option.value}
+              onChange={() => onChange(option.value)}
+            />
+            <span className="text-sm text-slate-700">{option.label}</span>
+          </label>
+        ))}
       </div>
+      {error ? <p className="text-xs font-medium text-red-600">{error}</p> : null}
     </div>
   )
 }
 
-function FloatingInput({ id, label, value, onChange, placeholder, required = false }: {
-  id: string, label: string, value: string, onChange: (v: string) => void, placeholder?: string, required?: boolean
+function MultiSelectQuestion({
+  title,
+  selected,
+  options,
+  onToggle,
+  error,
+}: {
+  title: string
+  selected: string[]
+  options: Option[]
+  onToggle: (value: string) => void
+  error?: string
 }) {
-  const [isFocused, setIsFocused] = useState(false)
   return (
-    <div className="relative">
-      <label
-        htmlFor={id}
-        className={`absolute left-4 transition-all duration-200 pointer-events-none ${
-          isFocused || value ? "top-2 text-xs font-semibold text-emerald-600" : "top-4 text-sm text-slate-400"
-        }`}
-      >
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
-      </label>
-      <Input
-        id={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        className={`h-14 pt-6 pb-2 px-4 bg-white dark:bg-slate-800 border-2 rounded-xl transition-all ${
-          isFocused ? "border-emerald-500 ring-4 ring-emerald-500/10" : "border-slate-200 dark:border-slate-700"
-        }`}
-      />
+    <div className="space-y-3">
+      <Label className="text-sm font-semibold text-slate-800">{title}</Label>
+      <div className="space-y-2">
+        {options.map((option) => (
+          <label
+            key={option.value}
+            className="flex cursor-pointer items-start gap-3 rounded-md border border-slate-200 bg-white p-3 hover:bg-slate-50"
+          >
+            <Checkbox
+              checked={selected.includes(option.value)}
+              onCheckedChange={() => onToggle(option.value)}
+            />
+            <span className="text-sm text-slate-700">{option.label}</span>
+          </label>
+        ))}
+      </div>
+      {error ? <p className="text-xs font-medium text-red-600">{error}</p> : null}
     </div>
   )
 }
 
 export default function NexgenForumPage() {
-  const [form, setForm] = useState<ApplicationFormState>(initialForm)
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1)
+  const [form, setForm] = useState<FormState>(initialForm)
+  const [errors, setErrors] = useState<FormErrors>({})
   const [submitting, setSubmitting] = useState(false)
-  const [statusMessage, setStatusMessage] = useState("")
-  const [statusType, setStatusType] = useState<"success" | "error" | "">("")
-  const [formSubmittedSuccessfully, setFormSubmittedSuccessfully] = useState(false)
+  const [status, setStatus] = useState("")
 
-  const stepTitles: Record<1 | 2 | 3 | 4, string> = {
-    1: "Your Profile",
-    2: "Business Details",
-    3: "Growth Plans",
-    4: "Final Steps",
-  }
+  const selectedValueChains = useMemo(
+    () =>
+      form.valueChains.map((chain) => {
+        const matched = VALUE_CHAINS.find((option) => option.value === chain)
+        return { label: matched?.label ?? chain, details: matched?.label ?? chain }
+      }),
+    [form.valueChains]
+  )
 
-  const stepIcons: Record<1 | 2 | 3 | 4, React.ElementType> = {
-    1: User, 2: Briefcase, 3: TrendingUp, 4: Crown,
-  }
-
-  const selectedValueChains = useMemo(() =>
-    VALUE_CHAIN_OPTIONS.filter((chain) => form.valueChains[chain.key].selected).map((chain) => ({
-      key: chain.key, label: chain.label, details: form.valueChains[chain.key].details.trim(),
-    })), [form.valueChains])
-
-  const toggleMultiSelect = (field: "growthPriorities" | "toolsUsed", value: string) => {
+  const toggleItem = (field: "valueChains" | "toolsUsed", value: string) => {
     setForm((prev) => {
-      const isSelected = prev[field].includes(value)
-      return { ...prev, [field]: isSelected ? prev[field].filter((i) => i !== value) : [...prev[field], value] }
+      const current = prev[field]
+      const updated = current.includes(value)
+        ? current.filter((item) => item !== value)
+        : [...current, value]
+      return { ...prev, [field]: updated }
     })
   }
 
-  const validateStep = () => {
-    if (step === 1) {
-      if (!form.companyName.trim() || !form.applicantName.trim() || !form.companyDescription.trim()) return "Please complete all profile fields."
-      if (!form.ageGroup || !form.currentSituation || !form.engagementLevel) return "Please complete all selections."
+  const isValidPhoneNumber = (phone: string) => /^(078|079|072|073)\d{7}$/.test(phone)
+
+  const validate = (): FormErrors => {
+    const nextErrors: FormErrors = {}
+    if (!form.currentSituation) nextErrors.q1 = "Question 1 is required."
+    const phone = form.phoneNumber.trim()
+    if (!phone) {
+      nextErrors.q2 = "Phone Number is required."
+    } else if (!isValidPhoneNumber(phone)) {
+      nextErrors.q2 = "Phone Number must be 10 digits and start with 078, 079, 072, or 073."
     }
-    if (step === 2) {
-      if (selectedValueChains.length === 0) return "Please select at least one value chain."
-      if (selectedValueChains.some((i) => !i.details)) return "Please provide details for each selected value chain."
-      if (!form.experienceDuration || !form.businessStatus || !form.teamSize || !form.monthlyCustomers || !form.monthlyRevenue) {
-        return "Please complete all business fields."
-      }
-    }
-    if (step === 3) {
-      if (form.growthPriorities.length !== 2) return "Please select exactly 2 growth priorities."
-      if (!form.decisionStyle || !form.innovationStage) return "Please answer all questions."
-    }
-    return ""
+    if (!form.companyName.trim()) nextErrors.q3 = "Question 2 is required."
+    if (!form.district.trim()) nextErrors.q4 = "Question 3 is required."
+    if (!form.ageGroup) nextErrors.q5 = "Question 4 is required."
+    if (!form.engagementLevel) nextErrors.q6 = "Question 5 is required."
+    if (form.valueChains.length === 0) nextErrors.q7 = "Question 6 is required."
+    if (!form.experienceDuration) nextErrors.q8 = "Question 7 is required."
+    if (!form.teamSize) nextErrors.q9 = "Question 8 is required."
+    if (!form.monthlyCustomers) nextErrors.q10 = "Question 9 is required."
+    if (!form.monthlyRevenue) nextErrors.q11 = "Question 10 is required."
+    if (form.toolsUsed.length === 0) nextErrors.q12 = "Question 11 is required."
+    if (!form.innovationStage) nextErrors.q13 = "Question 12 is required."
+    if (!form.leadershipLevel) nextErrors.q14 = "Question 13 is required."
+    if (!form.primaryReason) nextErrors.q15 = "Question 14 is required."
+    if (!form.nyagatareConnection) nextErrors.q16 = "Question 15 is required."
+    return nextErrors
   }
 
-  const onNext = () => {
-    const error = validateStep()
-    if (error) {
-      setStatusType("error")
-      setStatusMessage(error)
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const validationErrors = validate()
+    setErrors(validationErrors)
+    if (Object.keys(validationErrors).length > 0) {
+      setStatus("Please fix the highlighted questions.")
       return
     }
-    setStatusType("")
-    setStatusMessage("")
-    setStep((p) => (p < 4 ? ((p + 1) as 1 | 2 | 3 | 4) : p))
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!form.groupType || !form.primaryReason || !form.postForumAction || !form.weeklyCommitment || !form.nyagatareConnection) {
-      setStatusType("error")
-      setStatusMessage("Please complete all final section questions.")
-      return
-    }
+    setStatus("")
     setSubmitting(true)
     try {
-      const res = await fetch("/api/nexgen-forum/applications", {
+      const payload = {
+        companyName: form.companyName.trim(),
+        applicantName: "Forum Applicant",
+        companyDescription: `District: ${form.district.trim()}${form.email.trim() ? ` | Email: ${form.email.trim()}` : ""}`,
+        ageGroup: form.ageGroup,
+        currentSituation: form.currentSituation,
+        engagementLevel: form.engagementLevel,
+        experienceDuration: form.experienceDuration,
+        businessStatus: form.currentSituation,
+        teamSize: form.teamSize,
+        monthlyCustomers: form.monthlyCustomers,
+        monthlyRevenue: form.monthlyRevenue,
+        growthPriorities: [form.primaryReason, "forum_interest"],
+        toolsUsed: form.toolsUsed,
+        decisionStyle: "not_specified",
+        innovationStage: form.innovationStage,
+        leadershipLevel: form.leadershipLevel,
+        groupType: "not_specified",
+        primaryReason: form.primaryReason,
+        postForumAction: "not_specified",
+        weeklyCommitment: "not_specified",
+        nyagatareConnection: form.nyagatareConnection,
+        selectedValueChains,
+        districtResidence: form.district.trim(),
+        phoneNumber: form.phoneNumber.trim(),
+        email: form.email.trim() || null,
+      }
+
+      const response = await fetch("/api/nexgen-forum/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, selectedValueChains }),
+        body: JSON.stringify(payload),
       })
-      const result = await res.json()
-      if (!res.ok || !result.success) throw new Error(result.error || "Failed to submit")
-      setFormSubmittedSuccessfully(true)
-      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ["#10b981", "#3b82f6", "#f59e0b", "#ec4899"] })
+
+      const result = await response.json()
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Failed to submit application.")
+      }
+
       setForm(initialForm)
-      setStep(1)
-    } catch (err) {
-      setStatusType("error")
-      setStatusMessage(err instanceof Error ? err.message : "Submission failed.")
+      setErrors({})
+      await Swal.fire({
+        icon: "success",
+        title: "Application Submitted",
+        text: "Thank you for applying to the Nyagatare Next-Gen Farmers Business Forum.",
+        confirmButtonText: "Close",
+        confirmButtonColor: "#059669",
+      })
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Submission failed.")
     } finally {
       setSubmitting(false)
     }
   }
 
-  const progress = ((step - 1) / 3) * 100
-
   return (
-    <div className="min-h-screen bg-slate-950 selection:bg-emerald-500/30 pt-16">
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-500/5 rounded-full blur-[150px]" />
-      </div>
+    <div className="min-h-screen bg-slate-100 px-4 pb-12 pt-20">
+      <div className="mx-auto max-w-4xl space-y-6">
+        <Card>
+          <CardHeader className="space-y-3">
+            <CardTitle className="text-2xl font-bold text-slate-900">
+              NYAGATARE NEXT-GEN FARMERS BUSINESS FORUM 2025-2026
+            </CardTitle>
+            <p className="text-sm text-slate-700">
+              The District of Nyagatare, together with key stakeholders, is organizing the Nyagatare
+              Next Gen Youth Business Farmers Forum. This forum aims to connect young people with real
+              opportunities in agriculture, agribusiness, and food innovation.
+            </p>
+            <p className="text-sm font-medium text-slate-800">
+              Theme: Bridging Agricultural Opportunities with the Next Generation
+            </p>
+            <p className="text-sm text-slate-700">Date: 22 May 2026</p>
+            <p className="text-sm text-slate-700">Venue: Epic Hotel, Nyagatare District</p>
+            <p className="text-sm text-slate-700">
+              This forum will bring together youth, innovators, private sector actors, financial
+              institutions, and government leaders to explore investment opportunities, showcase
+              innovations, and build strong networks in the agricultural sector.
+            </p>
+            <p className="text-sm font-medium text-slate-800">Contact Info: +250 782 817 454</p>
+          </CardHeader>
+        </Card>
 
-      <div className="relative flex flex-col lg:flex-row min-h-screen">
-        
-        {/* LEFT - HERO SECTION */}
-        <div className="lg:w-[42%] w-full relative flex flex-col p-8 lg:p-12 lg:min-h-screen lg:sticky lg:top-0">
-          {/* Background Image */}
-          <div className="absolute inset-0 z-0">
-            <Image src="/agritech_bg.png" alt="" fill className="object-cover opacity-40" priority />
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-950/95 via-slate-900/90 to-emerald-950/80" />
-          </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Application Form</CardTitle>
+            <p className="text-sm text-slate-600">Section 1: Basic Qualification</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <SingleSelectQuestion
+                title="1. What are you applying with? (Select one that best applies to you)"
+                value={form.currentSituation}
+                options={APPLYING_WITH}
+                onChange={(value) => setForm((prev) => ({ ...prev, currentSituation: value }))}
+                error={errors.q1}
+              />
 
-          <div className="relative z-10 flex flex-col h-full max-w-lg">
-            {/* Top Badge */}
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
-                <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <span className="text-sm font-medium text-white">NexGen Business Forum 2026</span>
+              <div className="space-y-3">
+                <Label htmlFor="email" className="text-sm font-semibold text-slate-800">
+                  Email (optional)
+                </Label>
+                <Input
+                  id="email"
+                  type="text"
+                  value={form.email}
+                  onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+                  placeholder="Enter your email"
+                  style={{ backgroundColor: "#f8fafc", borderColor: "#cbd5e1", borderRadius: "0.5rem" }}
+                />
               </div>
-            </motion.div>
 
-            {/* Main Title */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-6">
-              <h1 className="text-5xl lg:text-6xl font-black leading-[0.95] mb-4">
-                <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-300 bg-clip-text text-transparent">
-                  Shape the
-                </span>
-                <br />
-                <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
-                  Future
-                </span>
-                <br />
-                <span className="text-white">of Agri</span>
-              </h1>
-              <p className="text-slate-300 text-lg leading-relaxed">
-                Join the movement transforming agriculture. From farm to market, we&apos;re building the next generation of agribusiness leaders.
-              </p>
-            </motion.div>
-
-
-            {/* Who Can Apply */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-8">
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                  <Target className="w-5 h-5 text-emerald-400" />
-                  Who Can Apply
-                </h3>
-                <div className="grid grid-cols-1 gap-3">
-                  {[
-                    { icon: Sprout, text: "Agribusiness startups & SMEs" },
-                    { icon: Users, text: "Young farmers & producers" },
-                    { icon: Cpu, text: "Agri-tech innovators" },
-                    { icon: Lightbulb, text: "Early-stage entrepreneurs" },
-                    { icon: Award, text: "Youth leaders & groups" },
-                  ].map((item, i) => (
-                    <div key={item.text} className="flex items-center gap-3 text-slate-300">
-                      <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
-                        <item.icon className="w-4 h-4" />
-                      </div>
-                      <span className="text-sm">{item.text}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="space-y-3">
+                <Label htmlFor="phone-number" className="text-sm font-semibold text-slate-800">
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone-number"
+                  type="tel"
+                  value={form.phoneNumber}
+                  onChange={(event) => {
+                    const next = event.target.value.replace(/\D/g, "").slice(0, 10)
+                    setForm((prev) => ({ ...prev, phoneNumber: next }))
+                    setErrors((prev) => {
+                      if (!next) return { ...prev, q2: "Phone Number is required." }
+                      if (next.length >= 3 && !/^(078|079|072|073)/.test(next)) {
+                        return {
+                          ...prev,
+                          q2: "Phone Number must start with 078, 079, 072, or 073.",
+                        }
+                      }
+                      if (next.length === 10 && !isValidPhoneNumber(next)) {
+                        return {
+                          ...prev,
+                          q2: "Phone Number must be 10 digits and start with 078, 079, 072, or 073.",
+                        }
+                      }
+                      const { q2: _removed, ...rest } = prev
+                      return rest
+                    })
+                  }}
+                  placeholder="Enter phone number"
+                  inputMode="numeric"
+                  pattern="(078|079|072|073)[0-9]{7}"
+                  autoComplete="tel-national"
+                  maxLength={10}
+                  style={{ backgroundColor: "#f8fafc", borderColor: "#cbd5e1", borderRadius: "0.5rem" }}
+                />
+                {errors.q2 ? <p className="text-xs font-medium text-red-600">{errors.q2}</p> : null}
               </div>
-            </motion.div>
 
-            {/* Event Info Cards */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="grid grid-cols-3 gap-3 mb-auto">
-              {[
-                { icon: Calendar, label: "Mar 15-17", sub: "2026" },
-                { icon: MapPin, label: "Nyagatare", sub: "Rwanda" },
-                { icon: Users, label: "500+", sub: "Seats" },
-              ].map((item) => (
-                <div key={item.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
-                  <item.icon className="w-5 h-5 text-emerald-400 mx-auto mb-2" />
-                  <p className="text-white font-bold text-sm">{item.label}</p>
-                  <p className="text-slate-500 text-xs">{item.sub}</p>
-                </div>
-              ))}
-            </motion.div>
+              <div className="space-y-3">
+                <Label htmlFor="business-name" className="text-sm font-semibold text-slate-800">
+                  2. Business Name / Idea Title
+                </Label>
+                <p className="text-xs text-slate-600">
+                  (If applicable and if you do not have a name yet, give a working title)
+                </p>
+                <Input
+                  id="business-name"
+                  value={form.companyName}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, companyName: event.target.value }))
+                  }
+                  placeholder="Enter business name or idea title"
+                  className="border-slate-300 bg-slate-50 focus-visible:border-emerald-500 focus-visible:ring-0"
+                />
+                {errors.q3 ? <p className="text-xs font-medium text-red-600">{errors.q3}</p> : null}
+              </div>
 
-          </div>
-        </div>
+              <div className="space-y-3">
+                <SingleSelectQuestion
+                  title="3. Which district do you currently reside in?"
+                  value={form.district}
+                  options={RWANDA_DISTRICTS.map((district) => ({ label: district, value: district }))}
+                  onChange={(value) => setForm((prev) => ({ ...prev, district: value }))}
+                  error={errors.q4}
+                  optionsClassName="grid grid-cols-2 gap-1 sm:grid-cols-3 lg:grid-cols-4"
+                  optionClassName="!p-1.5 gap-1 items-center"
+                />
+              </div>
 
-        {/* RIGHT - FORM SECTION */}
-        <div className="flex-1 bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 relative lg:h-screen lg:overflow-y-auto">
-          <div className="min-h-full px-5 sm:px-8 lg:px-10 pt-8 sm:pt-10 lg:pt-12 pb-10">
+              <SingleSelectQuestion
+                title="4. What is your age group? (Select one)"
+                value={form.ageGroup}
+                options={AGE_GROUPS}
+                onChange={(value) => setForm((prev) => ({ ...prev, ageGroup: value }))}
+                error={errors.q5}
+              />
 
-            <AnimatePresence mode="wait">
-              {formSubmittedSuccessfully ? (
-                <motion.div
-                  key="success"
-                  initial={{ opacity: 0, scale: 0.92, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.92 }}
-                  transition={{ duration: 0.4 }}
-                  className="min-h-[70vh] flex items-center justify-center"
-                >
-                  <div className="w-full text-center">
-                    {/* Glow ring */}
-                    <div className="relative inline-flex items-center justify-center mb-8">
-                      <div className="absolute w-36 h-36 bg-emerald-400/20 rounded-full blur-2xl animate-pulse" />
-                      <motion.div
-                        initial={{ scale: 0, rotate: -20 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: "spring", stiffness: 180, damping: 14, delay: 0.1 }}
-                        className="relative w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center shadow-2xl shadow-emerald-500/40"
-                      >
-                        <CheckCircle2 className="w-12 h-12 text-white" />
-                      </motion.div>
-                    </div>
+              <SingleSelectQuestion
+                title="5. What is your current level of activity or commitment in your business or idea? (Select one that best describes your current stage)"
+                value={form.engagementLevel}
+                options={ACTIVITY_LEVEL}
+                onChange={(value) => setForm((prev) => ({ ...prev, engagementLevel: value }))}
+                error={errors.q6}
+              />
 
-                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-sm font-semibold mb-4">
-                        <Sparkles className="w-4 h-4" /> Application Submitted
-                      </div>
-                      <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-3">You&apos;re In!</h2>
-                      <p className="text-slate-500 dark:text-slate-400 text-base max-w-sm mx-auto mb-8 leading-relaxed">
-                        Our team will review your application and reach out via email or SMS with next steps. Stay ready!
-                      </p>
-                    </motion.div>
+              <MultiSelectQuestion
+                title="6. Which specific agricultural value chain do you operate in? (Select all that apply, if applicable to you)"
+                selected={form.valueChains}
+                options={VALUE_CHAINS}
+                onToggle={(value) => toggleItem("valueChains", value)}
+                error={errors.q7}
+              />
 
-                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-                      className="grid grid-cols-3 gap-3 max-w-xs mx-auto mb-8"
-                    >
-                      {[{ icon: Calendar, label: "Mar 15–17" }, { icon: MapPin, label: "Nyagatare" }, { icon: Rocket, label: "Be Ready" }].map((item) => (
-                        <div key={item.label} className="bg-slate-100 dark:bg-slate-800 rounded-2xl p-3 flex flex-col items-center gap-1.5">
-                          <item.icon className="w-5 h-5 text-emerald-500" />
-                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{item.label}</span>
-                        </div>
-                      ))}
-                    </motion.div>
+              <SingleSelectQuestion
+                title="7. How long have you been actively working on this business or idea? (Select one, if applicable)"
+                value={form.experienceDuration}
+                options={EXPERIENCE}
+                onChange={(value) => setForm((prev) => ({ ...prev, experienceDuration: value }))}
+                error={errors.q8}
+              />
 
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}>
-                      <Button
-                        onClick={() => setFormSubmittedSuccessfully(false)}
-                        className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold px-10 h-12 rounded-2xl shadow-lg shadow-emerald-500/25 text-sm"
-                      >
-                        <ArrowRight className="w-4 h-4 mr-2" /> Submit Another Application
-                      </Button>
-                    </motion.div>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
+              <SingleSelectQuestion
+                title="8. How many people are currently involved in your activity? (Include team + beneficiaries, if applicable)"
+                value={form.teamSize}
+                options={TEAM_SIZE}
+                onChange={(value) => setForm((prev) => ({ ...prev, teamSize: value }))}
+                error={errors.q9}
+              />
 
-                  {/* ── Step Progress Header ── */}
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-                    {/* Top gradient bar */}
-                    <div className="h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-blue-500" />
-                    <div className="p-5">
-                      {/* Step label + percentage */}
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          {(() => {
-                            const Icon = stepIcons[step]
-                            return (
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20">
-                                <Icon className="w-5 h-5 text-white" />
-                              </div>
-                            )
-                          })()}
-                          <div>
-                            <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest leading-none mb-0.5">
-                              Step {step} of 4
-                            </p>
-                            <h2 className="text-lg font-black text-slate-900 dark:text-white leading-tight">{stepTitles[step]}</h2>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-3xl font-black bg-gradient-to-r from-emerald-500 to-teal-400 bg-clip-text text-transparent">
-                            {Math.round(progress)}%
-                          </span>
-                          <p className="text-[10px] text-slate-400 font-medium mt-0.5">Complete</p>
-                        </div>
-                      </div>
+              <SingleSelectQuestion
+                title="9. If applicable, how many customers do you serve per month?"
+                value={form.monthlyCustomers}
+                options={MONTHLY_CUSTOMERS}
+                onChange={(value) => setForm((prev) => ({ ...prev, monthlyCustomers: value }))}
+                error={errors.q10}
+              />
 
-                      {/* Progress bar */}
-                      <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mb-4">
-                        <motion.div
-                          className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-blue-500"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${progress}%` }}
-                          transition={{ duration: 0.6, ease: "easeOut" }}
-                        />
-                      </div>
+              <SingleSelectQuestion
+                title="10. What is your average monthly revenue (if any)? (Select one, if applicable)"
+                value={form.monthlyRevenue}
+                options={MONTHLY_REVENUE}
+                onChange={(value) => setForm((prev) => ({ ...prev, monthlyRevenue: value }))}
+                error={errors.q11}
+              />
 
-                      {/* Step pill trail */}
-                      <div className="flex items-center gap-2">
-                        {([1, 2, 3, 4] as const).map((s, idx) => {
-                          const StepIcon = stepIcons[s]
-                          const isDone = s < step
-                          const isActive = s === step
-                          return (
-                            <div key={s} className="flex items-center gap-2 flex-1">
-                              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 whitespace-nowrap ${
-                                isDone
-                                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                                  : isActive
-                                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm shadow-emerald-500/30"
-                                  : "bg-slate-100 dark:bg-slate-800 text-slate-400"
-                              }`}>
-                                {isDone
-                                  ? <Check className="w-3 h-3" />
-                                  : <StepIcon className="w-3 h-3" />
-                                }
-                                <span className="hidden sm:inline">{stepTitles[s].split(" ")[0]}</span>
-                                <span className="sm:hidden">{s}</span>
-                              </div>
-                              {idx < 3 && <div className={`h-px flex-1 transition-colors duration-300 ${s < step ? "bg-emerald-400/40" : "bg-slate-200 dark:bg-slate-700"}`} />}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </div>
+              <MultiSelectQuestion
+                title="11. Which of the following tools do you currently use? (Select all that apply, if applicable to your activity)"
+                selected={form.toolsUsed}
+                options={TOOLS_USED}
+                onToggle={(value) => toggleItem("toolsUsed", value)}
+                error={errors.q12}
+              />
 
-                  {/* ── Main Form Card ── */}
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-                    <form onSubmit={handleSubmit}>
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={step}
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -12 }}
-                          transition={{ duration: 0.25 }}
-                          className="p-6 sm:p-8 space-y-7"
-                        >
+              <SingleSelectQuestion
+                title="12. If you are building an innovation, what stage are you at? (Select one, if applicable)"
+                value={form.innovationStage}
+                options={INNOVATION_STAGE}
+                onChange={(value) => setForm((prev) => ({ ...prev, innovationStage: value }))}
+                error={errors.q13}
+              />
 
-                          {/* ──────── STEP 1 ──────── */}
-                          {step === 1 && (
-                            <>
-                              {/* Section: Application Type */}
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
-                                    <Briefcase className="w-3.5 h-3.5 text-emerald-600" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Application Type</p>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                  {[
-                                    { value: "existing_agribusiness_startup", icon: Briefcase, title: "Business / Startup", desc: "Active registered or unregistered operations", gradient: "from-emerald-500 to-teal-500", ring: "ring-emerald-400/30", border: "border-emerald-400", bg: "from-emerald-50/80 to-teal-50/60 dark:from-emerald-950/40 dark:to-teal-950/30" },
-                                    { value: "business_idea_to_develop", icon: Lightbulb, title: "Idea Stage", desc: "A promising concept ready to develop", gradient: "from-blue-500 to-indigo-500", ring: "ring-blue-400/30", border: "border-blue-400", bg: "from-blue-50/80 to-indigo-50/60 dark:from-blue-950/40 dark:to-indigo-950/30" },
-                                  ].map((item) => {
-                                    const isSelected = form.currentSituation === item.value
-                                    const Icon = item.icon
-                                    return (
-                                      <motion.button
-                                        key={item.value}
-                                        type="button"
-                                        whileHover={{ y: -2, scale: 1.01 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={() => setForm((p) => ({ ...p, currentSituation: item.value }))}
-                                        className={`relative p-3.5 rounded-xl border-2 text-left transition-all duration-300 overflow-hidden ${
-                                          isSelected ? `${item.border} bg-gradient-to-br ${item.bg} shadow-lg ring-4 ${item.ring}` : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md"
-                                        }`}
-                                      >
-                                        {isSelected && (
-                                          <motion.div
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className={`absolute top-3 right-3 w-6 h-6 rounded-full bg-gradient-to-br ${item.gradient} flex items-center justify-center`}
-                                          >
-                                            <Check className="w-3.5 h-3.5 text-white" />
-                                          </motion.div>
-                                        )}
-                                        <div className="flex items-center gap-3">
-                                          <div className={`p-2 rounded-lg flex-shrink-0 bg-gradient-to-br ${isSelected ? item.gradient + " text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-400"}`}>
-                                            <Icon className="w-4 h-4" />
-                                          </div>
-                                          <div>
-                                            <h3 className="font-bold text-slate-800 dark:text-white text-sm">{item.title}</h3>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-snug">{item.desc}</p>
-                                          </div>
-                                        </div>
-                                      </motion.button>
-                                    )
-                                  })}
-                                </div>
-                              </div>
+              <SingleSelectQuestion
+                title="13. Do you lead or influence others in agriculture/business? (Select one that best applies to you)"
+                value={form.leadershipLevel}
+                options={LEADERSHIP_LEVEL}
+                onChange={(value) => setForm((prev) => ({ ...prev, leadershipLevel: value }))}
+                error={errors.q14}
+              />
 
-                              {/* Section: Identity */}
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                    <User className="w-3.5 h-3.5 text-slate-500" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Your Identity</p>
-                                </div>
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                  <FloatingInput
-                                    id="companyName"
-                                    label={form.currentSituation === "existing_agribusiness_startup" ? "Company / Business Name" : "Idea / Project Name"}
-                                    value={form.companyName}
-                                    onChange={(v) => setForm((p) => ({ ...p, companyName: v }))}
-                                    required
-                                  />
-                                  <FloatingInput
-                                    id="applicantName"
-                                    label="Your Full Name"
-                                    value={form.applicantName}
-                                    onChange={(v) => setForm((p) => ({ ...p, applicantName: v }))}
-                                    required
-                                  />
-                                </div>
-                                <div className="relative">
-                                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">Description</label>
-                                  <Textarea
-                                    placeholder="Describe what your agribusiness does or what challenge your idea solves..."
-                                    value={form.companyDescription}
-                                    onChange={(e) => setForm((p) => ({ ...p, companyDescription: e.target.value }))}
-                                    className="min-h-[96px] rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15 resize-none text-sm transition-all"
-                                  />
-                                  <div className="absolute bottom-3 right-3 text-[10px] text-slate-400 font-medium">
-                                    {form.companyDescription.length} chars
-                                  </div>
-                                </div>
-                              </div>
+              <SingleSelectQuestion
+                title="14. Why do you want to attend this forum? (Select one primary reason)"
+                value={form.primaryReason}
+                options={PRIMARY_REASON}
+                onChange={(value) => setForm((prev) => ({ ...prev, primaryReason: value }))}
+                error={errors.q15}
+              />
 
-                              {/* Section: About You */}
-                              <div className="space-y-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                    <Sparkles className="w-3.5 h-3.5 text-slate-500" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">About You</p>
-                                </div>
-                                <VisualGridQuestion
-                                  label="Age Group"
-                                  value={form.ageGroup}
-                                  options={AGE_GROUPS}
-                                  onChange={(v) => setForm((p) => ({ ...p, ageGroup: v }))}
-                                  columns="grid-cols-3 sm:grid-cols-5"
-                                  themeColor="emerald"
-                                />
-                                <VisualGridQuestion
-                                  label="Current Engagement Level"
-                                  value={form.engagementLevel}
-                                  options={ENGAGEMENT_LEVEL}
-                                  onChange={(v) => setForm((p) => ({ ...p, engagementLevel: v }))}
-                                  columns="grid-cols-1 sm:grid-cols-2"
-                                  themeColor="emerald"
-                                />
-                              </div>
-                            </>
-                          )}
+              <SingleSelectQuestion
+                title="15. What is your connection to Nyagatare? (Select one that best applies to you)"
+                value={form.nyagatareConnection}
+                options={NYAGATARE_CONNECTION}
+                onChange={(value) => setForm((prev) => ({ ...prev, nyagatareConnection: value }))}
+                error={errors.q16}
+              />
 
-                          {/* ──────── STEP 2 ──────── */}
-                          {step === 2 && (
-                            <>
-                              {/* Value Chains */}
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
-                                    <Sprout className="w-3.5 h-3.5 text-emerald-600" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Value Chains</p>
-                                  <span className="ml-auto text-[10px] text-slate-400 font-medium">Select all that apply</span>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                  {VALUE_CHAIN_OPTIONS.map((item) => {
-                                    const isSelected = form.valueChains[item.key].selected
-                                    const Icon = item.icon
-                                    return (
-                                      <motion.div
-                                        key={item.key}
-                                        layout
-                                        className={`rounded-xl border-2 overflow-hidden transition-all duration-200 ${
-                                          isSelected
-                                            ? "border-emerald-400 dark:border-emerald-500 shadow-md shadow-emerald-500/10 bg-gradient-to-br from-emerald-50/60 to-teal-50/40 dark:from-emerald-950/30 dark:to-teal-950/20"
-                                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50"
-                                        }`}
-                                      >
-                                        <button
-                                          type="button"
-                                          onClick={() => setForm((p) => ({
-                                            ...p,
-                                            valueChains: { ...p.valueChains, [item.key]: { ...p.valueChains[item.key], selected: !isSelected } }
-                                          }))}
-                                          className="w-full flex items-center gap-3 px-4 py-3.5 text-left"
-                                        >
-                                          <div className={`p-2 rounded-lg flex-shrink-0 transition-all ${isSelected ? "bg-emerald-500 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-700 text-slate-500"}`}>
-                                            <Icon className="w-4 h-4" />
-                                          </div>
-                                          <span className={`font-semibold text-sm flex-1 ${isSelected ? "text-emerald-900 dark:text-emerald-100" : "text-slate-600 dark:text-slate-400"}`}>
-                                            {item.label}
-                                          </span>
-                                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                                            isSelected ? "border-emerald-500 bg-emerald-500" : "border-slate-300 dark:border-slate-600"
-                                          }`}>
-                                            {isSelected && <Check className="w-3 h-3 text-white" />}
-                                          </div>
-                                        </button>
-                                        <AnimatePresence>
-                                          {isSelected && (
-                                            <motion.div
-                                              initial={{ height: 0, opacity: 0 }}
-                                              animate={{ height: "auto", opacity: 1 }}
-                                              exit={{ height: 0, opacity: 0 }}
-                                              transition={{ duration: 0.2 }}
-                                              className="border-t border-emerald-100 dark:border-emerald-900/40"
-                                            >
-                                              <div className="px-4 py-3">
-                                                <Input
-                                                  placeholder={item.placeholder}
-                                                  value={form.valueChains[item.key].details}
-                                                  onChange={(e) => setForm((p) => ({
-                                                    ...p,
-                                                    valueChains: { ...p.valueChains, [item.key]: { ...p.valueChains[item.key], details: e.target.value } }
-                                                  }))}
-                                                  className="rounded-lg border-emerald-200 dark:border-emerald-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 text-sm h-9 bg-white dark:bg-slate-800"
-                                                />
-                                              </div>
-                                            </motion.div>
-                                          )}
-                                        </AnimatePresence>
-                                      </motion.div>
-                                    )
-                                  })}
-                                </div>
-                              </div>
+              {status ? <p className="text-sm font-medium text-red-600">{status}</p> : null}
 
-                              {/* Business Details */}
-                              <div className="space-y-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                    <TrendingUp className="w-3.5 h-3.5 text-slate-500" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Business Details</p>
-                                </div>
-                                <VisualGridQuestion label="Experience Duration" value={form.experienceDuration} options={EXPERIENCE} onChange={(v) => setForm((p) => ({ ...p, experienceDuration: v }))} columns="grid-cols-2 sm:grid-cols-3" themeColor="emerald" />
-                                <VisualGridQuestion label="Current Business Status" value={form.businessStatus} options={BUSINESS_STATUS} onChange={(v) => setForm((p) => ({ ...p, businessStatus: v }))} columns="grid-cols-1 sm:grid-cols-2" themeColor="emerald" />
-                                <VisualGridQuestion label="Team Size" value={form.teamSize} options={TEAM_SIZE} onChange={(v) => setForm((p) => ({ ...p, teamSize: v }))} columns="grid-cols-2 sm:grid-cols-4" themeColor="emerald" />
-                              </div>
-
-                              {/* Metrics */}
-                              <div className="space-y-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                    <Zap className="w-3.5 h-3.5 text-slate-500" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Performance Metrics</p>
-                                </div>
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                  <VisualGridQuestion label="Monthly Customers" value={form.monthlyCustomers} options={MONTHLY_CUSTOMERS} onChange={(v) => setForm((p) => ({ ...p, monthlyCustomers: v }))} columns="grid-cols-3" themeColor="emerald" />
-                                  <VisualGridQuestion label="Monthly Revenue (RWF)" value={form.monthlyRevenue} options={MONTHLY_REVENUE} onChange={(v) => setForm((p) => ({ ...p, monthlyRevenue: v }))} columns="grid-cols-1" themeColor="emerald" />
-                                </div>
-                              </div>
-                            </>
-                          )}
-
-                          {/* ──────── STEP 3 ──────── */}
-                          {step === 3 && (
-                            <>
-                              {/* Growth Priorities */}
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
-                                    <Target className="w-3.5 h-3.5 text-blue-600" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Growth Priorities</p>
-                                  <div className={`ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-                                    form.growthPriorities.length === 2
-                                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300"
-                                      : "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300"
-                                  }`}>
-                                    {form.growthPriorities.length === 2 ? <Check className="w-3 h-3" /> : null}
-                                    {form.growthPriorities.length}/2 selected
-                                  </div>
-                                </div>
-                                <p className="text-xs text-slate-400 -mt-1">Pick exactly 2 priorities that matter most right now</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                  {GROWTH_PRIORITIES.map((option) => {
-                                    const isChecked = form.growthPriorities.includes(option.value)
-                                    const isDisabled = !isChecked && form.growthPriorities.length >= 2
-                                    return (
-                                      <motion.button
-                                        key={option.value}
-                                        type="button"
-                                        whileTap={{ scale: isDisabled ? 1 : 0.98 }}
-                                        onClick={() => !isDisabled && toggleMultiSelect("growthPriorities", option.value)}
-                                        className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all duration-200 ${
-                                          isChecked
-                                            ? "border-blue-400 bg-gradient-to-br from-blue-50/80 to-indigo-50/60 dark:from-blue-950/40 dark:to-indigo-950/30 shadow-md shadow-blue-500/10"
-                                            : isDisabled
-                                            ? "border-slate-200 dark:border-slate-700 opacity-40 cursor-not-allowed"
-                                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm"
-                                        }`}
-                                      >
-                                        <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${
-                                          isChecked ? "border-blue-500 bg-blue-500" : "border-slate-300 dark:border-slate-600"
-                                        }`}>
-                                          {isChecked && <Check className="w-3 h-3 text-white" />}
-                                        </div>
-                                        <span className={`text-sm font-medium flex-1 ${isChecked ? "text-blue-900 dark:text-blue-100 font-semibold" : "text-slate-600 dark:text-slate-400"}`}>
-                                          {option.label}
-                                        </span>
-                                      </motion.button>
-                                    )
-                                  })}
-                                </div>
-                              </div>
-
-                              {/* Tools */}
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                    <Cpu className="w-3.5 h-3.5 text-slate-500" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Tools You Use</p>
-                                  <span className="ml-auto text-[10px] text-slate-400">Select all that apply</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2.5">
-                                  {TOOLS_USED.map((option) => {
-                                    const isChecked = form.toolsUsed.includes(option.value)
-                                    return (
-                                      <motion.button
-                                        key={option.value}
-                                        type="button"
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => toggleMultiSelect("toolsUsed", option.value)}
-                                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200 ${
-                                          isChecked
-                                            ? "border-blue-400 bg-blue-500 text-white shadow-md shadow-blue-500/20"
-                                            : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600"
-                                        }`}
-                                      >
-                                        {isChecked && <Check className="w-3 h-3" />}
-                                        {option.label}
-                                      </motion.button>
-                                    )
-                                  })}
-                                </div>
-                              </div>
-
-                              {/* Strategy */}
-                              <div className="space-y-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                    <Lightbulb className="w-3.5 h-3.5 text-slate-500" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Strategy & Innovation</p>
-                                </div>
-                                <VisualGridQuestion label="Decision Making Style" value={form.decisionStyle} options={DECISION_STYLE} onChange={(v) => setForm((p) => ({ ...p, decisionStyle: v }))} columns="grid-cols-1 sm:grid-cols-3" themeColor="blue" />
-                                <VisualGridQuestion label="Innovation Stage" value={form.innovationStage} options={INNOVATION_STAGE} onChange={(v) => setForm((p) => ({ ...p, innovationStage: v }))} columns="grid-cols-1 sm:grid-cols-2" themeColor="blue" />
-                              </div>
-                            </>
-                          )}
-
-                          {/* ──────── STEP 4 ──────── */}
-                          {step === 4 && (
-                            <>
-                              {/* Leadership */}
-                              <div className="space-y-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
-                                    <Crown className="w-3.5 h-3.5 text-amber-600" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Leadership & Community</p>
-                                </div>
-                                <VisualGridQuestion label="Leadership Level" value={form.leadershipLevel} options={LEADERSHIP_LEVEL} onChange={(v) => setForm((p) => ({ ...p, leadershipLevel: v }))} columns="grid-cols-1 sm:grid-cols-2" themeColor="blue" />
-                                <VisualGridQuestion label="Group Type" value={form.groupType} options={GROUP_TYPES} onChange={(v) => setForm((p) => ({ ...p, groupType: v }))} columns="grid-cols-2 sm:grid-cols-4" themeColor="blue" />
-                              </div>
-
-                              {/* Intent */}
-                              <div className="space-y-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                    <Rocket className="w-3.5 h-3.5 text-slate-500" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Your Intent</p>
-                                </div>
-                                <VisualGridQuestion label="Primary Reason to Attend" value={form.primaryReason} options={PRIMARY_REASON} onChange={(v) => setForm((p) => ({ ...p, primaryReason: v }))} columns="grid-cols-1 sm:grid-cols-2" themeColor="blue" />
-                                <VisualGridQuestion label="Post-Forum Action Plan" value={form.postForumAction} options={POST_FORUM_ACTION} onChange={(v) => setForm((p) => ({ ...p, postForumAction: v }))} columns="grid-cols-1 sm:grid-cols-2" themeColor="blue" />
-                              </div>
-
-                              {/* Commitment */}
-                              <div className="space-y-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                    <Globe className="w-3.5 h-3.5 text-slate-500" />
-                                  </div>
-                                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Commitment & Location</p>
-                                </div>
-                                <VisualGridQuestion label="Weekly Time Commitment" value={form.weeklyCommitment} options={WEEKLY_COMMITMENT} onChange={(v) => setForm((p) => ({ ...p, weeklyCommitment: v }))} columns="grid-cols-2 sm:grid-cols-4" themeColor="blue" />
-                                <VisualGridQuestion label="Connection to Nyagatare" value={form.nyagatareConnection} options={NYAGATARE_CONNECTION} onChange={(v) => setForm((p) => ({ ...p, nyagatareConnection: v }))} columns="grid-cols-1 sm:grid-cols-2" themeColor="blue" />
-                              </div>
-
-                              {/* Submit notice */}
-                              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/20 rounded-xl p-4 border border-emerald-200/60 dark:border-emerald-800/40 flex items-start gap-3">
-                                <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                                <div>
-                                  <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">Almost there!</p>
-                                  <p className="text-xs text-emerald-700/70 dark:text-emerald-400/70 mt-0.5">Review your answers and hit Submit when you're ready. We&apos;ll follow up within 48 hours.</p>
-                                </div>
-                              </div>
-                            </>
-                          )}
-
-                        </motion.div>
-                      </AnimatePresence>
-
-                      {/* ── Error / Status Banner ── */}
-                      <AnimatePresence>
-                        {statusMessage && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 8, height: 0 }}
-                            animate={{ opacity: 1, y: 0, height: "auto" }}
-                            exit={{ opacity: 0, y: -8, height: 0 }}
-                            className="overflow-hidden px-6 sm:px-8 pb-2"
-                          >
-                            <div className={`flex items-start gap-3 p-3.5 rounded-xl border text-sm ${
-                              statusType === "success"
-                                ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
-                                : "bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800"
-                            }`}>
-                              {statusType === "success" ? <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" /> : <X className="w-4 h-4 flex-shrink-0 mt-0.5" />}
-                              <p className="font-medium">{statusMessage}</p>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      {/* ── Navigation Footer ── */}
-                      <div className="flex items-center justify-between px-6 sm:px-8 pt-5 pb-14 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60">
-                        {step > 1 ? (
-                          <button
-                            type="button"
-                            onClick={() => { setStep((p) => (p > 1 ? ((p - 1) as 1|2|3|4) : p)); setStatusMessage(""); }}
-                            className="flex items-center gap-2 px-5 h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-semibold text-sm hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
-                          >
-                            <ChevronLeft className="w-4 h-4" /> Back
-                          </button>
-                        ) : <div />}
-
-                        {step < 4 ? (
-                          <motion.button
-                            type="button"
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.97 }}
-                            onClick={onNext}
-                            className="flex items-center gap-2 px-7 h-10 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 transition-all"
-                          >
-                            Continue <ChevronRight className="w-4 h-4" />
-                          </motion.button>
-                        ) : (
-                          <motion.button
-                            type="submit"
-                            disabled={submitting}
-                            whileHover={{ scale: submitting ? 1 : 1.02 }}
-                            whileTap={{ scale: submitting ? 1 : 0.97 }}
-                            className="flex items-center gap-2 px-7 h-10 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-sm shadow-lg shadow-emerald-500/25 transition-all"
-                          >
-                            {submitting ? (
-                              <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>
-                            ) : (
-                              <><Rocket className="w-4 h-4" /> Submit Application</>
-                            )}
-                          </motion.button>
-                        )}
-                      </div>
-                    </form>
-                  </div>
-
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="h-12 w-full rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 text-base font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-200 hover:from-emerald-700 hover:to-teal-600 hover:shadow-xl hover:shadow-emerald-500/40 disabled:opacity-70"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Application"
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
