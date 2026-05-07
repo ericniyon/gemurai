@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, RefreshCw, Search, FileText, Clock3, CheckCircle2, Eye, Download } from "lucide-react"
+import { Loader2, RefreshCw, Search, FileText, Clock3, CheckCircle2, Eye, Download, AlertCircle, Inbox } from "lucide-react"
 
 type ValueChainItem = {
   key?: string
@@ -29,6 +29,29 @@ const VALUE_CHAIN_LABELS: Record<string, string> = {
   inputSupply: "Input supply",
   agriTech: "Agri-tech / digital solutions",
   other: "Other",
+}
+
+const QUESTION_LABELS: Record<string, string> = {
+  companyDescription: "Tell us about your company",
+  ageGroup: "What is your age group?",
+  currentSituation: "What is your current business situation?",
+  engagementLevel: "How engaged are you in your business journey?",
+  experienceDuration: "How long have you been in this space?",
+  businessStatus: "What is your business status?",
+  teamSize: "How big is your team?",
+  monthlyCustomers: "How many monthly customers do you serve?",
+  monthlyRevenue: "What is your monthly revenue range?",
+  decisionStyle: "How do you make decisions?",
+  innovationStage: "What is your innovation stage?",
+  leadershipLevel: "How would you describe your leadership level?",
+  groupType: "What type of group do you belong to?",
+  primaryReason: "What is your primary reason for joining?",
+  postForumAction: "What action will you take after the forum?",
+  weeklyCommitment: "How much time can you commit weekly?",
+  nyagatareConnection: "What is your connection to Nyagatare?",
+  growthPriorities: "What are your growth priorities?",
+  toolsUsed: "Which tools are you currently using?",
+  selectedValueChains: "Which value chains are you involved in?",
 }
 
 type NexgenApplication = {
@@ -117,10 +140,12 @@ export default function ApplicationsPage() {
     const submitted = items.filter((item) => item.status === "SUBMITTED").length
     const inReview = items.filter((item) => item.status === "UNDER_REVIEW").length
     const approved = items.filter((item) => item.status === "APPROVED").length
+    const rejected = items.filter((item) => item.status === "REJECTED").length
     return {
       submitted,
       inReview,
       approved,
+      rejected,
     }
   }, [items])
 
@@ -141,8 +166,18 @@ export default function ApplicationsPage() {
     setSearch(searchInput)
   }
 
+  const clearSearch = () => {
+    setSearchInput("")
+    setSearch("")
+    setPage(1)
+  }
+
+  const formatStatusLabel = (status: string) => status.replaceAll("_", " ")
+
   const escapeCsvValue = (value: string) => `"${value.replaceAll(`"`, `""`)}"`
   const prettify = (value: string) => value.replaceAll("_", " ")
+  const getQuestionLabel = (key: string) =>
+    QUESTION_LABELS[key] || prettify(key.replace(/([A-Z])/g, " $1")).replace(/^./, (s) => s.toUpperCase())
 
   const formatAnswer = (key: string, value: unknown): string => {
     if (value === null || value === undefined) return ""
@@ -260,21 +295,17 @@ export default function ApplicationsPage() {
       const headers = [
         "Application ID",
         "Company",
-        "Applicant",
         "Email",
-        "Phone",
         "Status",
         "Submitted",
-        ...questionKeys.map((key) => `Q: ${key}`),
+        ...questionKeys.map((key) => `Q: ${getQuestionLabel(key)}`),
       ]
 
       const rows = allItems.map((app) => {
         const base = [
           app.id,
           app.companyName || "Untitled company",
-          app.applicantName || "Unknown applicant",
           app.applicantEmail || "",
-          app.applicantPhone || "",
           prettify(app.status),
           new Date(app.createdAt).toLocaleString(),
         ]
@@ -329,80 +360,81 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="w-full py-6 px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {lang === "rw" ? "Ubusabe bwa NexGen Forum" : "NexGen Forum Applications"}
-            </h1>
-            <p className="text-gray-600 mt-1">
-              {lang === "rw"
-                ? `Yerekana ubusabe bwoherejwe kuri /nexgen-forum (${totalRecords} byose)`
-                : `Shows submissions from /nexgen-forum (${totalRecords} total)`}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={exportAllApplicationsWithAnswers}
-              variant="outline"
-              disabled={loading || exporting}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              {exporting ? "Exporting..." : "Export All CSV"}
-            </Button>
-            <Button
-              onClick={fetchApplications}
-              disabled={loading}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-              Refresh Data
-            </Button>
-          </div>
+    <div className="min-h-screen bg-slate-50">
+      <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+        <Card className="border-slate-200 bg-white shadow-sm">
+          <CardContent className="flex flex-col gap-4 py-6 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 md:text-3xl">
+                {lang === "rw" ? "Ubusabe bwa NexGen Forum" : "NexGen Forum Applications"}
+              </h1>
+              <p className="text-sm text-slate-600 md:text-base">
+                {lang === "rw"
+                  ? `Yerekana ubusabe bwoherejwe kuri /nexgen-forum (${totalRecords} byose)`
+                  : `Live submissions from /nexgen-forum (${totalRecords} total)`}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                onClick={exportAllApplicationsWithAnswers}
+                variant="outline"
+                disabled={loading || exporting}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                {exporting ? "Exporting..." : "Export CSV"}
+              </Button>
+              <Button onClick={fetchApplications} disabled={loading}>
+                <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Card className="border-slate-200 bg-white shadow-sm">
+            <CardContent className="flex items-center justify-between py-6">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Total loaded</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{totalShown}</p>
+              </div>
+              <FileText className="h-5 w-5 text-slate-500" />
+            </CardContent>
+          </Card>
+          <Card className="border-amber-200 bg-amber-50/50 shadow-sm">
+            <CardContent className="flex items-center justify-between py-6">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-amber-700">Submitted / Review</p>
+                <p className="mt-1 text-2xl font-semibold text-amber-900">{stats.submitted + stats.inReview}</p>
+              </div>
+              <Clock3 className="h-5 w-5 text-amber-700" />
+            </CardContent>
+          </Card>
+          <Card className="border-green-200 bg-green-50/50 shadow-sm">
+            <CardContent className="flex items-center justify-between py-6">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-green-700">Approved</p>
+                <p className="mt-1 text-2xl font-semibold text-green-900">{stats.approved}</p>
+              </div>
+              <CheckCircle2 className="h-5 w-5 text-green-700" />
+            </CardContent>
+          </Card>
+          <Card className="border-red-200 bg-red-50/50 shadow-sm">
+            <CardContent className="flex items-center justify-between py-6">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-red-700">Rejected</p>
+                <p className="mt-1 text-2xl font-semibold text-red-900">{stats.rejected}</p>
+              </div>
+              <AlertCircle className="h-5 w-5 text-red-700" />
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-2 border-blue-200 hover:border-blue-400 transition-all shadow-sm hover:shadow-md">
-            <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                  <p className="text-xs text-gray-500">Total Loaded</p>
-                  <p className="text-2xl font-bold text-blue-900">{totalShown}</p>
-              </div>
-              <FileText className="h-5 w-5 text-blue-600" />
-            </div>
-            </CardContent>
-          </Card>
-          <Card className="border-2 border-amber-200 hover:border-amber-400 transition-all shadow-sm hover:shadow-md">
-            <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                  <p className="text-xs text-gray-500">Submitted</p>
-                  <p className="text-2xl font-bold text-amber-900">{stats.submitted + stats.inReview}</p>
-              </div>
-              <Clock3 className="h-5 w-5 text-amber-600" />
-            </div>
-            </CardContent>
-          </Card>
-          <Card className="border-2 border-green-200 hover:border-green-400 transition-all shadow-sm hover:shadow-md">
-            <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                  <p className="text-xs text-gray-500">Approved</p>
-                  <p className="text-2xl font-bold text-green-900">{stats.approved}</p>
-              </div>
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-            </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="border-2 border-blue-200">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
+        <Card className="border-slate-200 bg-white shadow-sm">
+          <CardContent className="space-y-3 py-6">
+            <div className="flex flex-col gap-2 md:flex-row">
               <Input
-                className="border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-slate-400"
+                className="bg-white"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search by company, applicant, email, or phone"
@@ -410,92 +442,101 @@ export default function ApplicationsPage() {
                   if (e.key === "Enter") applySearch()
                 }}
               />
-              <Button onClick={applySearch} disabled={loading}>
-              <Search className="h-4 w-4 mr-2" />
-              Search
-            </Button>
-          </div>
+              <div className="flex gap-2">
+                <Button onClick={applySearch} disabled={loading}>
+                  <Search className="mr-2 h-4 w-4" />
+                  Search
+                </Button>
+                <Button onClick={clearSearch} disabled={loading || (!search && !searchInput)} variant="outline">
+                  Clear
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">
+              Showing {totalShown} records on this page {search ? `for "${search}"` : "with no active filters"}.
+            </p>
           </CardContent>
         </Card>
 
         {error && (
-          <Card className="border-2 border-red-200">
-            <CardContent className="py-6 text-sm text-red-600">{error}</CardContent>
-          </Card>
-        )}
-
-        <Card className="border-2 border-blue-200">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl font-bold text-blue-900">Applications ({totalShown})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border border-slate-200 overflow-x-auto bg-white">
-              <Table>
-                <TableHeader className="bg-slate-50">
-                  <TableRow>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Applicant</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead>Value Chains</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((app) => {
-                    const valueChains = Array.isArray(app.formData?.selectedValueChains)
-                      ? app.formData.selectedValueChains
-                      : []
-                    return (
-                      <TableRow key={app.id} className="hover:bg-slate-50/70">
-                        <TableCell className="font-medium">{app.companyName || "Untitled company"}</TableCell>
-                        <TableCell>{app.applicantName || "Unknown applicant"}</TableCell>
-                        <TableCell>{app.applicantEmail || "-"}</TableCell>
-                        <TableCell>{app.applicantPhone || "-"}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusTone(app.status)}>{app.status.replaceAll("_", " ")}</Badge>
-                        </TableCell>
-                        <TableCell>{new Date(app.createdAt).toLocaleString()}</TableCell>
-                        <TableCell className="max-w-[320px]">
-                          {valueChains.length === 0
-                            ? "-"
-                            : valueChains
-                                .slice(0, 3)
-                                .map((chain) => chain.label || chain.key || "Value chain")
-                                .join(", ")}
-                          {valueChains.length > 3 ? ` +${valueChains.length - 3} more` : ""}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-end">
-                            <Button variant="outline" size="sm" asChild>
-                              <Link href={`/${lang}/dashboard/applications/${app.id}`}>
-                              <Eye className="h-4 w-4 mr-1.5" />
-                              View details
-                              </Link>
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {!loading && totalShown === 0 && !error && (
-          <Card className="border-2 border-slate-200">
-            <CardContent className="py-8 text-center text-muted-foreground">
-              No applications found.
+          <Card className="border-red-200 bg-red-50/60 shadow-sm">
+            <CardContent className="flex items-start gap-2 py-4 text-sm text-red-700">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{error}</span>
             </CardContent>
           </Card>
         )}
 
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
+        <Card className="border-slate-200 bg-white shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-slate-900">Applications ({totalShown})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!loading && totalShown === 0 && !error ? (
+              <div className="flex min-h-[220px] flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center">
+                <Inbox className="mb-3 h-8 w-8 text-slate-500" />
+                <p className="text-sm font-medium text-slate-900">No applications found</p>
+                <p className="mt-1 text-sm text-slate-600">Try a different search term or clear filters.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-slate-200">
+                <Table>
+                  <TableHeader className="bg-slate-100/80">
+                    <TableRow>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead>Value Chains</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((app) => {
+                      const valueChains = Array.isArray(app.formData?.selectedValueChains)
+                        ? app.formData.selectedValueChains
+                        : []
+                      return (
+                        <TableRow key={app.id} className="hover:bg-slate-50">
+                          <TableCell className="font-medium">{app.companyName || "Untitled company"}</TableCell>
+                          <TableCell>{app.applicantEmail || "-"}</TableCell>
+                          <TableCell>{app.applicantPhone || "-"}</TableCell>
+                          <TableCell>
+                            <Badge className={getStatusTone(app.status)}>{formatStatusLabel(app.status)}</Badge>
+                          </TableCell>
+                          <TableCell>{new Date(app.createdAt).toLocaleString()}</TableCell>
+                          <TableCell className="max-w-[320px]">
+                            {valueChains.length === 0
+                              ? "-"
+                              : valueChains
+                                  .slice(0, 3)
+                                  .map((chain) => chain.label || chain.key || "Value chain")
+                                  .join(", ")}
+                            {valueChains.length > 3 ? ` +${valueChains.length - 3} more` : ""}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex justify-end">
+                              <Button variant="outline" size="sm" asChild>
+                                <Link href={`/${lang}/dashboard/applications/${app.id}`}>
+                                  <Eye className="mr-1.5 h-4 w-4" />
+                                  View
+                                </Link>
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-600">
             Page {pagination?.page ?? 1} of {Math.max(pagination?.totalPages ?? 1, 1)}
           </p>
           <div className="flex gap-2">
@@ -515,7 +556,6 @@ export default function ApplicationsPage() {
             </Button>
           </div>
         </div>
-
       </div>
     </div>
   )
