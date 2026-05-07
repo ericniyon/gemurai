@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 import Swal from "sweetalert2"
@@ -104,14 +105,6 @@ const PRIMARY_REASON: Option[] = [
   { value: "general_interest", label: "General interest only" },
 ]
 
-const NYAGATARE_CONNECTION: Option[] = [
-  { value: "live", label: "I live in Nyagatare" },
-  { value: "run_business", label: "I run a business in Nyagatare" },
-  { value: "plan_invest", label: "I plan to start/invest in Nyagatare within 6 months" },
-  { value: "from_nyagatare", label: "I am originally from Nyagatare" },
-  { value: "none", label: "No direct connection" },
-]
-
 const RWANDA_DISTRICTS = [
   "Bugesera",
   "Burera",
@@ -150,6 +143,7 @@ type FormState = {
   email: string
   phoneNumber: string
   companyName: string
+  companyDescription: string
   district: string
   ageGroup: string
   engagementLevel: string
@@ -162,7 +156,6 @@ type FormState = {
   innovationStage: string
   leadershipLevel: string
   primaryReason: string
-  nyagatareConnection: string
 }
 
 type FormErrors = Partial<Record<`q${number}`, string>>
@@ -172,6 +165,7 @@ const initialForm: FormState = {
   email: "",
   phoneNumber: "",
   companyName: "",
+  companyDescription: "",
   district: "",
   ageGroup: "",
   engagementLevel: "",
@@ -184,7 +178,6 @@ const initialForm: FormState = {
   innovationStage: "",
   leadershipLevel: "",
   primaryReason: "",
-  nyagatareConnection: "",
 }
 
 function SingleSelectQuestion({
@@ -303,7 +296,7 @@ export default function NexgenForumPage() {
     } else if (!isValidPhoneNumber(phone)) {
       nextErrors.q2 = "Phone Number must be 10 digits and start with 078, 079, 072, or 073."
     }
-    if (!form.companyName.trim()) nextErrors.q3 = "Question 2 is required."
+    if (!form.companyName.trim() || !form.companyDescription.trim()) nextErrors.q3 = "Question 2 is required."
     if (!form.district.trim()) nextErrors.q4 = "Question 3 is required."
     if (!form.ageGroup) nextErrors.q5 = "Question 4 is required."
     if (!form.engagementLevel) nextErrors.q6 = "Question 5 is required."
@@ -316,7 +309,6 @@ export default function NexgenForumPage() {
     if (!form.innovationStage) nextErrors.q13 = "Question 12 is required."
     if (!form.leadershipLevel) nextErrors.q14 = "Question 13 is required."
     if (!form.primaryReason) nextErrors.q15 = "Question 14 is required."
-    if (!form.nyagatareConnection) nextErrors.q16 = "Question 15 is required."
     return nextErrors
   }
 
@@ -335,7 +327,7 @@ export default function NexgenForumPage() {
       const payload = {
         companyName: form.companyName.trim(),
         applicantName: "Forum Applicant",
-        companyDescription: `District: ${form.district.trim()}${form.email.trim() ? ` | Email: ${form.email.trim()}` : ""}`,
+        companyDescription: form.companyDescription.trim(),
         ageGroup: form.ageGroup,
         currentSituation: form.currentSituation,
         engagementLevel: form.engagementLevel,
@@ -353,7 +345,6 @@ export default function NexgenForumPage() {
         primaryReason: form.primaryReason,
         postForumAction: "not_specified",
         weeklyCommitment: "not_specified",
-        nyagatareConnection: form.nyagatareConnection,
         selectedValueChains,
         districtResidence: form.district.trim(),
         phoneNumber: form.phoneNumber.trim(),
@@ -498,6 +489,18 @@ export default function NexgenForumPage() {
                   placeholder="Enter business name or idea title"
                   className="border-slate-300 bg-slate-50 focus-visible:border-emerald-500 focus-visible:ring-0"
                 />
+                <Label htmlFor="business-description" className="text-sm font-semibold text-slate-800">
+                  Describe your company or idea
+                </Label>
+                <Textarea
+                  id="business-description"
+                  value={form.companyDescription}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, companyDescription: event.target.value }))
+                  }
+                  placeholder="Briefly describe what your company does or the idea you want to build"
+                  className="min-h-[120px] border-slate-300 bg-slate-50 focus-visible:border-emerald-500 focus-visible:ring-0"
+                />
                 {errors.q3 ? <p className="text-xs font-medium text-red-600">{errors.q3}</p> : null}
               </div>
 
@@ -599,14 +602,6 @@ export default function NexgenForumPage() {
                 options={PRIMARY_REASON}
                 onChange={(value) => setForm((prev) => ({ ...prev, primaryReason: value }))}
                 error={errors.q15}
-              />
-
-              <SingleSelectQuestion
-                title="15. What is your connection to Nyagatare? (Select one that best applies to you)"
-                value={form.nyagatareConnection}
-                options={NYAGATARE_CONNECTION}
-                onChange={(value) => setForm((prev) => ({ ...prev, nyagatareConnection: value }))}
-                error={errors.q16}
               />
 
               {status ? <p className="text-sm font-medium text-red-600">{status}</p> : null}
