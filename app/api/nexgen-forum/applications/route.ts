@@ -2,27 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import { randomUUID } from "crypto"
 import { ensureDatabaseConnected, prisma } from "@/lib/database"
 
-const REQUIRED_FIELDS = [
-  "companyName",
-  "applicantName",
-  "companyDescription",
-  "ageGroup",
-  "currentSituation",
-  "engagementLevel",
-  "experienceDuration",
-  "businessStatus",
-  "teamSize",
-  "monthlyCustomers",
-  "monthlyRevenue",
-  "decisionStyle",
-  "innovationStage",
-  "leadershipLevel",
-  "groupType",
-  "primaryReason",
-  "postForumAction",
-  "weeklyCommitment",
-  "nyagatareConnection",
-]
+const PHONE_REGEX = /^(078|079|072|073)\d{7}$/
+
+const asText = (value: unknown, fallback = "not_specified") => {
+  if (typeof value !== "string") return fallback
+  const trimmed = value.trim()
+  return trimmed || fallback
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,38 +20,23 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    for (const field of REQUIRED_FIELDS) {
-      const value = body[field]
-      if (!value || typeof value !== "string" || !value.trim()) {
-        return NextResponse.json(
-          { success: false, error: `Missing required field: ${field}` },
-          { status: 400 }
-        )
-      }
-    }
-
-    if (!Array.isArray(body.growthPriorities) || body.growthPriorities.length !== 2) {
+    const phoneNumber = asText(body.phoneNumber || body.phone, "")
+    if (!phoneNumber) {
       return NextResponse.json(
-        { success: false, error: "Exactly two growth priorities are required." },
+        { success: false, error: "Phone Number is required." },
         { status: 400 }
       )
     }
 
-    if (!Array.isArray(body.toolsUsed)) {
+    if (!PHONE_REGEX.test(phoneNumber)) {
       return NextResponse.json(
-        { success: false, error: "Invalid tools selection." },
+        { success: false, error: "Phone Number must be 10 digits and start with 078, 079, 072, or 073." },
         { status: 400 }
       )
     }
 
-    if (!Array.isArray(body.selectedValueChains) || body.selectedValueChains.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "At least one value chain is required." },
-        { status: 400 }
-      )
-    }
-
-    const invalidValueChain = body.selectedValueChains.some(
+    const selectedValueChains = Array.isArray(body.selectedValueChains) ? body.selectedValueChains : []
+    const invalidValueChain = selectedValueChains.some(
       (item: { label?: string; details?: string }) =>
         !item || typeof item.label !== "string" || typeof item.details !== "string" || !item.details.trim()
     )
@@ -112,7 +83,31 @@ export async function POST(req: NextRequest) {
       );
     `)
 
+    await prisma.$executeRawUnsafe(`
+      CREATE UNIQUE INDEX IF NOT EXISTS nexgen_forum_applications_phone_unique_idx
+      ON nexgen_forum_applications ((COALESCE(payload->>'phoneNumber', payload->>'phone', '')));
+    `)
+
+    const duplicatePhoneRows = await prisma.$queryRawUnsafe<{ total: number }[]>(
+      `
+        SELECT COUNT(*)::int AS total
+        FROM nexgen_forum_applications
+        WHERE COALESCE(payload->>'phoneNumber', payload->>'phone', '') = $1
+      `,
+      phoneNumber
+    )
+    if ((duplicatePhoneRows[0]?.total ?? 0) > 0) {
+      return NextResponse.json(
+        { success: false, error: "This phone number has already submitted an application." },
+        { status: 409 }
+      )
+    }
+
     const submissionId = randomUUID()
+    const growthPriorities = Array.isArray(body.growthPriorities)
+      ? body.growthPriorities.map((item: unknown) => String(item))
+      : []
+    const toolsUsed = Array.isArray(body.toolsUsed) ? body.toolsUsed.map((item: unknown) => String(item)) : []
     await prisma.$executeRawUnsafe(
       `
         INSERT INTO nexgen_forum_applications (
@@ -129,29 +124,29 @@ export async function POST(req: NextRequest) {
         )
       `,
       submissionId,
-      String(body.companyName).trim(),
-      String(body.applicantName).trim(),
-      String(body.companyDescription).trim(),
-      String(body.ageGroup).trim(),
-      String(body.currentSituation).trim(),
-      String(body.engagementLevel).trim(),
-      String(body.experienceDuration).trim(),
-      String(body.businessStatus).trim(),
-      String(body.teamSize).trim(),
-      String(body.monthlyCustomers).trim(),
-      String(body.monthlyRevenue).trim(),
-      body.growthPriorities,
-      body.toolsUsed,
-      String(body.decisionStyle).trim(),
-      String(body.innovationStage).trim(),
-      String(body.leadershipLevel).trim(),
-      String(body.groupType).trim(),
-      String(body.primaryReason).trim(),
-      String(body.postForumAction).trim(),
-      String(body.weeklyCommitment).trim(),
-      String(body.nyagatareConnection).trim(),
-      JSON.stringify(body.selectedValueChains),
-      JSON.stringify(body)
+      asText(body.companyName, "Untitled application"),
+      asText(body.applicantName, "Forum Applicant"),
+      asText(body.companyDescription, "No description provided"),
+      asText(body.ageGroup),
+      asText(body.currentSituation),
+      asText(body.engagementLevel),
+      asText(body.experienceDuration),
+      asText(body.businessStatus),
+      asText(body.teamSize),
+      asText(body.monthlyCustomers),
+      asText(body.monthlyRevenue),
+      growthPriorities,
+      toolsUsed,
+      asText(body.decisionStyle),
+      asText(body.innovationStage),
+      asText(body.leadershipLevel),
+      asText(body.groupType),
+      asText(body.primaryReason),
+      asText(body.postForumAction),
+      asText(body.weeklyCommitment),
+      asText(body.nyagatareConnection),
+      JSON.stringify(selectedValueChains),
+      JSON.stringify({ ...body, phoneNumber })
     )
 
     return NextResponse.json({

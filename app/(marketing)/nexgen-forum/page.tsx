@@ -289,26 +289,12 @@ export default function NexgenForumPage() {
 
   const validate = (): FormErrors => {
     const nextErrors: FormErrors = {}
-    if (!form.currentSituation) nextErrors.q1 = "Question 1 is required."
     const phone = form.phoneNumber.trim()
     if (!phone) {
       nextErrors.q2 = "Phone Number is required."
     } else if (!isValidPhoneNumber(phone)) {
       nextErrors.q2 = "Phone Number must be 10 digits and start with 078, 079, 072, or 073."
     }
-    if (!form.companyName.trim() || !form.companyDescription.trim()) nextErrors.q3 = "Question 2 is required."
-    if (!form.district.trim()) nextErrors.q4 = "Question 3 is required."
-    if (!form.ageGroup) nextErrors.q5 = "Question 4 is required."
-    if (!form.engagementLevel) nextErrors.q6 = "Question 5 is required."
-    if (form.valueChains.length === 0) nextErrors.q7 = "Question 6 is required."
-    if (!form.experienceDuration) nextErrors.q8 = "Question 7 is required."
-    if (!form.teamSize) nextErrors.q9 = "Question 8 is required."
-    if (!form.monthlyCustomers) nextErrors.q10 = "Question 9 is required."
-    if (!form.monthlyRevenue) nextErrors.q11 = "Question 10 is required."
-    if (form.toolsUsed.length === 0) nextErrors.q12 = "Question 11 is required."
-    if (!form.innovationStage) nextErrors.q13 = "Question 12 is required."
-    if (!form.leadershipLevel) nextErrors.q14 = "Question 13 is required."
-    if (!form.primaryReason) nextErrors.q15 = "Question 14 is required."
     return nextErrors
   }
 
@@ -317,7 +303,13 @@ export default function NexgenForumPage() {
     const validationErrors = validate()
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) {
-      setStatus("Please fix the highlighted questions.")
+      await Swal.fire({
+        icon: "warning",
+        title: "Phone Number Required",
+        text: "Please enter your phone number before submitting.",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#f59e0b",
+      })
       return
     }
 
