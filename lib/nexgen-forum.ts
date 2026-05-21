@@ -1,0 +1,1 @@
+export const NEXGEN_FORUM_APPLICATIONS_OPEN = false

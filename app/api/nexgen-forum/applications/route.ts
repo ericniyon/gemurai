@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { randomUUID } from "crypto"
 import { ensureDatabaseConnected, prisma } from "@/lib/database"
+import { NEXGEN_FORUM_APPLICATIONS_OPEN } from "@/lib/nexgen-forum"
 
 const PHONE_REGEX = /^(078|079|072|073)\d{7}$/
 
@@ -12,6 +13,13 @@ const asText = (value: unknown, fallback = "not_specified") => {
 
 export async function POST(req: NextRequest) {
   try {
+    if (!NEXGEN_FORUM_APPLICATIONS_OPEN) {
+      return NextResponse.json(
+        { success: false, error: "Applications are now closed. We are no longer accepting new submissions." },
+        { status: 403 }
+      )
+    }
+
     const body = await req.json().catch(() => null)
     if (!body || typeof body !== "object") {
       return NextResponse.json(

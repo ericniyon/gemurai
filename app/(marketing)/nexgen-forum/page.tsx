@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
-import { Loader2 } from "lucide-react"
+import { Loader2, Lock } from "lucide-react"
 import Swal from "sweetalert2"
+import { NEXGEN_FORUM_APPLICATIONS_OPEN } from "@/lib/nexgen-forum"
 
 type Option = { value: string; label: string }
 
@@ -399,10 +400,29 @@ export default function NexgenForumPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Application Form</CardTitle>
-            <p className="text-sm text-slate-600">Section 1: Basic Qualification</p>
+            <CardTitle>
+              {NEXGEN_FORUM_APPLICATIONS_OPEN ? "Application Form" : "Applications Closed"}
+            </CardTitle>
+            {NEXGEN_FORUM_APPLICATIONS_OPEN ? (
+              <p className="text-sm text-slate-600">Section 1: Basic Qualification</p>
+            ) : null}
           </CardHeader>
           <CardContent>
+            {!NEXGEN_FORUM_APPLICATIONS_OPEN ? (
+              <div className="flex flex-col items-center gap-4 py-8 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
+                  <Lock className="h-7 w-7 text-amber-700" />
+                </div>
+                <p className="max-w-md text-base font-medium text-slate-800">
+                  We are no longer accepting applications for the Nyagatare Next-Gen Farmers Business
+                  Forum.
+                </p>
+                <p className="max-w-md text-sm text-slate-600">
+                  The application period has ended. Thank you to everyone who applied. For questions,
+                  please contact us at +250 782 817 454.
+                </p>
+              </div>
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-8">
               <SingleSelectQuestion
                 title="1. What are you applying with? (Select one that best applies to you)"
@@ -613,6 +633,7 @@ export default function NexgenForumPage() {
                 )}
               </Button>
             </form>
+            )}
           </CardContent>
         </Card>
       </div>
