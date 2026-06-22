@@ -517,3 +517,46 @@ export async function recoverStuckExportJobs(params?: {
 
   return { recovered: stuck.length, jobs: stuck.map((job) => job.id) }
 }
+
+function isPrismaMissingTable(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: string }).code === "P2021"
+  )
+}
+
+/** Safe read when Phase 9 reporting tables may not be migrated yet. */
+export async function safeSoromaExportJobCount(
+  args?: Parameters<typeof prisma.soromaExportJob.count>[0]
+): Promise<number> {
+  try {
+    return await prisma.soromaExportJob.count(args)
+  } catch (error) {
+    if (isPrismaMissingTable(error)) return 0
+    throw error
+  }
+}
+
+export async function safeSoromaExportJobFindMany(
+  args?: Parameters<typeof prisma.soromaExportJob.findMany>[0]
+): Promise<Awaited<ReturnType<typeof prisma.soromaExportJob.findMany>>> {
+  try {
+    return await prisma.soromaExportJob.findMany(args)
+  } catch (error) {
+    if (isPrismaMissingTable(error)) return []
+    throw error
+  }
+}
+
+export async function safeSoromaReportScheduleFindMany(
+  args?: Parameters<typeof prisma.soromaReportSchedule.findMany>[0]
+): Promise<Awaited<ReturnType<typeof prisma.soromaReportSchedule.findMany>>> {
+  try {
+    return await prisma.soromaReportSchedule.findMany(args)
+  } catch (error) {
+    if (isPrismaMissingTable(error)) return []
+    throw error
+  }
+}

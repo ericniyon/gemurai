@@ -1,5 +1,6 @@
 import { SoromaModuleDashboard } from "@/components/soroma/module-dashboard"
 import { formatSoromaCurrency } from "@/lib/soroma/formatters"
+import { safeSoromaExportJobCount } from "@/lib/soroma/reporting"
 import { prisma } from "@/lib/database"
 
 export default async function PlatformBillingPage() {
@@ -22,7 +23,7 @@ export default async function PlatformBillingPage() {
       where: { recordType: "RECEIVABLE", paidAt: null },
       _sum: { amount: true },
     }),
-    prisma.soromaExportJob.count(),
+    safeSoromaExportJobCount(),
   ])
 
   const totalRevenue = Number(revenueAgg._sum.amount ?? 0)
