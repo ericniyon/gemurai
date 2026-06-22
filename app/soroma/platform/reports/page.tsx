@@ -1,14 +1,17 @@
 import { SoromaModuleDashboard } from "@/components/soroma/module-dashboard"
-import { prisma } from "@/lib/database"
+import {
+  safeSoromaExportJobFindMany,
+  safeSoromaReportScheduleFindMany,
+} from "@/lib/soroma/reporting"
 
 export default async function PlatformReportsPage() {
   const [exportJobs, schedules] = await Promise.all([
-    prisma.soromaExportJob.findMany({
+    safeSoromaExportJobFindMany({
       where: { workspaceType: "PLATFORM" },
       orderBy: { createdAt: "desc" },
       take: 50,
     }),
-    prisma.soromaReportSchedule.findMany({
+    safeSoromaReportScheduleFindMany({
       where: { workspaceType: "PLATFORM" },
       orderBy: { createdAt: "desc" },
       take: 50,
