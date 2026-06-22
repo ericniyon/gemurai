@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import "./soroma.css"
 
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "SOROMA FOODS | Agroprocessor OS",
   description: "Multi-tenant agroprocessor operating system",
