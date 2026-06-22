@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate || true",
-    "prebuild": "prisma generate",
+    "prebuild": "prisma generate && prisma migrate deploy",
     "clean": "rm -rf .next node_modules package-lock.json && npm install",
     "fix-build": "tsx scripts/fix-build-error.ts",
     "fix-webpack": "tsx scripts/fix-webpack-error.ts",
