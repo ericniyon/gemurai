@@ -1,0 +1,199 @@
+import type { PlatformRole, TenantRole } from "./constants"
+import { PLATFORM_ROLES, TENANT_ROLES } from "./constants"
+import {
+  SOROMA_PERMISSIONS as P,
+  hasAnyPermission,
+  permissionSatisfies,
+} from "./permissions"
+
+export type SoromaWorkspace = "platform" | "tenant"
+
+/** Platform role → permission keys (code fallback; seeded to DB in Phase 2.1) */
+export const PLATFORM_ROLE_PERMISSIONS: Record<string, string[]> = {
+  PLATFORM_SUPER_ADMIN: [
+    P.PLATFORM_VIEW,
+    P.PLATFORM_MANAGE,
+    P.TENANTS_VIEW,
+    P.TENANTS_MANAGE,
+    P.ONBOARDING_MANAGE,
+    P.PROGRAM_VIEW,
+    P.PROGRAM_MANAGE,
+    P.ME_VIEW,
+    P.COMPLIANCE_VIEW,
+    P.ALERTS_VIEW,
+    P.ALERTS_MANAGE,
+    P.INTEGRATIONS_MANAGE,
+    P.INTEGRATION_HEALTH_VIEW,
+    P.REPORTS_MANAGE,
+    P.EXPORTS_MANAGE,
+    P.USERS_ROLES_VIEW,
+    P.USERS_ROLES_MANAGE,
+    P.BILLING_VIEW,
+    P.BILLING_MANAGE,
+    P.AUDIT_VIEW,
+    P.AUDIT_MANAGE,
+    P.WIDGET_EXECUTIVE,
+    P.WIDGET_COMPLIANCE,
+    P.WIDGET_FINANCIALS,
+    P.USERS_MANAGE,
+    P.INTEGRATIONS_RETRY,
+  ],
+  PLATFORM_OPERATOR: [
+    P.PLATFORM_VIEW,
+    P.TENANTS_VIEW,
+    P.TENANTS_MANAGE,
+    P.ONBOARDING_MANAGE,
+    P.ALERTS_VIEW,
+    P.ALERTS_MANAGE,
+    P.USERS_ROLES_VIEW,
+    P.BILLING_VIEW,
+    P.REPORTS_MANAGE,
+    P.AUDIT_VIEW,
+    P.WIDGET_EXECUTIVE,
+  ],
+  PLATFORM_COMPLIANCE_OFFICER: [
+    P.PLATFORM_VIEW,
+    P.COMPLIANCE_VIEW,
+    P.ALERTS_VIEW,
+    P.WIDGET_COMPLIANCE,
+  ],
+  INTEGRATION_MANAGER: [
+    P.PLATFORM_VIEW,
+    P.INTEGRATIONS_MANAGE,
+    P.INTEGRATION_HEALTH_VIEW,
+    P.INTEGRATIONS_RETRY,
+    P.REPORTS_MANAGE,
+    P.EXPORTS_MANAGE,
+  ],
+  ME_OFFICER: [P.PLATFORM_VIEW, P.ME_VIEW, P.PROGRAM_VIEW, P.WIDGET_EXECUTIVE],
+  SUPPORT_AGENT: [
+    P.PLATFORM_VIEW,
+    P.TENANTS_VIEW,
+    P.ONBOARDING_MANAGE,
+    P.ALERTS_VIEW,
+  ],
+}
+
+/** Tenant role → permission keys (code fallback; seeded to DB in Phase 2.1) */
+export const TENANT_ROLE_PERMISSIONS: Record<string, string[]> = {
+  TENANT_ADMIN: [
+    P.TENANT_VIEW,
+    P.TENANT_MANAGE,
+    P.SUPPLIERS_VIEW,
+    P.SUPPLIERS_MANAGE,
+    P.PROCUREMENT_VIEW,
+    P.PROCUREMENT_MANAGE,
+    P.PRODUCTION_VIEW,
+    P.PRODUCTION_MANAGE,
+    P.INVENTORY_VIEW,
+    P.INVENTORY_MANAGE,
+    P.ORDERS_VIEW,
+    P.ORDERS_MANAGE,
+    P.LOGISTICS_VIEW,
+    P.LOGISTICS_MANAGE,
+    P.ALERTS_VIEW,
+    P.ALERTS_MANAGE,
+    P.TRACEABILITY_VIEW,
+    P.TRACEABILITY_MANAGE,
+    P.COMPLIANCE_MANAGE,
+    P.INTEGRATIONS_VIEW,
+    P.INTEGRATIONS_MANAGE,
+    P.FINANCE_VIEW,
+    P.FINANCE_MANAGE,
+    P.FINANCE_EXPORT,
+    P.REPORTS_VIEW,
+    P.REPORTS_MANAGE,
+    P.EXPORTS_MANAGE,
+    P.AUDIT_VIEW,
+    P.PO_APPROVE,
+    P.USERS_MANAGE,
+    P.WIDGET_EXECUTIVE,
+    P.WIDGET_FINANCIALS,
+  ],
+  SUPPLIER_MANAGER: [
+    P.TENANT_VIEW,
+    P.SUPPLIERS_VIEW,
+    P.SUPPLIERS_MANAGE,
+    P.PROCUREMENT_VIEW,
+  ],
+  PROCUREMENT_OFFICER: [
+    P.TENANT_VIEW,
+    P.PROCUREMENT_VIEW,
+    P.PROCUREMENT_MANAGE,
+    P.INVENTORY_VIEW,
+    P.PO_APPROVE,
+    P.ALERTS_VIEW,
+  ],
+  PRODUCTION_LEAD: [
+    P.TENANT_VIEW,
+    P.PRODUCTION_VIEW,
+    P.PRODUCTION_MANAGE,
+    P.TRACEABILITY_VIEW,
+  ],
+  WAREHOUSE_MANAGER: [
+    P.TENANT_VIEW,
+    P.INVENTORY_VIEW,
+    P.INVENTORY_MANAGE,
+    P.LOGISTICS_VIEW,
+  ],
+  SALES_ORDERS_OFFICER: [
+    P.TENANT_VIEW,
+    P.ORDERS_VIEW,
+    P.ORDERS_MANAGE,
+    P.INTEGRATIONS_VIEW,
+  ],
+  LOGISTICS_COORDINATOR: [
+    P.TENANT_VIEW,
+    P.LOGISTICS_VIEW,
+    P.LOGISTICS_MANAGE,
+    P.ALERTS_VIEW,
+  ],
+  FINANCE_MANAGER: [
+    P.TENANT_VIEW,
+    P.FINANCE_VIEW,
+    P.FINANCE_MANAGE,
+    P.FINANCE_EXPORT,
+    P.REPORTS_VIEW,
+    P.EXPORTS_MANAGE,
+    P.WIDGET_FINANCIALS,
+  ],
+  QA_COMPLIANCE_OFFICER: [
+    P.TENANT_VIEW,
+    P.COMPLIANCE_MANAGE,
+    P.ALERTS_VIEW,
+    P.ALERTS_MANAGE,
+    P.TRACEABILITY_VIEW,
+    P.TRACEABILITY_MANAGE,
+    P.WIDGET_COMPLIANCE,
+  ],
+  REPORTS_VIEWER: [P.TENANT_VIEW, P.REPORTS_VIEW, P.AUDIT_VIEW, P.WIDGET_EXECUTIVE],
+}
+
+export function resolvePlatformPermissions(
+  role: string,
+  isSuperAdmin: boolean
+): string[] {
+  if (isSuperAdmin) {
+    return PLATFORM_ROLE_PERMISSIONS.PLATFORM_SUPER_ADMIN
+  }
+  const key = PLATFORM_ROLES.includes(role as PlatformRole)
+    ? role
+    : "PLATFORM_OPERATOR"
+  return [...(PLATFORM_ROLE_PERMISSIONS[key] ?? [P.PLATFORM_VIEW])]
+}
+
+export function resolveTenantPermissions(role: string): string[] {
+  const key = TENANT_ROLES.includes(role as TenantRole) ? role : "TENANT_ADMIN"
+  return [...(TENANT_ROLE_PERMISSIONS[key] ?? [P.TENANT_VIEW])]
+}
+
+export function sessionHasPermission(
+  permissions: string[],
+  required: string | string[],
+  mode: "any" | "all" = "any"
+): boolean {
+  if (mode === "all" && Array.isArray(required)) {
+    return required.every((p) => permissionSatisfies(permissions, p))
+  }
+  return hasAnyPermission(permissions, required)
+}

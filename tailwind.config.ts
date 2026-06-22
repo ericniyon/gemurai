@@ -103,6 +103,19 @@ const config = {
         "yden-green": "#10b981",
         "auth-blue": "#0D47A1",
         "auth-blue-dark": "#0a3a8a",
+        soroma: {
+          green: {
+            900: "#003D1F",
+            700: "#006B2D",
+            600: "#0B7A32",
+            100: "#E8F5EA",
+          },
+          orange: { 600: "#F97316" },
+          amber: { 500: "#F59E0B" },
+          red: { 600: "#DC2626" },
+          blue: { 600: "#2563EB" },
+          page: "#F8FAF8",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

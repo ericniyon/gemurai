@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { Menu, X } from "lucide-react"
+import { Menu, X, Leaf } from "lucide-react"
 import Button from "./ui/button"
 import { usePublicSettings } from "@/lib/public-settings-context"
 
@@ -85,14 +85,20 @@ export function YdenNavigation() {
                 </Link>
               )
             })}
-            <div className="pl-2">
-              <Button
-                to="/nexgen-forum"
-                variant="secondary"
-                className="py-2 px-4 text-sm mr-2"
+            <div className="pl-2 flex items-center gap-2">
+              <Link
+                href="https://agrproccessing.vercel.app/login"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                  scrolled || pathname !== "/"
+                    ? "border border-[#006b2d] text-[#006b2d] hover:bg-[#e8f5ea]"
+                    : "border border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm"
+                }`}
               >
-                Application
-              </Button>
+                <Leaf className="h-4 w-4" />
+                SOROMA FOODS
+              </Link>
               <Button
                 to="/en/login"
                 variant={scrolled || pathname !== "/" ? "primary" : "secondary"}
@@ -142,9 +148,15 @@ export function YdenNavigation() {
 
           <div className="border-t border-slate-100 my-4 pt-4">
             <div className="px-4 space-y-3">
-              <Button to="/nexgen-forum" variant="secondary" className="w-full justify-center py-3">
-                Application
-              </Button>
+              <Link
+                href="https://agrproccessing.vercel.app/login"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#006b2d] px-4 py-3 text-base font-semibold text-[#006b2d] hover:bg-[#e8f5ea] transition-colors"
+              >
+                <Leaf className="h-5 w-5" />
+                SOROMA FOODS OS
+              </Link>
               <Button to="/en/login" variant="primary" className="w-full justify-center py-3">
                 Join YDEN
               </Button>

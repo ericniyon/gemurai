@@ -67,6 +67,11 @@ export function YdenFooter() {
                   News & Events
                 </Link>
               </li>
+              <li>
+                <Link href="/soroma/login" className="hover:text-white transition-colors">
+                  SOROMA FOODS OS
+                </Link>
+              </li>
             </ul>
           </div>
 

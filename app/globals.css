@@ -1200,3 +1200,40 @@ html {
 .shadow-3xl {
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
+/* ===== SOROMA FOODS BRAND TOKENS ===== */
+:root {
+  --sf-green-900: #003D1F;
+  --sf-green-700: #006B2D;
+  --sf-green-600: #0B7A32;
+  --sf-green-100: #E8F5EA;
+  --sf-orange-600: #F97316;
+  --sf-amber-500: #F59E0B;
+  --sf-red-600: #DC2626;
+  --sf-blue-600: #2563EB;
+  --sf-surface: #FFFFFF;
+  --sf-page-bg: #F8FAF8;
+  --sf-border: #E5E7EB;
+  --sf-text-primary: #111827;
+  --sf-text-muted: #6B7280;
+  
+  --sf-radius-lg: 1rem;
+}
+
+.sf-card {
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+}
+
+.sf-card-elevated {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.sf-btn-primary {
+  background-color: var(--sf-green-700);
+  color: #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.sf-btn-primary:hover:not(:disabled) {
+  background-color: var(--sf-green-900);
+}

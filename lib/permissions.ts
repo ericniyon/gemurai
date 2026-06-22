@@ -20,6 +20,50 @@ export interface Role {
 
 export const PERMISSIONS: Permission[] = [
   // Dashboard
+  // SOROMA FOODS
+  {
+    id: "soroma.platform.view",
+    name: "SOROMA Platform View",
+    description: "Access SOROMA platform admin workspace",
+    category: "SOROMA",
+  },
+  {
+    id: "soroma.tenant.view",
+    name: "SOROMA Tenant View",
+    description: "Access SOROMA tenant workspace",
+    category: "SOROMA",
+  },
+  {
+    id: "soroma.tenant.manage",
+    name: "SOROMA Tenant Manage",
+    description: "Manage SOROMA tenant settings and users",
+    category: "SOROMA",
+  },
+  {
+    id: "soroma.suppliers.manage",
+    name: "SOROMA Suppliers",
+    description: "Manage suppliers in SOROMA",
+    category: "SOROMA",
+  },
+  {
+    id: "soroma.procurement.manage",
+    name: "SOROMA Procurement",
+    description: "Manage procurement in SOROMA",
+    category: "SOROMA",
+  },
+  {
+    id: "soroma.traceability.manage",
+    name: "SOROMA Traceability",
+    description: "Issue and manage product passports",
+    category: "SOROMA",
+  },
+  {
+    id: "soroma.finance.export",
+    name: "SOROMA Finance Export",
+    description: "Export financial reports from SOROMA",
+    category: "SOROMA",
+  },
+
   {
     id: "dashboard.view",
     name: "View Dashboard",

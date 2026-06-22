@@ -95,6 +95,8 @@ model User {
   userTrainingProgress         UserTrainingProgress[]
   userCertifications           UserCertification[]
   availabilitySignalsCreated   pre_collection_availability_signals[] @relation("AvailabilitySignalsCreated")
+  soromaTenantMemberships      SoromaTenantMembership[]
+  soromaPlatformMembership   SoromaPlatformMembership?
 
   @@index([mccId])
   @@index([pharmacyId])
@@ -2946,4 +2948,1109 @@ model UserCertification {
   @@index([moduleId])
   @@index([certificateNumber])
   @@map("user_certifications")
+}
+
+// ============================================
+// SOROMA FOODS: Multi-Tenant Agroprocessor OS
+// ============================================
+
+enum SoromaWorkspaceType {
+  PLATFORM
+  TENANT
+}
+
+enum SoromaTenantStatus {
+  ACTIVE
+  SUSPENDED
+  ONBOARDING
+  INACTIVE
+}
+
+enum SoromaSupplierType {
+  COOPERATIVE
+  SMALLHOLDER_GROUP
+  COMPANY
+  INDIVIDUAL
+}
+
+enum SoromaPOStatus {
+  REQUESTED
+  RFQ_SENT
+  AWAITING_APPROVAL
+  APPROVED
+  PARTIALLY_RECEIVED
+  CLOSED
+  CANCELLED
+}
+
+enum SoromaBatchStatus {
+  PLANNED
+  STARTED
+  IN_PROGRESS
+  QC_REVIEW
+  COMPLETED
+  ARCHIVED
+  ON_HOLD
+  CANCELLED
+}
+
+enum SoromaOrderStatus {
+  DRAFT
+  QUOTED
+  CONFIRMED
+  IN_FULFILLMENT
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum SoromaShipmentStatus {
+  PLANNED
+  ASSIGNED
+  IN_TRANSIT
+  DELIVERED
+  POD_RECEIVED
+  CLOSED
+  DELAYED
+  CANCELLED
+}
+
+enum SoromaPassportStatus {
+  DRAFT
+  ISSUED
+  REVOKED
+  RECALLED
+}
+
+enum SoromaAlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SoromaAlertStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum SoromaConnectorStatus {
+  CONNECTED
+  PARTIAL
+  DOWN
+  PENDING
+}
+
+enum SoromaOnboardingStage {
+  APPLICATION_RECEIVED
+  UNDER_REVIEW
+  ASSESSMENT
+  SETUP
+  COMPLETED
+  REJECTED
+}
+
+model SoromaTenant {
+  id               String             @id @default(cuid())
+  name             String
+  slug             String             @unique
+  logo             String?
+  country          String             @default("RW")
+  currency         String             @default("RWF")
+  timezone         String             @default("Africa/Kigali")
+  valueChain       String?
+  status           SoromaTenantStatus @default(ONBOARDING)
+  onboardingStage  SoromaOnboardingStage @default(APPLICATION_RECEIVED)
+  complianceScore  Float?
+  district         String?
+  region           String?
+  contactEmail     String?
+  contactPhone     String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  memberships      SoromaTenantMembership[]
+  suppliers        SoromaSupplier[]
+  purchaseOrders   SoromaPurchaseOrder[]
+  batches          SoromaProductionBatch[]
+  warehouses       SoromaWarehouse[]
+  stockLots        SoromaStockLot[]
+  buyers           SoromaBuyer[]
+  orders           SoromaOrder[]
+  shipments        SoromaShipment[]
+  passports        SoromaPassport[]
+  certifications   SoromaCertification[]
+  audits           SoromaAudit[]
+  capas            SoromaCAPA[]
+  qcTests          SoromaQCTest[]
+  connections      SoromaTenantConnection[]
+  alerts           SoromaAlert[]
+  auditLogs        SoromaAuditLog[]
+  financeRecords   SoromaFinanceRecord[]
+  exportJobs       SoromaExportJob[]
+  reportSchedules  SoromaReportSchedule[]
+
+  @@index([status])
+  @@index([country])
+  @@map("soroma_tenants")
+}
+
+model SoromaTenantMembership {
+  id        String   @id @default(cuid())
+  userId    String
+  tenantId  String
+  role      String // TENANT_ADMIN, SUPPLIER_MANAGER, etc.
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant SoromaTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@index([tenantId])
+  @@index([userId])
+  @@map("soroma_tenant_memberships")
+}
+
+model SoromaPlatformMembership {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  role      String // PLATFORM_OPERATOR, PLATFORM_SUPER_ADMIN, etc.
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("soroma_platform_memberships")
+}
+
+model SoromaSupplier {
+  id               String             @id @default(cuid())
+  tenantId         String
+  name             String
+  type             SoromaSupplierType @default(COMPANY)
+  commodity        String?
+  district         String?
+  contactPhone     String?
+  contactEmail     String?
+  qualityScore     Float?
+  complianceStatus String             @default("PENDING")
+  status           String             @default("PENDING") // PENDING, ACTIVE, SUSPENDED
+  gpsLatitude      Float?
+  gpsLongitude     Float?
+  metadata         Json?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  tenant         SoromaTenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  purchaseOrders SoromaPurchaseOrder[]
+  rawMaterialLots SoromaRawMaterialLot[]
+  issues         SoromaSupplierIssue[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("soroma_suppliers")
+}
+
+model SoromaSupplierIssue {
+  id         String   @id @default(cuid())
+  tenantId   String
+  supplierId String
+  title      String
+  severity   SoromaAlertSeverity @default(MEDIUM)
+  status     SoromaAlertStatus   @default(OPEN)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  supplier SoromaSupplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([supplierId])
+  @@map("soroma_supplier_issues")
+}
+
+model SoromaPurchaseOrder {
+  id           String         @id @default(cuid())
+  tenantId     String
+  supplierId   String
+  poNumber     String
+  commodity    String?
+  orderDate    DateTime       @default(now())
+  deliveryDate DateTime?
+  amount       Decimal        @default(0) @db.Decimal(18, 2)
+  currency     String         @default("RWF")
+  status       SoromaPOStatus @default(REQUESTED)
+  notes        String?
+  createdById  String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  tenant   SoromaTenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  supplier SoromaSupplier      @relation(fields: [supplierId], references: [id])
+  lines    SoromaPurchaseOrderLine[]
+  receipts SoromaRawMaterialLot[]
+
+  @@unique([tenantId, poNumber])
+  @@index([tenantId])
+  @@index([status])
+  @@map("soroma_purchase_orders")
+}
+
+model SoromaPurchaseOrderLine {
+  id              String  @id @default(cuid())
+  purchaseOrderId String
+  description     String
+  quantity        Float
+  unit            String  @default("kg")
+  unitPrice       Decimal @default(0) @db.Decimal(18, 2)
+  lineTotal       Decimal @default(0) @db.Decimal(18, 2)
+
+  purchaseOrder SoromaPurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+
+  @@index([purchaseOrderId])
+  @@map("soroma_purchase_order_lines")
+}
+
+model SoromaRawMaterialLot {
+  id              String   @id @default(cuid())
+  tenantId        String
+  supplierId      String?
+  purchaseOrderId String?
+  lotNumber       String
+  commodity       String?
+  quantity        Float
+  unit            String   @default("kg")
+  receivedAt      DateTime @default(now())
+  expiryDate      DateTime?
+  qcStatus        String   @default("PENDING")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  supplier      SoromaSupplier?      @relation(fields: [supplierId], references: [id])
+  purchaseOrder SoromaPurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  batchInputs   SoromaBatchMaterialInput[]
+
+  @@unique([tenantId, lotNumber])
+  @@index([tenantId])
+  @@map("soroma_raw_material_lots")
+}
+
+model SoromaProductionLine {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  batches SoromaProductionBatch[]
+
+  @@index([tenantId])
+  @@map("soroma_production_lines")
+}
+
+model SoromaProductionBatch {
+  id           String            @id @default(cuid())
+  tenantId     String
+  batchNumber  String
+  productName  String?
+  lineId       String?
+  status       SoromaBatchStatus @default(PLANNED)
+  startedAt    DateTime?
+  completedAt  DateTime?
+  outputQty    Float?
+  expectedQty  Float?
+  yieldPct     Float?
+  wastagePct   Float?
+  notes        String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  tenant     SoromaTenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  line       SoromaProductionLine?   @relation(fields: [lineId], references: [id])
+  inputs     SoromaBatchMaterialInput[]
+  outputs    SoromaFinishedSkuLot[] @relation("BatchOutputs")
+  stockLots  SoromaStockLot[]
+  downtime   SoromaDowntimeEvent[]
+  qcExceptions SoromaQCException[]
+  passports  SoromaPassport[]
+
+  @@unique([tenantId, batchNumber])
+  @@index([tenantId])
+  @@index([status])
+  @@map("soroma_production_batches")
+}
+
+model SoromaBatchMaterialInput {
+  id              String @id @default(cuid())
+  batchId         String
+  rawMaterialLotId String
+  quantityUsed    Float
+
+  batch          SoromaProductionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  rawMaterialLot SoromaRawMaterialLot  @relation(fields: [rawMaterialLotId], references: [id])
+
+  @@index([batchId])
+  @@map("soroma_batch_material_inputs")
+}
+
+model SoromaDowntimeEvent {
+  id        String   @id @default(cuid())
+  batchId   String?
+  lineId    String?
+  reason    String
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+  minutes   Int?
+
+  batch SoromaProductionBatch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId])
+  @@map("soroma_downtime_events")
+}
+
+model SoromaQCException {
+  id        String   @id @default(cuid())
+  batchId   String
+  testType  String
+  result    String
+  severity  SoromaAlertSeverity @default(MEDIUM)
+  notes     String?
+  createdAt DateTime @default(now())
+
+  batch SoromaProductionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId])
+  @@map("soroma_qc_exceptions")
+}
+
+model SoromaWarehouse {
+  id        String   @id @default(cuid())
+  tenantId  String
+  name      String
+  location  String?
+  capacity  Float?
+  utilizationPct Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    SoromaTenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stockLots SoromaStockLot[]
+
+  @@index([tenantId])
+  @@map("soroma_warehouses")
+}
+
+model SoromaStockLot {
+  id              String   @id @default(cuid())
+  tenantId        String
+  warehouseId     String?
+  skuCode         String
+  skuName         String
+  category        String? // RAW, WIP, FINISHED, PACKAGING
+  quantity        Float
+  availableQty    Float
+  committedQty    Float    @default(0)
+  unit            String   @default("units")
+  expiryDate      DateTime?
+  batchId         String?
+  status          String   @default("AVAILABLE")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant    SoromaTenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  warehouse SoromaWarehouse?     @relation(fields: [warehouseId], references: [id])
+  batch     SoromaProductionBatch? @relation(fields: [batchId], references: [id])
+  movements SoromaStockMovement[]
+  finishedSkuLot SoromaFinishedSkuLot?
+
+  @@index([tenantId])
+  @@index([warehouseId])
+  @@index([category])
+  @@map("soroma_stock_lots")
+}
+
+model SoromaFinishedSkuLot {
+  id        String   @id @default(cuid())
+  tenantId  String
+  batchId   String
+  skuCode   String
+  skuName   String
+  quantity  Float
+  stockLotId String? @unique
+  createdAt DateTime @default(now())
+
+  batch    SoromaProductionBatch @relation("BatchOutputs", fields: [batchId], references: [id], onDelete: Cascade)
+  stockLot SoromaStockLot?       @relation(fields: [stockLotId], references: [id])
+
+  @@index([tenantId])
+  @@index([batchId])
+  @@map("soroma_finished_sku_lots")
+}
+
+model SoromaStockMovement {
+  id           String   @id @default(cuid())
+  tenantId     String
+  stockLotId   String
+  movementType String // IN, OUT, TRANSFER, ADJUSTMENT
+  quantity     Float
+  source       String?
+  destination  String?
+  reference    String?
+  createdById  String?
+  createdAt    DateTime @default(now())
+
+  stockLot SoromaStockLot @relation(fields: [stockLotId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([stockLotId])
+  @@map("soroma_stock_movements")
+}
+
+model SoromaBuyer {
+  id             String   @id @default(cuid())
+  tenantId       String
+  name           String
+  segment        String? // INSTITUTIONAL, RETAIL, EXPORT, B2B
+  location       String?
+  district       String?
+  status         String   @default("ACTIVE")
+  contractStatus String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant SoromaTenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orders SoromaOrder[]
+  issues SoromaCustomerIssue[]
+
+  @@index([tenantId])
+  @@map("soroma_buyers")
+}
+
+model SoromaCustomerIssue {
+  id        String   @id @default(cuid())
+  tenantId  String
+  buyerId   String
+  title     String
+  severity  SoromaAlertSeverity @default(MEDIUM)
+  status    SoromaAlertStatus   @default(OPEN)
+  createdAt DateTime @default(now())
+
+  buyer SoromaBuyer @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("soroma_customer_issues")
+}
+
+model SoromaOrder {
+  id                String            @id @default(cuid())
+  tenantId          String
+  buyerId           String
+  orderNumber       String
+  orderDate         DateTime          @default(now())
+  amount            Decimal           @default(0) @db.Decimal(18, 2)
+  currency          String            @default("RWF")
+  status            SoromaOrderStatus @default(DRAFT)
+  fulfillmentStatus String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  tenant    SoromaTenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  buyer     SoromaBuyer      @relation(fields: [buyerId], references: [id])
+  lines     SoromaOrderLine[]
+  shipments SoromaShipment[]
+  invoices  SoromaInvoice[]
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
+  @@index([status])
+  @@map("soroma_orders")
+}
+
+model SoromaOrderLine {
+  id          String  @id @default(cuid())
+  orderId     String
+  skuCode     String
+  skuName     String
+  quantity    Float
+  unitPrice   Decimal @default(0) @db.Decimal(18, 2)
+  lineTotal   Decimal @default(0) @db.Decimal(18, 2)
+
+  order SoromaOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("soroma_order_lines")
+}
+
+model SoromaShipment {
+  id           String               @id @default(cuid())
+  tenantId     String
+  orderId      String?
+  shipmentNumber String
+  vehicleId    String?
+  driverName   String?
+  routeName    String?
+  status       SoromaShipmentStatus @default(PLANNED)
+  dispatchAt   DateTime?
+  deliveredAt  DateTime?
+  podStatus    String?
+  costAmount   Decimal?             @db.Decimal(18, 2)
+  currency     String               @default("RWF")
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  tenant SoromaTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order  SoromaOrder? @relation(fields: [orderId], references: [id])
+  stops  SoromaDeliveryStop[]
+  exceptions SoromaLogisticsException[]
+
+  @@unique([tenantId, shipmentNumber])
+  @@index([tenantId])
+  @@index([status])
+  @@map("soroma_shipments")
+}
+
+model SoromaDeliveryStop {
+  id         String   @id @default(cuid())
+  shipmentId String
+  sequence   Int
+  location   String
+  status     String   @default("PLANNED")
+  arrivedAt  DateTime?
+
+  shipment SoromaShipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@map("soroma_delivery_stops")
+}
+
+model SoromaLogisticsException {
+  id         String   @id @default(cuid())
+  shipmentId String
+  type       String
+  severity   SoromaAlertSeverity @default(MEDIUM)
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  shipment SoromaShipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@map("soroma_logistics_exceptions")
+}
+
+model SoromaPassport {
+  id           String             @id @default(cuid())
+  tenantId     String
+  passportNo   String
+  batchId      String?
+  skuLotId     String?
+  status       SoromaPassportStatus @default(DRAFT)
+  version      Int                @default(1)
+  qrCode       String?
+  issuedAt     DateTime?
+  issuedById   String?
+  metadata     Json?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  tenant     SoromaTenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  batch      SoromaProductionBatch? @relation(fields: [batchId], references: [id])
+  events     SoromaTraceabilityEvent[]
+  scans      SoromaPassportScan[]
+  documents  SoromaPassportDocument[]
+
+  @@unique([tenantId, passportNo])
+  @@index([tenantId])
+  @@index([status])
+  @@map("soroma_passports")
+}
+
+model SoromaTraceabilityEvent {
+  id         String   @id @default(cuid())
+  tenantId   String
+  passportId String?
+  entityType String
+  entityId   String
+  eventType  String
+  payload    Json?
+  createdAt  DateTime @default(now())
+
+  passport SoromaPassport? @relation(fields: [passportId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([passportId])
+  @@index([entityType, entityId])
+  @@map("soroma_traceability_events")
+}
+
+model SoromaPassportScan {
+  id         String   @id @default(cuid())
+  passportId String
+  scannedAt  DateTime @default(now())
+  location   String?
+  verified   Boolean  @default(true)
+  metadata   Json?
+
+  passport SoromaPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
+
+  @@index([passportId])
+  @@map("soroma_passport_scans")
+}
+
+model SoromaPassportDocument {
+  id         String   @id @default(cuid())
+  passportId String
+  docType    String
+  fileUrl    String?
+  fileName   String?
+  createdAt  DateTime @default(now())
+
+  passport SoromaPassport @relation(fields: [passportId], references: [id], onDelete: Cascade)
+
+  @@index([passportId])
+  @@map("soroma_passport_documents")
+}
+
+model SoromaCertification {
+  id            String   @id @default(cuid())
+  tenantId      String
+  supplierId    String?
+  standard      String
+  certificateNo String?
+  issueDate     DateTime?
+  expiryDate    DateTime?
+  status        String   @default("ACTIVE")
+  documentUrl   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant SoromaTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([expiryDate])
+  @@map("soroma_certifications")
+}
+
+model SoromaAudit {
+  id          String   @id @default(cuid())
+  tenantId    String
+  auditType   String
+  scheduledAt DateTime
+  completedAt DateTime?
+  result      String?
+  score       Float?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  tenant SoromaTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("soroma_audits")
+}
+
+model SoromaCAPA {
+  id          String            @id @default(cuid())
+  tenantId    String
+  title       String
+  ownerId     String?
+  dueDate     DateTime?
+  status      SoromaAlertStatus @default(OPEN)
+  severity    SoromaAlertSeverity @default(MEDIUM)
+  evidenceUrl String?
+  closedAt    DateTime?
+  closedById  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  tenant SoromaTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("soroma_capas")
+}
+
+model SoromaQCTest {
+  id        String   @id @default(cuid())
+  tenantId  String
+  batchId   String?
+  testType  String
+  result    String
+  passed    Boolean
+  testedAt  DateTime @default(now())
+  notes     String?
+
+  tenant SoromaTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([batchId])
+  @@map("soroma_qc_tests")
+}
+
+model SoromaConnector {
+  id           String   @id @default(cuid())
+  code         String   @unique
+  name         String
+  type         String // MARKETPLACE, EXPORT, LOGISTICS, PAYMENT, B2B
+  authMethod   String?
+  capabilities Json?
+  status       SoromaConnectorStatus @default(PENDING)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  connections SoromaTenantConnection[]
+
+  @@map("soroma_connectors")
+}
+
+model SoromaTenantConnection {
+  id                String              @id @default(cuid())
+  tenantId          String
+  connectorId       String
+  externalAccountId String?
+  status            SoromaConnectorStatus @default(PENDING)
+  lastSyncAt        DateTime?
+  successRate       Float?
+  config            Json?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  tenant    SoromaTenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  connector SoromaConnector @relation(fields: [connectorId], references: [id])
+  mappings  SoromaProductMapping[]
+  syncJobs  SoromaSyncJob[]
+
+  @@unique([tenantId, connectorId])
+  @@index([tenantId])
+  @@map("soroma_tenant_connections")
+}
+
+model SoromaProductMapping {
+  id           String   @id @default(cuid())
+  connectionId String
+  internalSku  String
+  externalSku  String?
+  syncStatus   String   @default("PENDING")
+  lastSyncedAt DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  connection SoromaTenantConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId])
+  @@map("soroma_product_mappings")
+}
+
+model SoromaSyncJob {
+  id           String   @id @default(cuid())
+  connectionId String
+  jobType      String
+  status       String   @default("PENDING")
+  startedAt    DateTime?
+  completedAt  DateTime?
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  connection SoromaTenantConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  logs       SoromaSyncLog[]
+
+  @@index([connectionId])
+  @@map("soroma_sync_jobs")
+}
+
+model SoromaSyncLog {
+  id        String   @id @default(cuid())
+  jobId     String
+  level     String
+  message   String
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  job SoromaSyncJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@map("soroma_sync_logs")
+}
+
+model SoromaProgram {
+  id          String   @id @default(cuid())
+  name        String
+  code        String   @unique
+  description String?
+  year        Int?
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  indicators SoromaProgramIndicator[]
+  targets    SoromaProgramTarget[]
+
+  @@map("soroma_programs")
+}
+
+model SoromaProgramIndicator {
+  id          String   @id @default(cuid())
+  programId   String
+  name        String
+  code        String
+  unit        String?
+  targetValue Float?
+  sourceRule  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  program SoromaProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  values  SoromaIndicatorValue[]
+
+  @@unique([programId, code])
+  @@map("soroma_program_indicators")
+}
+
+model SoromaProgramTarget {
+  id         String   @id @default(cuid())
+  programId  String
+  period     String // Q1, Q2, annual
+  year       Int
+  targetValue Float
+  actualValue Float?
+  status     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  program SoromaProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([programId])
+  @@map("soroma_program_targets")
+}
+
+model SoromaIndicatorValue {
+  id          String   @id @default(cuid())
+  indicatorId String
+  period      String
+  value       Float
+  recordedAt  DateTime @default(now())
+
+  indicator SoromaProgramIndicator @relation(fields: [indicatorId], references: [id], onDelete: Cascade)
+
+  @@index([indicatorId])
+  @@map("soroma_indicator_values")
+}
+
+model SoromaOnboardingApplication {
+  id              String              @id @default(cuid())
+  orgName         String
+  contactName     String?
+  contactEmail    String?
+  contactPhone    String?
+  valueChain      String?
+  district        String?
+  stage           SoromaOnboardingStage @default(APPLICATION_RECEIVED)
+  assignedToId    String?
+  tenantId        String?
+  documents       Json?
+  slaDueAt        DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([stage])
+  @@map("soroma_onboarding_applications")
+}
+
+model SoromaAlert {
+  id           String              @id @default(cuid())
+  scope        SoromaWorkspaceType
+  tenantId     String?
+  severity     SoromaAlertSeverity
+  type         String
+  title        String
+  status       SoromaAlertStatus   @default(OPEN)
+  assignedToId String?
+  entityType   String?
+  entityId     String?
+  metadata     Json?
+  resolvedAt   DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  tenant SoromaTenant? @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([scope])
+  @@index([status])
+  @@index([severity])
+  @@map("soroma_alerts")
+}
+
+model SoromaFinanceRecord {
+  id          String   @id @default(cuid())
+  tenantId    String
+  recordType  String // REVENUE, COGS, OPEX, RECEIVABLE, PAYMENT
+  amount      Decimal  @db.Decimal(18, 2)
+  currency    String   @default("RWF")
+  reference   String?
+  batchId     String?
+  orderId     String?
+  dueDate     DateTime?
+  paidAt      DateTime?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  tenant SoromaTenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([recordType])
+  @@map("soroma_finance_records")
+}
+
+model SoromaInvoice {
+  id         String   @id @default(cuid())
+  tenantId   String
+  orderId    String
+  invoiceNo  String
+  amount     Decimal  @db.Decimal(18, 2)
+  currency   String   @default("RWF")
+  dueDate    DateTime?
+  paidAt     DateTime?
+  status     String   @default("OPEN")
+  createdAt  DateTime @default(now())
+
+  order SoromaOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, invoiceNo])
+  @@index([tenantId])
+  @@map("soroma_invoices")
+}
+
+model SoromaPermission {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  category    String   @default("GENERAL")
+  workspace   String   @default("BOTH") // PLATFORM, TENANT, BOTH
+  createdAt   DateTime @default(now())
+
+  roles SoromaRolePermission[]
+
+  @@map("soroma_permissions")
+}
+
+model SoromaRole {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  workspace   String   // PLATFORM | TENANT
+  description String?
+  createdAt   DateTime @default(now())
+
+  permissions SoromaRolePermission[]
+
+  @@map("soroma_roles")
+}
+
+model SoromaRolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  role       SoromaRole       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission SoromaPermission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("soroma_role_permissions")
+}
+
+model SoromaWorkflowEvent {
+  id         String   @id @default(cuid())
+  tenantId   String
+  entityType String
+  entityId   String
+  fromStatus String?
+  toStatus   String
+  action     String
+  userId     String?
+  comment    String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("soroma_workflow_events")
+}
+
+model SoromaAuditLog {
+  id            String   @id @default(cuid())
+  userId        String?
+  tenantId      String?
+  workspaceType SoromaWorkspaceType?
+  action        String
+  entityType    String?
+  entityId      String?
+  beforeState   Json?
+  afterState    Json?
+  ipAddress     String?
+  userAgent     String?
+  createdAt     DateTime @default(now())
+
+  tenant SoromaTenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("soroma_audit_logs")
+}
+
+model SoromaExportJob {
+  id            String   @id @default(cuid())
+  workspaceType SoromaWorkspaceType
+  tenantId      String?
+  requestedById String?
+  dataset       String
+  format        String
+  status        String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  filters       Json?
+  rowCount      Int?
+  summary       Json?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  errorMessage  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant SoromaTenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceType, status])
+  @@index([tenantId])
+  @@index([createdAt])
+  @@map("soroma_export_jobs")
+}
+
+model SoromaReportSchedule {
+  id            String   @id @default(cuid())
+  workspaceType SoromaWorkspaceType
+  tenantId      String?
+  createdById   String?
+  name          String
+  dataset       String
+  format        String
+  cadence       String // DAILY, WEEKLY, MONTHLY
+  isActive      Boolean  @default(true)
+  filters       Json?
+  nextRunAt     DateTime
+  lastRunAt     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant SoromaTenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceType, isActive])
+  @@index([tenantId, isActive])
+  @@index([nextRunAt])
+  @@map("soroma_report_schedules")
 }

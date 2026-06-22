@@ -51,6 +51,10 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
+import { Inter } from "next/font/google"
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+
 export default function RootLayout({
   children,
 }: {
@@ -68,7 +72,7 @@ export default function RootLayout({
         {/* Resource hints for faster loading */}
         <link rel="preload" href="/api/health" as="fetch" crossOrigin="anonymous" />
       </head>
-      <body className="min-h-screen bg-background font-sans antialiased" suppressHydrationWarning>
+      <body className={`min-h-screen bg-background font-sans antialiased ${inter.variable}`} suppressHydrationWarning>
         <Providers>
           {children}
           {/* Performance monitor - only in development */}

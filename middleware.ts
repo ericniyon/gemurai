@@ -36,6 +36,7 @@ const publicRoutes = [
   "/contact",
   "/terms",
   "/privacy",
+  "/soroma/login",
 ]
 
 // List of public routes that should also be public with locale prefixes
@@ -213,6 +214,26 @@ export async function middleware(request: NextRequest) {
     }
     
     return response
+  }
+
+  // SOROMA FOODS — standalone product routes
+  if (path.startsWith("/soroma")) {
+    if (path === "/soroma/login" || path.startsWith("/soroma/login/")) {
+      return response
+    }
+    const token = request.cookies.get("Gemurai_token")?.value
+    if (!token) {
+      return Response.redirect(new URL("/soroma/login", request.url))
+    }
+    try {
+      const userData = await verifyAuthToken(token)
+      if (!userData) throw new Error("Invalid token")
+      const soromaResponse = NextResponse.next()
+      soromaResponse.headers.set("x-pathname", path)
+      return soromaResponse
+    } catch {
+      return Response.redirect(new URL("/soroma/login", request.url))
+    }
   }
 
   // Handle superadmin routes specifically
