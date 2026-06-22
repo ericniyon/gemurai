@@ -1,4 +1,8 @@
 import { SoromaModuleDashboard } from "@/components/soroma/module-dashboard"
+import {
+  safeSoromaExportJobFindMany,
+  safeSoromaReportScheduleFindMany,
+} from "@/lib/soroma/reporting"
 import { prisma } from "@/lib/database"
 
 export default async function TenantReportsPage({
@@ -9,12 +13,12 @@ export default async function TenantReportsPage({
   const { tenantId } = await params
   const [tenant, exportJobs, schedules] = await Promise.all([
     prisma.soromaTenant.findUnique({ where: { id: tenantId }, select: { name: true } }),
-    prisma.soromaExportJob.findMany({
+    safeSoromaExportJobFindMany({
       where: { workspaceType: "TENANT", tenantId },
       orderBy: { createdAt: "desc" },
       take: 50,
     }),
-    prisma.soromaReportSchedule.findMany({
+    safeSoromaReportScheduleFindMany({
       where: { workspaceType: "TENANT", tenantId },
       orderBy: { createdAt: "desc" },
       take: 50,
